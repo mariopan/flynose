@@ -109,15 +109,17 @@ def flynose_plot(all_data_tmp, params2an, id_c):
     ln_sdf_norm = all_data_tmp[7]
     ln_sdf_time = all_data_tmp[8]    
     
-    ll, bb, ww, hh = ax_conc.get_position().bounds
-    ax_conc.set_position([ll, bb+.0075, ww, hh])
-    ll, bb, ww, hh = ax_orn.get_position().bounds
-    ax_orn.set_position([ll, bb+.005, ww, hh])
-    ll, bb, ww, hh = ax_pn.get_position().bounds
-    ax_pn.set_position([ll, bb+.0025, ww, hh])
-
+    # ****************************************************
+    # FIGURE SETTING
     if id_c==0:
         
+        ll, bb, ww, hh = ax_conc.get_position().bounds
+        ax_conc.set_position([ll, bb+.075, ww, hh])
+        ll, bb, ww, hh = ax_orn.get_position().bounds
+        ax_orn.set_position([ll, bb+.05, ww, hh])
+        ll, bb, ww, hh = ax_pn.get_position().bounds
+        ax_pn.set_position([ll, bb+.025, ww, hh])
+
         ax_conc.set_xlim(t2plot)
         ax_orn.set_xlim(t2plot)
         ax_pn.set_xlim(t2plot)
@@ -160,7 +162,8 @@ def flynose_plot(all_data_tmp, params2an, id_c):
         ax_ln.spines['top'].set_color('none')
         
 
-    
+    # ****************************************************
+    # PLOTTING DATA
     ax_conc.plot(t-t_on, 100*u_od[:,0], color=greenmap.to_rgba(id_c + 1), linewidth=lw, 
                   label='glom : '+'%d'%(1))
     
@@ -258,6 +261,7 @@ fld_analysis = '../Olsen2010_Martelli2013'
 fig_name0   = 'ORN-PN_Olsen2010_timecourse_dur_%d'%stim_dur
 fig_name1   = 'ORN-PN_Olsen2010_dur_%d'%stim_dur
 fig_name2   = 'ORN-Martelli2013_dur_%d'%stim_dur
+al_fig      = 1
 olsen_fig   = 0
 martelli_fig = 1
 fig_save    = 1
@@ -319,15 +323,16 @@ for stim_seed in [0]:
         
         #******************************************************
         # FIGURE Olsen 2010
-        t2plot = -200, stim_dur+300
-        rs = 4 # number of rows
-        cs = 1 # number of cols
-        
-        fig_pn = plt.figure(figsize=[7, 7])
-        ax_conc = plt.subplot(rs, cs, 1)
-        ax_orn = plt.subplot(rs, cs, 1+cs)
-        ax_pn = plt.subplot(rs, cs, 1+cs*2)
-        ax_ln = plt.subplot(rs, cs, 1+cs*3)
+        if al_fig:
+            t2plot = -200, stim_dur+300
+            rs = 4 # number of rows
+            cs = 1 # number of cols
+            
+            fig_pn = plt.figure(figsize=[7, 7])
+            ax_conc = plt.subplot(rs, cs, 1)
+            ax_orn = plt.subplot(rs, cs, 1+cs)
+            ax_pn = plt.subplot(rs, cs, 1+cs*2)
+            ax_ln = plt.subplot(rs, cs, 1+cs*3)
         
         #******************************************************
         # FIGURE Martelli 2013
@@ -391,13 +396,15 @@ for stim_seed in [0]:
             nu_orn_err[id_c] = out_olsen[4]
             nu_pn_err[id_c] = out_olsen[5]
             nu_ln_err[id_c] = out_olsen[6]
-            flynose_plot(all_data_tmp, params2an, id_c)
+            if al_fig:
+                flynose_plot(all_data_tmp, params2an, id_c)
             if martelli_fig:
                 martelli_plot(all_data_tmp, params2an, id_c)
 
         if fig_save:
             print('saving figure in '+fld_analysis)
-            fig_pn.savefig(fld_analysis+  '/images/' +fig_name0+'_'+inh_cond+'.png')
+            if al_fig:
+                fig_pn.savefig(fld_analysis+  '/images/' +fig_name0+'_'+inh_cond+'.png')
             if martelli_fig:
                 fig_pn_m.savefig(fld_analysis+  '/images/' +fig_name2+'_'+inh_cond+'.png')
                            
