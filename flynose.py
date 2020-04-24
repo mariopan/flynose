@@ -16,8 +16,6 @@ import scipy.stats as spst
 from scipy.integrate import odeint
 import matplotlib.pyplot as plt
 import timeit
-from os import getcwd as pwd
-from scipy.integrate import quad
 
 import pickle        
 from os import path
@@ -30,40 +28,11 @@ sys.path.insert(0, '/flynose/')
 import flynose.corr_steps as corr_steps
 import flynose.corr_plumes as corr_plumes
 import flynose.sdf_krofczik as sdf_krofczik
-#from scipy.optimize import curve_fit
+import flynose.stats_for_plumes as stats
 
 # *****************************************************************
 # FUNCTIONS
-def overlap(a,b):
-    a = (a>0)*1.0
-    b = (b>0)*1.0
-    return np.sum(a*b)*2.0/(np.sum(a)+np.sum(b))
 
-def rnd_pow_law(a, b, g, r):
-    """Power-law gen for pdf(x)\propto x^{g-1} for a<=x<=b"""
-    ag, bg = a**g, b**g
-    return (ag + (bg - ag)*r)**(1./g)
-
-# concentration values drawn from fit of Mylne and Mason 1991 fit of fig.10 
-def rnd_mylne_75m(a1, b1, r):
-    """Mylne and Mason 1991 fit of fig.10 """
-    y = ((1-np.heaviside(r-.5, 0.5)) * .3*r/.5 + 
-         np.heaviside(r-.5, 0.5)* (-(a1 + np.log10(1-r))/b1))
-    return y
-
-def whiffs_blanks_pdf(dur_min, dur_max, g):
-    logbins  = np.logspace(np.log10(dur_min),np.log10(dur_max))
-    pdf_th  = pdf_pow_law(logbins, dur_min, dur_max, g)      # theoretical values of the pdf
-    dur_mean = quad(lambda x: x*pdf_pow_law(x, dur_min, dur_max, g), dur_min, dur_max) # integrate the pdf to check it sum to 1
-    return pdf_th, logbins, dur_mean[0]
-
-def pdf_pow_law(x, a, b, g):
-    ag, bg = a**g, b**g
-    return g * x**(g-1) / (bg - ag)
-
-def olsen_orn_pn(nu_orn, sigma, nu_max):
-    nu_pn = nu_max * np.power(nu_orn, 1.5)/(np.power(nu_orn, 1.5) + np.power(sigma,1.5))
-    return nu_pn
 
 def depalo_eq2(z,t,u,u2,orn_params,):
     ax = orn_params[0]
@@ -96,44 +65,9 @@ def depalo_eq2(z,t,u,u2,orn_params,):
     dzdt = [drdt,dxdt,dydt,dsdt,dqdt,dwdt]
     return dzdt
 
-def depalo_eq(z,t,u,orn_params,):
-    ax = orn_params[0]
-    cx = orn_params[1]
-    bx = orn_params[2]
-    by = orn_params[3]
-    dy = orn_params[4]
-    b = orn_params[5]
-    d = orn_params[6]
-    ar = orn_params[7]
-    n = orn_params[8]
-    
-    r = z[0]
-    x = z[1]
-    y = z[2]
-    drdt = b*u**n*(1-r) - d*r
-    dxdt = ax*y - bx*x
-    dydt = ar*r - cx*x*(1+dy*y) - by*y 
-    dzdt = [drdt,dxdt,dydt]
-    return dzdt
-
 def rect_func(b, x):
     ot = b[0]/(1 + np.exp(-b[1]*(x-b[2])))
     return ot
-
-def running_sum(x, N):
-    out = np.zeros_like(x, dtype=np.float64)
-    dim_len = x.shape[0]
-    for ii in range(dim_len):
-        if N%2 == 0:
-            a, b = ii - (N-1)//2, ii + (N-1)//2 + 2
-        else:
-            a, b = ii - (N-1)//2, ii + (N-1)//2 + 1
-
-        #cap indices to min and max indices
-        a = max(0, a)
-        b = min(dim_len, b)
-        out[ii] = np.sum(x[a:b])
-    return out
 
 def pn2ln_s(z,t, u_pn, ln_params, ):
 
@@ -286,11 +220,6 @@ def orn2pn(z,t, u_orn, x_pn,x_ln,pn_params,):
     dzdt = [dsdt, dvdt]
     return dzdt
 
-#def x_adapt(z,t, u_orn, tau, a,):
-#    # PN adaptation variable 
-#    x = z[0]    
-#    dxdt = (a*u_orn*(1-x) - x)/tau
-#    return dxdt
 
 def x_adapt_ex(x0,t,u_orn, tau, a_ad,):
     b = (-a_ad*u_orn-1)/tau
@@ -299,15 +228,6 @@ def x_adapt_ex(x0,t,u_orn, tau, a_ad,):
     y = (x0 + a/b)*np.exp(b*dt)-a/b
     return y
 
-
-def poisson_isi(rate, n_spikes):
-    isi = -np.log(1.0 - np.random.random_sample(n_spikes)) / rate
-    return isi
-
-def freq_eff(fr, t_ref, pts_ms):
-    t_ref_sec = t_ref/1000/pts_ms # t_ref in second
-    fr_eff = fr /(1+ fr*t_ref_sec) # effective firing rates (considering refractary period)
-    return fr_eff  
 #%%*****************************************************************
 
 # *****************************************************************
@@ -335,14 +255,13 @@ data_save = True
 def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
     
     orn_fig     = fig_opts[0]
-    al_dyn      = 0
+    al_dyn      = 1
     al_fig      = fig_opts[1]
     stimulus    = params2an[7] # 'ss'   # 'rs'   #  'pl'  # 'ts'
     
     # *****************************************************************
     # STIMULUS GENERATION
     
-    nsi             = True #  False #   flag to choose whether the simulation is with or w/o NSIs
     nsi_value       = params2an[0] # 0.3     #.2 0.1 0.05 0.00
     ln_spike_height = params2an[1] # .0        # .3
     
@@ -360,7 +279,6 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
     col_glo[1,:]    = cmap(int(255/(id_colors2u[1]+1.3)))
     
     t2simulate      = np.maximum(params2an[2],1200) # [ms]
-    t2average       = 20      # [ms] time window for moving average in the plot
     t_on            = 300      # [ms]
     # average sdf parameters
     tau_sdf         = 20
@@ -383,9 +301,6 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
     
     # STEP stimulus 1st glomerulus
     stim_on         = t_on*pts_ms 
-    # WARNING: useful only for correlation measures
-    # spon_time       = np.arange(50*pts_ms, stim_on-10*pts_ms)
-    # stim_time       = np.arange(stim_on+10*pts_ms, stim_on+200*pts_ms)
         
     # initialize output vectors
     num_glo         = 2     # number of glomeruli
@@ -487,8 +402,8 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
         rho_t           = 1-10**-rho_t_exp
         
         # CALCULATE THE THEORETICAL MEAN WHIFF, MEAN BLANK DURATIONS AND INTERMITTENCY
-        pdf_wh, logbins, wh_mean = whiffs_blanks_pdf(whiff_min, whiff_max, g)
-        pdf_bl, logbins, bl_mean = whiffs_blanks_pdf(blank_min, blank_max, g)
+        pdf_wh, logbins, wh_mean = stats.whiffs_blanks_pdf(whiff_min, whiff_max, g)
+        pdf_bl, logbins, bl_mean = stats.whiffs_blanks_pdf(blank_min, blank_max, g)
         
         interm_th = wh_mean/(wh_mean+bl_mean)
         if verbose:
@@ -506,31 +421,23 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
         out_y, out_w, _, _= corr_plumes.main(*stim_params)
         u_od[stim_on:, 0] = out_y*params2an[4]
         u_od[stim_on:, 1] = out_w*params2an[4]*params2an[5]
-        
-        od_avg1_tmp = np.mean(out_y)#stim_off
-        od_avg2_tmp = np.mean(out_w)#stim_off
-        print('od_avg1 tmp:%.2f'%(od_avg1_tmp))
-        print('od_avg2 tmp:%.2f'%(od_avg2_tmp))
-        
+               
         cor_stim        = -2
         overlap_stim    = -2
         cor_whiff       = -2
         
         interm_est_1 = np.sum(out_y>0)/(t2sim_s*sample_rate)
         interm_est_2 = np.sum(out_w>0)/(t2sim_s*sample_rate)
-#        interm_est[rr,1] = np.sum(out_w>0)/(t2sim*sample_rate)
+
         if (np.sum(out_y)!=0) & (np.sum(out_w)!=0):
             cor_stim        = np.corrcoef(out_y, out_w)[1,0]
-            overlap_stim    = overlap(out_y, out_w)
+            overlap_stim    = stats.overlap(out_y, out_w)
             nonzero_concs1  = out_y[(out_y>0) & (out_w>0)]
             nonzero_concs2  = out_w[(out_y>0) & (out_w>0)]
             cor_whiff       = np.corrcoef(nonzero_concs1, nonzero_concs2)[0, 1] # np.corrcoef(concs1, concs2)[0, 1]
     
-    od_avg1 = np.mean(u_od[stim_on:, 0])#stim_off
-    od_avg2 = np.mean(u_od[stim_on:, 1])#stim_off
-    print('od_avg1:%.2f'%(od_avg1))
-    print('od_avg2:%.2f'%(od_avg2))
-    
+    od_avg1 = np.mean(u_od[stim_on:, 0])
+    od_avg2 = np.mean(u_od[stim_on:, 1])    
     
     # *****************************************************************
     # CONNECTIVITY PARAMETERS
@@ -591,11 +498,7 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
                  cov_hom*np.ones((num_orns_glo, num_orns_glo))) # diagonal covariance
     mv_cov[num_orns_glo:, num_orns_glo:] = mv_cov_tmp
     mv_cov[:num_orns_glo, :num_orns_glo] = mv_cov_tmp
-    
-    #    # Correlation calculus params
-    #    wind_len    = 2*pts_ms    # window length for the sliding window average
-    #    ss_len      = 1*pts_ms    # subsample length
-    
+        
     # Each PN belongs to ONLY one of the glomeruli
     ids_pn_glo = np.zeros(num_pns_tot, dtype=int)
     ids_pn_glo[:num_pns_glo] = 0
@@ -634,9 +537,7 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
     r_orn               = np.zeros((n2sim, num_glo))
     x_orn               = np.zeros((n2sim, num_glo))
     y_orn               = np.zeros((n2sim, num_glo))
-    nu_orn              = np.zeros((n2sim, num_glo))
-    nu_orn_run          = np.zeros((n2sim, num_glo))
-    
+    nu_orn              = np.zeros((n2sim, num_glo))   
     
     # initial conditions
     z_orn0          = np.ones((num_glo, 3))*[0, 0, 0]
@@ -647,35 +548,22 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
     for tt in range(1, n2sim-t_ref-1):
         # span for next time step
         tspan = [t[tt-1],t[tt]]
-        if nsi == False:
-            for gg in range(num_glo):
-                z_orn = odeint(depalo_eq, z_orn0[gg,:], tspan,
-                               args=(u_od[tt, gg],orn_params,))
-                z_orn0[gg,:] = z_orn[1]
-                r_orn[tt,gg] = z_orn[1][0]
-                x_orn[tt,gg] = z_orn[1][1]
-                y_orn[tt,gg] = z_orn[1][2]
-                   
-                nu_orn[tt,gg] = rect_func(B0, y_orn[tt,gg])
-        elif nsi == True:
-            z0_unid = np.zeros(6)
-            z0_unid[0:3] = z_orn0[0,:]
-            z0_unid[3:6] = z_orn0[1,:]
-            z_orn = odeint(depalo_eq2, z0_unid, tspan,
-                           args=(u_od[tt, 0], u_od[tt, 1], orn_params,))
-            for gg in range(num_glo):
-                z_orn0[gg,0] = z_orn[1][0+gg*3]
-                z_orn0[gg,1] = z_orn[1][1+gg*3]
-                z_orn0[gg,2] = z_orn[1][2+gg*3]
-            
-                r_orn[tt,gg] = z_orn[1][0+gg*3]
-                x_orn[tt,gg] = z_orn[1][1+gg*3]
-                y_orn[tt,gg] = z_orn[1][2+gg*3]
-               
-                nu_orn[tt,gg] = rect_func(B0, y_orn[tt,gg])
-    
         
-
+        z0_unid = np.zeros(6)
+        z0_unid[0:3] = z_orn0[0,:]
+        z0_unid[3:6] = z_orn0[1,:]
+        z_orn = odeint(depalo_eq2, z0_unid, tspan,
+                       args=(u_od[tt, 0], u_od[tt, 1], orn_params,))
+        for gg in range(num_glo):
+            z_orn0[gg,0] = z_orn[1][0+gg*3]
+            z_orn0[gg,1] = z_orn[1][1+gg*3]
+            z_orn0[gg,2] = z_orn[1][2+gg*3]
+        
+            r_orn[tt,gg] = z_orn[1][0+gg*3]
+            x_orn[tt,gg] = z_orn[1][1+gg*3]
+            y_orn[tt,gg] = z_orn[1][2+gg*3]
+           
+            nu_orn[tt,gg] = rect_func(B0, y_orn[tt,gg])
     
     orn_avg1 = np.mean(nu_orn[stim_on:stim_off, 0])
     orn_avg2 = np.mean(nu_orn[stim_on2:stim_off2, 1])
@@ -688,7 +576,6 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
     # matrix n2sim by num_orns_tot of correlated spikes:
     num_spike_orn   = np.zeros((n2sim, num_orns_tot))
     u_orn           = np.zeros((n2sim, num_pns_tot))
-    out_orn_run     = np.zeros((n2sim, num_pns_tot))
     
     # generate a matrix n2sim by num_orns_tot of correlated spikes:
     rnd     = np.random.multivariate_normal(mv_mean, mv_cov, n2sim)
@@ -754,18 +641,12 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
 
     # *****************************************************************
     # FIGURE ORN 
-    for gg in range(num_glo):
-        nu_orn_run[:,gg] = (running_sum(nu_orn[:,gg], int(pts_ms*t2average))
-            /(t2average*pts_ms))
-    for pp in range(num_pns_tot):
-        out_orn_run[:,pp] = (running_sum(u_orn[:,pp], int(pts_ms*t2average))
-            /(t2average*pts_ms))
 
     if orn_fig:  
         t2plot = -200, 1000 #t2simulate #-t_on, t2simulate-t_on
         if stimulus == 'pl':
 #            lw = 1.1
-            t2plot = 2000, 4000
+            t2plot = 0, 1000#2000, 4000
         rs = 4 # number of rows
         cs = 1 # number of cols
         panels_id = ['a.', 'b.', 'c.', 'd.']
@@ -880,104 +761,10 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
     
              
     #    %%*****************************************************************
-            
-    #    # *****************************************************************
-    #    # CORRELATION BETWEEN ORN RESPONSES
-    #    orns2an_glo1    = np.array([0,1,2,3,4])
-    #    orns2an_glo2    = np.array([ 40, 41,42,43,44])
-    #    orns2an         = np.concatenate((orns2an_glo1,orns2an_glo2))
-    #    num_orns2an     = orns2an.size
-    #    num_orn_g1_2an  = int(num_orns2an/2)
-    #        
-    #    conds = ['spon', 'stim']
-    #    cor_orn_m = np.zeros((np.size(conds), num_glo))
-    #    
-    #    for stim_cond in conds:
-    #        cor_orn = np.nan*np.ones((num_orns2an, num_orns2an))                    
-    #        for oo in range(num_orns2an-1):
-    #            if stim_cond == 'spon':
-    #                orn0 = num_spike_orn[spon_time,oo]  
-    #            else:
-    #                orn0 = num_spike_orn[stim_time,oo] 
-    #            orn0 = running_sum(orn0, wind_len)/wind_len
-    #            orn0 = np.array(orn0[::ss_len])
-    #            if sum(orn0) != 0:
-    #                for oo1 in range(oo+1, num_orns2an):
-    #                    if stim_cond == 'spon':
-    #                        orn1 = num_spike_orn[spon_time, oo1]
-    #                    elif stim_cond == 'stim':
-    #                        orn1 = num_spike_orn[stim_time, oo1]                     
-    #                    orn1 = running_sum(orn1, wind_len)/wind_len
-    #                    orn1 = np.array(orn1[::ss_len])              
-    #                    if sum(orn1) != 0:
-    #                        cor_orn[oo,oo1] = np.corrcoef(orn1, orn0)[0, 1]
-    #                        cor_orn[oo1,oo] = cor_orn[oo,oo1] 
-    #                
-    #        cor_orn_g1 = np.arctanh(cor_orn[:num_orn_g1_2an, :num_orn_g1_2an])
-    #        cor_orn_g2 = np.arctanh(cor_orn[num_orn_g1_2an:,num_orn_g1_2an:])
-    #        
-    #        if stim_cond == 'spon':
-    #            cor_orn_m[0, 0] = np.tanh(np.nanmean(cor_orn_g1))
-    #            cor_orn_m[0, 1] = np.tanh(np.nanmean(cor_orn_g2))
-    #            if verbose:
-    #                print('cor ORNs g1 spontan:' + '%.2f'%cor_orn_m[0, 0])
-    #                print('cor ORNs g2 spontan:' + '%.2f'%cor_orn_m[0, 1])
-    #        elif stim_cond == 'stim':
-    #            cor_orn_m[1, 0] = np.tanh(np.nanmean(cor_orn_g1))
-    #            cor_orn_m[1, 1] = np.tanh(np.nanmean(cor_orn_g2))
-    #            if verbose:
-    #                print('cor ORNs g1 stimul:' + '%.2f'%cor_orn_m[1, 0])
-    #                print('cor ORNs g2 un-stim:' + '%.2f'%cor_orn_m[1, 1])
-    #   # ******************************************
-        
-#    # %%******************************************
-#    
-#    # FIGURE corr of ORNs
-#    fig = plt.figure(figsize=(15,8), )
-#    ax1 = plt.subplot(2,3,1)
-#    sh1 = ax1.imshow(cor_orn_g1)
-#    plt.colorbar(sh1, ax=ax1, fraction=0.046, pad=0.04)
-#    if stim_cond == 'spon':
-#        ax1.set_title('spontaneous activity')
-#        ax1.set_title('spontaneous activity')
-#    else:
-#        ax1.set_title('stimulated')
-#            
-#    cor_tmp = cor_orn_g1[~np.isnan(cor_orn_g1)].flatten()
-#    if ~np.any(np.isinf(cor_tmp)):
-#        ax5 = plt.subplot(2,3,2)
-#        ax5.hist(cor_tmp)
-#        ax6 = plt.subplot(2,3,3)
-#        ax6.plot(cor_tmp)
-#    else:
-#        print('some inf value')
-#    
-#    ax4 = plt.subplot(2,3,4)
-#    sh2 = ax4.imshow(cor_orn_g2)
-#    plt.colorbar(sh2, ax=ax4, fraction=0.046, pad=0.04)
-#    cor_tmp = cor_orn_g2[~np.isnan(cor_orn_g2)].flatten()
-#    if ~np.any(np.isinf(cor_tmp)):
-#        ax5 = plt.subplot(2,3,5)
-#        ax5.hist(cor_tmp)
-#        ax6 = plt.subplot(2,3,6)
-#        ax6.plot(cor_tmp)
-#    else:
-#        print('some inf value')
-#    
-#    # *****************************************************************         
+      
                                 
     # *****************************************************************
     # PN and LN PARAMETERS and OUTPUT VECTORS
-#def pn_ln_sim(net_params, stim_params):
-#    n2sim       = stim_params[0]
-#    t           = stim_params[1]
-#    u_orn       = stim_params[2]
-#    
-#    num_pns_tot = net_params[0]
-#    num_lns_tot = net_params[1]
-#    pn_params   = net_params[2]
-#    ln_params   = net_params[3]
-#    cmn_params  = net_params[4]
 
     # *****************************************************************
     # AL SIMULATION 
@@ -1023,13 +810,11 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
     
     # INITIALIZE PN output vectors
     num_spike_pn    = np.zeros((n2sim, num_pns_tot))
-    nu_pn_run       = np.zeros((n2sim, num_pns_tot))
     
     # INITIALIZE LN output vectors
     s_ln            = np.zeros((n2sim, num_lns_tot))
     v_ln            = np.zeros((n2sim, num_lns_tot))
     num_spike_ln    = np.zeros((n2sim, num_lns_tot))  
-    nu_ln_run       = np.zeros((n2sim, num_lns_tot))
     
     # PN and LN params initial conditions
     x_pn[0, :]      = x_pn0
@@ -1126,14 +911,6 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
                             ln_spike_matrix, tau_sdf=tau_sdf, dt_sdf=dt_sdf)  # (Hz, ms)
         ln_sdf_norm = ln_sdf_norm*1e3
     
-        # *****************************************************************
-        # Calculate the running average of the PNs and LNs activities
-        for pp in range(num_pns_tot):
-            nu_pn_run[:,pp] = (running_sum(num_spike_pn[:,pp], int(pts_ms*t2average))
-                /t2average*1e3)
-        for ll in range(num_lns_tot):
-            nu_ln_run[:,ll] = (running_sum(num_spike_ln[:,ll], int(pts_ms*t2average))
-                /t2average*1e3)
         
   
         # *************************************************************************
@@ -1156,18 +933,6 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
         id_post_stim2 = np.flatnonzero((pn_sdf_time>t_on2) & (pn_sdf_time<t_off2+100))
         pn_peak1  = np.max(np.mean(pn_sdf_norm[id_post_stim, :num_pns_glo], axis=1)) # using average PN
         pn_peak2  = np.max(np.mean(pn_sdf_norm[id_post_stim2, num_pns_glo:], axis=1)) # using average PN
-    #    pn_peak1  = np.max(np.mean(nu_pn_run[stim_on:stim_off+100*pts_ms, :num_pns_glo], axis=1)) # using average PN
-    #    pn_peak2  = np.max(np.mean(nu_pn_run[stim_on:stim_off+100*pts_ms, num_pns_glo:], axis=1)) # using average PN
-        
-    #    pn_avg1  = np.mean(nu_pn_run[stim_on:stim_off, :num_pns_glo]) # using average PN
-    #    pn_m50_1  =np.sum(np.mean(nu_pn_run[stim_on:stim_off, :num_pns_glo], axis=1)>50)
-    #    pn_m100_1  =np.sum(np.mean(nu_pn_run[stim_on:stim_off, :num_pns_glo], axis=1)>100)
-    #    pn_m150_1  =np.sum(np.mean(nu_pn_run[stim_on:stim_off, :num_pns_glo], axis=1)>150)
-        
-    #    pn_avg2  = np.mean(nu_pn_run[stim_on:stim_off, num_pns_glo:]) 
-    #    pn_m50_2  =np.sum(np.mean(nu_pn_run[stim_on:stim_off, num_pns_glo:], axis=1)>50)
-    #    pn_m100_2  =np.sum(np.mean(nu_pn_run[stim_on:stim_off, num_pns_glo:], axis=1)>100)
-    #    pn_m150_2  =np.sum(np.mean(nu_pn_run[stim_on:stim_off, num_pns_glo:], axis=1)>150)
         
         
         # SAVE SDF OF conc, ORN, PN and LN FIRING RATE
@@ -1248,13 +1013,11 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
         t2plot = -100, t2simulate #000-t_on, t2simulate
         if stimulus == 'pl':
             #lw = 1.1
-            t2plot = 2000, 4000
+            t2plot = 0, 1000#2000, 4000
         rs = 4 # number of rows
         cs = 1 # number of cols
         
         fig_pn = plt.figure(figsize=[7, 10])
-#        fig_pn.canvas.manager.window.wm_geometry("+%d+%d" % fig_position )
-#        fig_pn.tight_layout()
         
         ax_conc = plt.subplot(rs, cs, 1)
         ax_orn = plt.subplot(rs, cs, 1+cs)
@@ -1347,109 +1110,6 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
             
     # *************************************************************************
     
-    
-        #    # *****************************************************************
-        #    # %%   CORRELATION BETWEEN PNs trains of spikes
-        #    cor_pn_m = np.zeros((np.size(conds), num_glo+1))
-        #    
-        #    for stim_cond in ['spon', 'stim']:
-        #        cor_pn = np.nan*np.ones((num_pns_tot, num_pns_tot))
-        #        for pp in range(num_pns_tot-1):
-        #            if stim_cond == 'spon':
-        #                pn0 = num_spike_pn[spon_time, pp] 
-        #            elif stim_cond == 'stim':
-        #                pn0 = num_spike_pn[stim_time, pp] 
-        #            pn0 = running_sum(pn0, wind_len)/wind_len
-        #            pn0 = np.array(pn0[::ss_len])
-        #            if sum(pn0) != 0:
-        #                for pp1 in range(pp+1, num_pns_tot):
-        #                    if stim_cond == 'spon':
-        #                        pn1 = num_spike_pn[spon_time, pp1] 
-        #                    elif stim_cond == 'stim':
-        #                        pn1 = num_spike_pn[stim_time, pp1] 
-        #                    pn1 = running_sum(pn1, wind_len)/wind_len
-        #                    pn1 = np.array(pn1[::ss_len])                
-        #                    if sum(pn1) != 0:
-        #                        cor_pn[pp,pp1] = np.corrcoef(pn1, pn0)[0, 1]
-        #                        cor_pn[pp1,pp] = cor_pn[pp,pp1]
-        #                            
-        #        cor_pn_g1 = cor_pn[:num_pns_glo,:num_pns_glo]
-        #        cor_pn_g2 = cor_pn[num_pns_glo:,num_pns_glo:]
-        #        cor_pn_g12 = cor_pn[:num_pns_glo,num_pns_glo:]
-        #        
-        #        # mean are calculated from the Fisher transform:
-        #        if stim_cond == 'spon':
-        #            cor_pn_m[0, 0] = np.tanh(np.nanmean(np.arctanh(cor_pn_g1)))
-        #            cor_pn_m[0, 1] = np.tanh(np.nanmean(np.arctanh(cor_pn_g2)))
-        #            cor_pn_m[0, 2] = np.tanh(np.nanmean(np.arctanh(cor_pn_g12)))
-        #            if verbose:
-        #                print('cor PN g1 spontan:' + '%.2f'%cor_pn_m[0, 0])
-        #                print('cor PN g2 spontan:' + '%.2f'%cor_pn_m[0, 1])
-        #                print('cor PN g1-g2 spontan:' + '%.2f'%cor_pn_m[0, 2])
-        #        elif stim_cond == 'stim':
-        #            cor_pn_m[1, 0] = np.tanh(np.nanmean(np.arctanh(cor_pn_g1)))
-        #            cor_pn_m[1, 1] = np.tanh(np.nanmean(np.arctanh(cor_pn_g2)))
-        #            cor_pn_m[1, 2] = np.tanh(np.nanmean(np.arctanh(cor_pn_g12)))
-        #            if verbose:
-        #                print('cor PN g1 stimul:' + '%.2f'%cor_pn_m[1, 0])
-        #                print('cor PN g2 un-stim:' + '%.2f'%cor_pn_m[1, 1])
-        #                print('cor PN g1-g2 stimul:' + '%.2f'%cor_pn_m[1, 2])               
-        #        # %%******************************************
-        #        # FIGURE CORRELATION of PNs
-        #        fig2 = plt.figure(figsize=(15,8), )
-        #        rs = 3 # number of rows
-        #        cs = 3 # number of cols
-        #    
-        #        ax1 = plt.subplot(rs,cs,1)
-        #        sh1 = ax1.imshow(cor_pn_g1)
-        #        plt.colorbar(sh1, ax=ax1, fraction=0.046, pad=0.04)
-        #        cor_tmp = cor_pn_g1[~np.isnan(cor_pn_g1)].flatten()
-        #        if ~np.any(np.isinf(cor_tmp)):
-        #            ax5 = plt.subplot(rs,cs,2)
-        #            ax5.hist(cor_tmp)
-        #            ax6 = plt.subplot(rs,cs,3)
-        #            ax6.plot(cor_tmp)
-        #        else:
-        #            print('some inf value')
-        #        
-        #        ax4 = plt.subplot(rs,cs,4)
-        #        sh2 = ax4.imshow(cor_pn_g2)
-        #        plt.colorbar(sh2, ax=ax4, fraction=0.046, pad=0.04)
-        #        cor_tmp = cor_pn_g2[~np.isnan(cor_pn_g2)].flatten()
-        #        if ~np.any(np.isinf(cor_tmp)):
-        #            ax5 = plt.subplot(rs,cs,5)
-        #            ax5.hist(cor_tmp)
-        #            ax6 = plt.subplot(rs,cs,6)
-        #            ax6.plot(cor_tmp)
-        #        else:
-        #            print('some inf value')
-        #
-        #        ax7 = plt.subplot(rs,cs, 7)
-        #        sh3 = ax7.imshow(cor_pn_g12)
-        #        plt.colorbar(sh3, ax=ax7, fraction=0.046, pad=0.04)
-        #        cor_tmp = cor_pn_g12[~np.isnan(cor_pn_g12)].flatten()
-        #        if ~np.any(np.isinf(cor_tmp)):
-        #            ax8 = plt.subplot(rs,cs,8)
-        #            ax8.hist(cor_tmp)
-        #            ax9 = plt.subplot(rs,cs,9)
-        #            ax9.plot(cor_tmp)
-        #        else:
-        #            print('some inf value')
-        #        if stim_cond == 'spon':
-        #            ax1.set_title('Spontaneous g1')
-        #            ax4.set_title('Spontaneous g2')
-        #            ax7.set_title('Spontaneous g1 and g2')
-        #            if fig_save:
-        #                fig2.savefig(fld_analysis + '/Noise_Corr_PN_spon.png')
-        #        elif stim_cond == 'stim':
-        #            ax1.set_title('Stimulated g1')
-        #            ax4.set_title('Non-Stimulated g2')
-        #            ax7.set_title('Stim g1 and non-Stimulated g2')
-        #            if fig_save:
-        #                fig2.savefig(fld_analysis + '/Noise_Corr_PN_stim.png')
-        #        
-        #
-    
     orn_stim = [orn_avg1, orn_avg2, orn_peak1, orn_peak2, ]
     if al_dyn:
         pn_stim = [pn_avg1, pn_avg2, pn_peak1, pn_peak2,]
@@ -1481,21 +1141,21 @@ if __name__ == '__main__':
 #        fig_save    = 0
 #        #***********************************************
         
-        # FIG. ORN_response
-        fld_analysis = '../NSI_analysis/ORN_dynamics' #/sdf_test
-        inh_conds   = ['noin'] #
-        stim_type   = 'ss' # 'ts' # 'ss' # 'rp'# '
-        ln_spike_h  = 0.4
-        nsi_str     = 0.3
-        stim_dur    = 500
-        delays2an   = 0
-        peaks       = [0.8]
-        peak_ratio  = 1
-        orn_fig     = 1
-        al_fig      = 0
-        fig_ui      = 1
-        fig_save    = 1
-        #***********************************************        
+#        # FIG. ORN_response
+#        fld_analysis = '../NSI_analysis/ORN_dynamics' #/sdf_test
+#        inh_conds   = ['noin'] #
+#        stim_type   = 'ss' # 'ts' # 'ss' # 'rp'# '
+#        ln_spike_h  = 0.4
+#        nsi_str     = 0.3
+#        stim_dur    = 500
+#        delays2an   = 0
+#        peaks       = [0.8]
+#        peak_ratio  = 1
+#        orn_fig     = 1
+#        al_fig      = 0
+#        fig_ui      = 1
+#        fig_save    = 1
+#        #***********************************************        
         
 #        # FIG. DelayResponse
 #        fld_analysis = '../NSI_analysis/triangle_stim/triangles_delay' #
@@ -1529,22 +1189,6 @@ if __name__ == '__main__':
 #        fig_ui      = 1        
         
 #        #***********************************************
-#        # Trials and errors
-#        fld_analysis = '../NSI_analysis/trialserrors'
-#        inh_conds   = ['nsi', ] #'ln', 'noin'
-#        stim_type   = 'pl'  # 'ts' # 'ss'
-#        stim_dur    = 10000
-#        ln_spike_h  = 0.4
-#        nsi_str     = 0.3
-#        delays2an   = 0
-#        peak_ratio  = 1
-#        peaks       = [1.,] 
-#        orn_fig     = 0
-#        al_fig      = 0
-#        fig_ui      = 0        
-#        fig_save    = 0
-
-#        #***********************************************
 #        # Real plumes, example figure
 #        fld_analysis = '../NSI_analysis/analysis_real_plumes/example'
 #        inh_conds   = ['nsi', ] #'ln', 'noin'
@@ -1559,6 +1203,22 @@ if __name__ == '__main__':
 #        al_fig      = 1
 #        fig_ui      = 1        
 #        fig_save    = 1
+
+        #***********************************************
+        # Trials and errors
+        fld_analysis = '../NSI_analysis/trialserrors'
+        inh_conds   = ['nsi', ] #'ln', 'noin'
+        stim_type   = 'pl'  # 'ts' # 'ss'
+        stim_dur    = 1500
+        ln_spike_h  = 0.4
+        nsi_str     = 0.3
+        delays2an   = 0
+        peak_ratio  = 1
+        peaks       = [1.,] 
+        orn_fig     = 0
+        al_fig      = 1
+        fig_ui      = 1        
+        fig_save    = 0
 
         
         
