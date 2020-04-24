@@ -16,7 +16,6 @@ import scipy.stats as spst
 from scipy.integrate import odeint
 import matplotlib.pyplot as plt
 import timeit
-from os import getcwd as pwd
 from scipy.integrate import quad
 
 import pickle        
@@ -30,14 +29,12 @@ sys.path.insert(0, '/flynose/')
 import flynose.corr_steps as corr_steps
 import flynose.corr_plumes as corr_plumes
 import flynose.sdf_krofczik as sdf_krofczik
+import flynose.stats_for_plumes as stats
+
 #from scipy.optimize import curve_fit
 
 # *****************************************************************
 # FUNCTIONS
-def overlap(a,b):
-    a = (a>0)*1.0
-    b = (b>0)*1.0
-    return np.sum(a*b)*2.0/(np.sum(a)+np.sum(b))
 
 def rnd_pow_law(a, b, g, r):
     """Power-law gen for pdf(x)\propto x^{g-1} for a<=x<=b"""
@@ -286,11 +283,6 @@ def orn2pn(z,t, u_orn, x_pn,x_ln,pn_params,):
     dzdt = [dsdt, dvdt]
     return dzdt
 
-#def x_adapt(z,t, u_orn, tau, a,):
-#    # PN adaptation variable 
-#    x = z[0]    
-#    dxdt = (a*u_orn*(1-x) - x)/tau
-#    return dxdt
 
 def x_adapt_ex(x0,t,u_orn, tau, a_ad,):
     b = (-a_ad*u_orn-1)/tau
@@ -299,15 +291,6 @@ def x_adapt_ex(x0,t,u_orn, tau, a_ad,):
     y = (x0 + a/b)*np.exp(b*dt)-a/b
     return y
 
-
-def poisson_isi(rate, n_spikes):
-    isi = -np.log(1.0 - np.random.random_sample(n_spikes)) / rate
-    return isi
-
-def freq_eff(fr, t_ref, pts_ms):
-    t_ref_sec = t_ref/1000/pts_ms # t_ref in second
-    fr_eff = fr /(1+ fr*t_ref_sec) # effective firing rates (considering refractary period)
-    return fr_eff  
 #%%*****************************************************************
 
 # *****************************************************************
@@ -335,7 +318,7 @@ data_save = True
 def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
     
     orn_fig     = fig_opts[0]
-    al_dyn      = 0
+    al_dyn      = 1
     al_fig      = fig_opts[1]
     stimulus    = params2an[7] # 'ss'   # 'rs'   #  'pl'  # 'ts'
     
@@ -521,7 +504,7 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
 #        interm_est[rr,1] = np.sum(out_w>0)/(t2sim*sample_rate)
         if (np.sum(out_y)!=0) & (np.sum(out_w)!=0):
             cor_stim        = np.corrcoef(out_y, out_w)[1,0]
-            overlap_stim    = overlap(out_y, out_w)
+            overlap_stim    = stats.overlap(out_y, out_w)
             nonzero_concs1  = out_y[(out_y>0) & (out_w>0)]
             nonzero_concs2  = out_w[(out_y>0) & (out_w>0)]
             cor_whiff       = np.corrcoef(nonzero_concs1, nonzero_concs2)[0, 1] # np.corrcoef(concs1, concs2)[0, 1]
@@ -765,7 +748,7 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
         t2plot = -200, 1000 #t2simulate #-t_on, t2simulate-t_on
         if stimulus == 'pl':
 #            lw = 1.1
-            t2plot = 2000, 4000
+            t2plot = 0, 1000#2000, 4000
         rs = 4 # number of rows
         cs = 1 # number of cols
         panels_id = ['a.', 'b.', 'c.', 'd.']
@@ -1248,7 +1231,7 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
         t2plot = -100, t2simulate #000-t_on, t2simulate
         if stimulus == 'pl':
             #lw = 1.1
-            t2plot = 2000, 4000
+            t2plot = 0, 1000#2000, 4000
         rs = 4 # number of rows
         cs = 1 # number of cols
         
@@ -1481,21 +1464,21 @@ if __name__ == '__main__':
 #        fig_save    = 0
 #        #***********************************************
         
-        # FIG. ORN_response
-        fld_analysis = '../NSI_analysis/ORN_dynamics' #/sdf_test
-        inh_conds   = ['noin'] #
-        stim_type   = 'ss' # 'ts' # 'ss' # 'rp'# '
-        ln_spike_h  = 0.4
-        nsi_str     = 0.3
-        stim_dur    = 500
-        delays2an   = 0
-        peaks       = [0.8]
-        peak_ratio  = 1
-        orn_fig     = 1
-        al_fig      = 0
-        fig_ui      = 1
-        fig_save    = 1
-        #***********************************************        
+#        # FIG. ORN_response
+#        fld_analysis = '../NSI_analysis/ORN_dynamics' #/sdf_test
+#        inh_conds   = ['noin'] #
+#        stim_type   = 'ss' # 'ts' # 'ss' # 'rp'# '
+#        ln_spike_h  = 0.4
+#        nsi_str     = 0.3
+#        stim_dur    = 500
+#        delays2an   = 0
+#        peaks       = [0.8]
+#        peak_ratio  = 1
+#        orn_fig     = 1
+#        al_fig      = 0
+#        fig_ui      = 1
+#        fig_save    = 1
+#        #***********************************************        
         
 #        # FIG. DelayResponse
 #        fld_analysis = '../NSI_analysis/triangle_stim/triangles_delay' #
@@ -1529,22 +1512,6 @@ if __name__ == '__main__':
 #        fig_ui      = 1        
         
 #        #***********************************************
-#        # Trials and errors
-#        fld_analysis = '../NSI_analysis/trialserrors'
-#        inh_conds   = ['nsi', ] #'ln', 'noin'
-#        stim_type   = 'pl'  # 'ts' # 'ss'
-#        stim_dur    = 10000
-#        ln_spike_h  = 0.4
-#        nsi_str     = 0.3
-#        delays2an   = 0
-#        peak_ratio  = 1
-#        peaks       = [1.,] 
-#        orn_fig     = 0
-#        al_fig      = 0
-#        fig_ui      = 0        
-#        fig_save    = 0
-
-#        #***********************************************
 #        # Real plumes, example figure
 #        fld_analysis = '../NSI_analysis/analysis_real_plumes/example'
 #        inh_conds   = ['nsi', ] #'ln', 'noin'
@@ -1559,6 +1526,22 @@ if __name__ == '__main__':
 #        al_fig      = 1
 #        fig_ui      = 1        
 #        fig_save    = 1
+
+        #***********************************************
+        # Trials and errors
+        fld_analysis = '../NSI_analysis/trialserrors'
+        inh_conds   = ['nsi', ] #'ln', 'noin'
+        stim_type   = 'pl'  # 'ts' # 'ss'
+        stim_dur    = 1500
+        ln_spike_h  = 0.4
+        nsi_str     = 0.3
+        delays2an   = 0
+        peak_ratio  = 1
+        peaks       = [1.,] 
+        orn_fig     = 0
+        al_fig      = 1
+        fig_ui      = 1        
+        fig_save    = 0
 
         
         

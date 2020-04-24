@@ -19,7 +19,6 @@ import numpy as np
 from scipy.stats import norm
 import matplotlib.pyplot as plt
 import timeit
-from scipy.integrate import quad
 import flynose.stats_for_plumes as stats
 
 
@@ -42,10 +41,6 @@ orange  = 'xkcd:orange'
 # *****************************************************************
 
 
-def overlap(a,b):
-    a = (a>0)*1.0
-    b = (b>0)*1.0
-    return np.sum(a*b)*2.0/(np.sum(a)+np.sum(b))
 
 # ******************************************************************* 
 def main(*stim_params):
@@ -322,7 +317,7 @@ if __name__ == '__main__':
     
             if (np.sum(out_y)!=0) & (np.sum(out_w)!=0):
                 cor_stim[rr] = np.corrcoef(out_y, out_w)[1,0]
-                overlap_stim[rr] = overlap(out_y, out_w)
+                overlap_stim[rr] = stats.overlap(out_y, out_w)
                 nonzero_concs1  = out_y[(out_y>0) & (out_w>0)]
                 nonzero_concs2  = out_w[(out_y>0) & (out_w>0)]
                 if np.size(nonzero_concs1)>0 & np.size(nonzero_concs2)>0:
