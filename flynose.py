@@ -286,11 +286,11 @@ def orn2pn(z,t, u_orn, x_pn,x_ln,pn_params,):
     dzdt = [dsdt, dvdt]
     return dzdt
 
-def x_adapt(z,t, u_orn, tau, a,):
-    # PN adaptation variable 
-    x = z[0]    
-    dxdt = (a*u_orn*(1-x) - x)/tau
-    return dxdt
+#def x_adapt(z,t, u_orn, tau, a,):
+#    # PN adaptation variable 
+#    x = z[0]    
+#    dxdt = (a*u_orn*(1-x) - x)/tau
+#    return dxdt
 
 def x_adapt_ex(x0,t,u_orn, tau, a_ad,):
     b = (-a_ad*u_orn-1)/tau
