@@ -6,7 +6,7 @@
 Created on Thu Jan 1 2019
 
 Simulation for the dynamics of a general synapse with Rall-Seynosky-Desthexe
-script name: system_ORNPNLN_corr.py
+script name: flynose.py
 @author: mario
 
 """
@@ -1173,7 +1173,6 @@ if __name__ == '__main__':
 #        fig_save    = 1
 #        #***********************************************
         
-#        #***********************************************
 #        # Fig.ImpulseResponse
 #        fld_analysis = '../NSI_analysis/triangle_stim/ImpulseResponse'
 #        inh_conds   = ['nsi', 'ln', 'noin'] #
@@ -1208,13 +1207,13 @@ if __name__ == '__main__':
         # Trials and errors
         fld_analysis = '../NSI_analysis/trialserrors'
         inh_conds   = ['nsi', ] #'ln', 'noin'
-        stim_type   = 'pl'  # 'ts' # 'ss'
-        stim_dur    = 1500
+        stim_type   = 'ts'  # 'ts' # 'ss'
+        stim_dur    = 50
         ln_spike_h  = 0.4
         nsi_str     = 0.3
         delays2an   = 0
         peak_ratio  = 1
-        peaks       = [1.,] 
+        peaks       = [1.4,] 
         orn_fig     = 0
         al_fig      = 1
         fig_ui      = 1        
