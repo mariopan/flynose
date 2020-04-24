@@ -16,7 +16,6 @@ import scipy.stats as spst
 from scipy.integrate import odeint
 import matplotlib.pyplot as plt
 import timeit
-from scipy.integrate import quad
 
 import pickle        
 from os import path
@@ -31,36 +30,9 @@ import flynose.corr_plumes as corr_plumes
 import flynose.sdf_krofczik as sdf_krofczik
 import flynose.stats_for_plumes as stats
 
-#from scipy.optimize import curve_fit
-
 # *****************************************************************
 # FUNCTIONS
 
-def rnd_pow_law(a, b, g, r):
-    """Power-law gen for pdf(x)\propto x^{g-1} for a<=x<=b"""
-    ag, bg = a**g, b**g
-    return (ag + (bg - ag)*r)**(1./g)
-
-# concentration values drawn from fit of Mylne and Mason 1991 fit of fig.10 
-def rnd_mylne_75m(a1, b1, r):
-    """Mylne and Mason 1991 fit of fig.10 """
-    y = ((1-np.heaviside(r-.5, 0.5)) * .3*r/.5 + 
-         np.heaviside(r-.5, 0.5)* (-(a1 + np.log10(1-r))/b1))
-    return y
-
-def whiffs_blanks_pdf(dur_min, dur_max, g):
-    logbins  = np.logspace(np.log10(dur_min),np.log10(dur_max))
-    pdf_th  = pdf_pow_law(logbins, dur_min, dur_max, g)      # theoretical values of the pdf
-    dur_mean = quad(lambda x: x*pdf_pow_law(x, dur_min, dur_max, g), dur_min, dur_max) # integrate the pdf to check it sum to 1
-    return pdf_th, logbins, dur_mean[0]
-
-def pdf_pow_law(x, a, b, g):
-    ag, bg = a**g, b**g
-    return g * x**(g-1) / (bg - ag)
-
-def olsen_orn_pn(nu_orn, sigma, nu_max):
-    nu_pn = nu_max * np.power(nu_orn, 1.5)/(np.power(nu_orn, 1.5) + np.power(sigma,1.5))
-    return nu_pn
 
 def depalo_eq2(z,t,u,u2,orn_params,):
     ax = orn_params[0]
@@ -93,44 +65,9 @@ def depalo_eq2(z,t,u,u2,orn_params,):
     dzdt = [drdt,dxdt,dydt,dsdt,dqdt,dwdt]
     return dzdt
 
-def depalo_eq(z,t,u,orn_params,):
-    ax = orn_params[0]
-    cx = orn_params[1]
-    bx = orn_params[2]
-    by = orn_params[3]
-    dy = orn_params[4]
-    b = orn_params[5]
-    d = orn_params[6]
-    ar = orn_params[7]
-    n = orn_params[8]
-    
-    r = z[0]
-    x = z[1]
-    y = z[2]
-    drdt = b*u**n*(1-r) - d*r
-    dxdt = ax*y - bx*x
-    dydt = ar*r - cx*x*(1+dy*y) - by*y 
-    dzdt = [drdt,dxdt,dydt]
-    return dzdt
-
 def rect_func(b, x):
     ot = b[0]/(1 + np.exp(-b[1]*(x-b[2])))
     return ot
-
-def running_sum(x, N):
-    out = np.zeros_like(x, dtype=np.float64)
-    dim_len = x.shape[0]
-    for ii in range(dim_len):
-        if N%2 == 0:
-            a, b = ii - (N-1)//2, ii + (N-1)//2 + 2
-        else:
-            a, b = ii - (N-1)//2, ii + (N-1)//2 + 1
-
-        #cap indices to min and max indices
-        a = max(0, a)
-        b = min(dim_len, b)
-        out[ii] = np.sum(x[a:b])
-    return out
 
 def pn2ln_s(z,t, u_pn, ln_params, ):
 
@@ -325,7 +262,6 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
     # *****************************************************************
     # STIMULUS GENERATION
     
-    nsi             = True #  False #   flag to choose whether the simulation is with or w/o NSIs
     nsi_value       = params2an[0] # 0.3     #.2 0.1 0.05 0.00
     ln_spike_height = params2an[1] # .0        # .3
     
@@ -470,8 +406,8 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
         rho_t           = 1-10**-rho_t_exp
         
         # CALCULATE THE THEORETICAL MEAN WHIFF, MEAN BLANK DURATIONS AND INTERMITTENCY
-        pdf_wh, logbins, wh_mean = whiffs_blanks_pdf(whiff_min, whiff_max, g)
-        pdf_bl, logbins, bl_mean = whiffs_blanks_pdf(blank_min, blank_max, g)
+        pdf_wh, logbins, wh_mean = stats.whiffs_blanks_pdf(whiff_min, whiff_max, g)
+        pdf_bl, logbins, bl_mean = stats.whiffs_blanks_pdf(blank_min, blank_max, g)
         
         interm_th = wh_mean/(wh_mean+bl_mean)
         if verbose:
@@ -574,11 +510,7 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
                  cov_hom*np.ones((num_orns_glo, num_orns_glo))) # diagonal covariance
     mv_cov[num_orns_glo:, num_orns_glo:] = mv_cov_tmp
     mv_cov[:num_orns_glo, :num_orns_glo] = mv_cov_tmp
-    
-    #    # Correlation calculus params
-    #    wind_len    = 2*pts_ms    # window length for the sliding window average
-    #    ss_len      = 1*pts_ms    # subsample length
-    
+        
     # Each PN belongs to ONLY one of the glomeruli
     ids_pn_glo = np.zeros(num_pns_tot, dtype=int)
     ids_pn_glo[:num_pns_glo] = 0
@@ -630,32 +562,22 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
     for tt in range(1, n2sim-t_ref-1):
         # span for next time step
         tspan = [t[tt-1],t[tt]]
-        if nsi == False:
-            for gg in range(num_glo):
-                z_orn = odeint(depalo_eq, z_orn0[gg,:], tspan,
-                               args=(u_od[tt, gg],orn_params,))
-                z_orn0[gg,:] = z_orn[1]
-                r_orn[tt,gg] = z_orn[1][0]
-                x_orn[tt,gg] = z_orn[1][1]
-                y_orn[tt,gg] = z_orn[1][2]
-                   
-                nu_orn[tt,gg] = rect_func(B0, y_orn[tt,gg])
-        elif nsi == True:
-            z0_unid = np.zeros(6)
-            z0_unid[0:3] = z_orn0[0,:]
-            z0_unid[3:6] = z_orn0[1,:]
-            z_orn = odeint(depalo_eq2, z0_unid, tspan,
-                           args=(u_od[tt, 0], u_od[tt, 1], orn_params,))
-            for gg in range(num_glo):
-                z_orn0[gg,0] = z_orn[1][0+gg*3]
-                z_orn0[gg,1] = z_orn[1][1+gg*3]
-                z_orn0[gg,2] = z_orn[1][2+gg*3]
-            
-                r_orn[tt,gg] = z_orn[1][0+gg*3]
-                x_orn[tt,gg] = z_orn[1][1+gg*3]
-                y_orn[tt,gg] = z_orn[1][2+gg*3]
-               
-                nu_orn[tt,gg] = rect_func(B0, y_orn[tt,gg])
+        
+        z0_unid = np.zeros(6)
+        z0_unid[0:3] = z_orn0[0,:]
+        z0_unid[3:6] = z_orn0[1,:]
+        z_orn = odeint(depalo_eq2, z0_unid, tspan,
+                       args=(u_od[tt, 0], u_od[tt, 1], orn_params,))
+        for gg in range(num_glo):
+            z_orn0[gg,0] = z_orn[1][0+gg*3]
+            z_orn0[gg,1] = z_orn[1][1+gg*3]
+            z_orn0[gg,2] = z_orn[1][2+gg*3]
+        
+            r_orn[tt,gg] = z_orn[1][0+gg*3]
+            x_orn[tt,gg] = z_orn[1][1+gg*3]
+            y_orn[tt,gg] = z_orn[1][2+gg*3]
+           
+            nu_orn[tt,gg] = rect_func(B0, y_orn[tt,gg])
     
         
 
@@ -737,12 +659,6 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
 
     # *****************************************************************
     # FIGURE ORN 
-    for gg in range(num_glo):
-        nu_orn_run[:,gg] = (running_sum(nu_orn[:,gg], int(pts_ms*t2average))
-            /(t2average*pts_ms))
-    for pp in range(num_pns_tot):
-        out_orn_run[:,pp] = (running_sum(u_orn[:,pp], int(pts_ms*t2average))
-            /(t2average*pts_ms))
 
     if orn_fig:  
         t2plot = -200, 1000 #t2simulate #-t_on, t2simulate-t_on
@@ -951,16 +867,6 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
                                 
     # *****************************************************************
     # PN and LN PARAMETERS and OUTPUT VECTORS
-#def pn_ln_sim(net_params, stim_params):
-#    n2sim       = stim_params[0]
-#    t           = stim_params[1]
-#    u_orn       = stim_params[2]
-#    
-#    num_pns_tot = net_params[0]
-#    num_lns_tot = net_params[1]
-#    pn_params   = net_params[2]
-#    ln_params   = net_params[3]
-#    cmn_params  = net_params[4]
 
     # *****************************************************************
     # AL SIMULATION 
@@ -1006,13 +912,11 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
     
     # INITIALIZE PN output vectors
     num_spike_pn    = np.zeros((n2sim, num_pns_tot))
-    nu_pn_run       = np.zeros((n2sim, num_pns_tot))
     
     # INITIALIZE LN output vectors
     s_ln            = np.zeros((n2sim, num_lns_tot))
     v_ln            = np.zeros((n2sim, num_lns_tot))
     num_spike_ln    = np.zeros((n2sim, num_lns_tot))  
-    nu_ln_run       = np.zeros((n2sim, num_lns_tot))
     
     # PN and LN params initial conditions
     x_pn[0, :]      = x_pn0
@@ -1109,14 +1013,6 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
                             ln_spike_matrix, tau_sdf=tau_sdf, dt_sdf=dt_sdf)  # (Hz, ms)
         ln_sdf_norm = ln_sdf_norm*1e3
     
-        # *****************************************************************
-        # Calculate the running average of the PNs and LNs activities
-        for pp in range(num_pns_tot):
-            nu_pn_run[:,pp] = (running_sum(num_spike_pn[:,pp], int(pts_ms*t2average))
-                /t2average*1e3)
-        for ll in range(num_lns_tot):
-            nu_ln_run[:,ll] = (running_sum(num_spike_ln[:,ll], int(pts_ms*t2average))
-                /t2average*1e3)
         
   
         # *************************************************************************
@@ -1139,18 +1035,6 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
         id_post_stim2 = np.flatnonzero((pn_sdf_time>t_on2) & (pn_sdf_time<t_off2+100))
         pn_peak1  = np.max(np.mean(pn_sdf_norm[id_post_stim, :num_pns_glo], axis=1)) # using average PN
         pn_peak2  = np.max(np.mean(pn_sdf_norm[id_post_stim2, num_pns_glo:], axis=1)) # using average PN
-    #    pn_peak1  = np.max(np.mean(nu_pn_run[stim_on:stim_off+100*pts_ms, :num_pns_glo], axis=1)) # using average PN
-    #    pn_peak2  = np.max(np.mean(nu_pn_run[stim_on:stim_off+100*pts_ms, num_pns_glo:], axis=1)) # using average PN
-        
-    #    pn_avg1  = np.mean(nu_pn_run[stim_on:stim_off, :num_pns_glo]) # using average PN
-    #    pn_m50_1  =np.sum(np.mean(nu_pn_run[stim_on:stim_off, :num_pns_glo], axis=1)>50)
-    #    pn_m100_1  =np.sum(np.mean(nu_pn_run[stim_on:stim_off, :num_pns_glo], axis=1)>100)
-    #    pn_m150_1  =np.sum(np.mean(nu_pn_run[stim_on:stim_off, :num_pns_glo], axis=1)>150)
-        
-    #    pn_avg2  = np.mean(nu_pn_run[stim_on:stim_off, num_pns_glo:]) 
-    #    pn_m50_2  =np.sum(np.mean(nu_pn_run[stim_on:stim_off, num_pns_glo:], axis=1)>50)
-    #    pn_m100_2  =np.sum(np.mean(nu_pn_run[stim_on:stim_off, num_pns_glo:], axis=1)>100)
-    #    pn_m150_2  =np.sum(np.mean(nu_pn_run[stim_on:stim_off, num_pns_glo:], axis=1)>150)
         
         
         # SAVE SDF OF conc, ORN, PN and LN FIRING RATE
