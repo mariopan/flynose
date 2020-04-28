@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Wed Apr 22 14:14:13 2020
+plot_corr_plumes.py
 
 @author: mario
 """
@@ -11,8 +12,11 @@ import timeit
 import numpy as np
 import datetime
 import matplotlib.pyplot as plt
-import flynose.corr_plumes as corr_plumes
-import flynose.stats_for_plumes as stats
+import corr_plumes 
+import stats_for_plumes as stats
+
+#import flynose.corr_plumes as corr_plumes
+#import flynose.stats_for_plumes as stats
 
 def overlap(a,b):
     a = (a>0)*1.0
@@ -30,6 +34,7 @@ fig_size = [20, 10]
 fig_position = 700,10
 title_fs = 20 # font size of ticks
 label_fs = 20 # font size of labels
+panel_fs = 30 # font of the letters on each panel
 black   = 'xkcd:black'
 blue    = 'xkcd:blue'
 red     = 'xkcd:red'
@@ -48,13 +53,13 @@ n_loop          = 200
 n_repet_loop    = 1
 fig_plumes_tc   = 1         # time course figure
 fig_plumes_dist = 1     
-fig_save        = 0
+fig_save        = 1
 
 fld_analysis    = '../open_field_stimuli'
 
 # *******************************************************************
 # PARAMS FOR STIMULUS GENERATION
-t2sim           = 19.7      # [s] time duration of whole simulated stimulus
+t2sim           = 19.7              # [s] time duration of whole simulated stimulus
 pts_ms          = 5
 sample_rate     = pts_ms*1000       # [Hz] num of samples per each sec
 n_sample2       = 5                 # [ms] num of samples with constant concentration
@@ -201,7 +206,7 @@ if fig_plumes_dist:
     
     rs      = 1
     cs      = 3
-    fig, (ax_int, ax_ov, ax_cor) = plt.subplots(rs, cs, figsize=(13, 5), )    
+    fig2, (ax_int, ax_ov, ax_cor) = plt.subplots(rs, cs, figsize=(13, 5), )    
 
     ax_int = plt.subplot(rs,cs,1)
     n_tmp, _, _= ax_int.hist(interm_est, bins=n_bins, label='Stim 1', color=green, alpha=.5, density=True,)  
@@ -221,12 +226,12 @@ if fig_plumes_dist:
     ax_int.set_ylabel('probab distr funct', fontsize=label_fs)
     ax_int.legend(fontsize=label_fs-5, frameon=False)
     
-    ax_int.text(-.1, 1.05, 'f.', transform=ax_int.transAxes,
-                  fontsize=label_fs+2, fontweight='bold', va='top', ha='right')
-    ax_ov.text(-.1, 1.05, 'g.', transform=ax_ov.transAxes,
-                  fontsize=label_fs+2, fontweight='bold', va='top', ha='right')
-    ax_cor.text(-.1, 1.05, 'h.', transform=ax_cor.transAxes,
-                  fontsize=label_fs+2, fontweight='bold', va='top', ha='right')
+    ax_int.text(-.1, 1.05, 'f.', transform=ax_int.transAxes, color = blue,
+                  fontsize=panel_fs, fontweight='bold', va='top', ha='right')
+    ax_ov.text(-.1, 1.05, 'g.', transform=ax_ov.transAxes, color = blue,
+                  fontsize=panel_fs, fontweight='bold', va='top', ha='right')
+    ax_cor.text(-.1, 1.05, 'h.', transform=ax_cor.transAxes, color = blue,
+                  fontsize=panel_fs, fontweight='bold', va='top', ha='right')
     
     ax_int.spines['top'].set_color('none')
     ax_int.spines['right'].set_color('none')
@@ -244,4 +249,4 @@ if fig_plumes_dist:
     
     
     if fig_save:
-        fig.savefig(fld_analysis + '/corr_plumes_distr_dur%.1fs_rhoT%d_rhoC%d.png'%(t2sim, rho_t_exp,100*rho_c))
+        fig2.savefig(fld_analysis + '/corr_plumes_distr_dur%.1fs_rhoT%d_rhoC%d.png'%(t2sim, rho_t_exp,100*rho_c))

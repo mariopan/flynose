@@ -4,7 +4,7 @@
 Created on Thu Jul 11 13:49:09 2019
 
 @author: mp525
-analysis_loops_real_plumes2.py
+analysis_loops_real_plumes.py
 """
 
 
@@ -116,13 +116,12 @@ stim_dur    =  201000
 w_maxs      = [.01,.03,.3, 3, 25, 50, ]# max value in the whiff distribution
 seeds       = np.arange(1, 30)
 data_save   = 0
-fig_save    = 1
-peak_fig    = 1 # Fig.PeakPNActivity
-avg_fig     = 1 # Fig.AverPNActivity
-resumen_fig = 0 # Fig.PeakPN_resumen
+fig_save    = 0
+peak_fig    = 0 # Fig.PeakPNActivity
+avg_fig     = 0 # Fig.AverPNActivity
+resumen_fig = 1 # Fig.PeakPN_resumen
 thrwmax_fig = 0 # Fig.PeakPN_wmax
-thr         = 100 # [50, 100, 150]
-
+thr         = 150 # [50, 100, 150]
 # *******************************************************************
 
 
@@ -134,12 +133,12 @@ thr         = 100 # [50, 100, 150]
 #w_maxs  = [.01,.03,.3, 3, 25, ]# max value in the whiff distribution
 #seeds = np.arange(1, 44)
 #data_save   = 0
-#fig_save    = 1
-#peak_fig    = 1 # Fig.PeakPNActivity
-#avg_fig     = 1 # Fig.AverPNActivity
+#fig_save    = 0
+#peak_fig    = 0 # Fig.PeakPNActivity
+#avg_fig     = 0 # Fig.AverPNActivity
 #resumen_fig = 0 # Fig.PeakPN_resumen
-#thrwmax_fig = 0 # Fig.PeakPN_wmax
-#thr         = 100 # [50, 100, 150]
+#thrwmax_fig = 1 # Fig.PeakPN_wmax
+#thr         = 50 # [50, 100, 150]
 ## ********************************************************************
 
 
@@ -524,8 +523,9 @@ if avg_fig:
         
         
 #%%**********************************************************
-# FIGURE: Performance   1
+# FIGURE: Fig.PeakPN_resumen
 ## **********************************************************
+
 if resumen_fig:
     
     cs = 3
@@ -559,26 +559,31 @@ if resumen_fig:
         delta_nsi1 = np.squeeze(pn_tmp1[0,:] - pn_tmp1[1,:])
         delta_nsi0 = np.squeeze(pn_tmp0[0,:] - pn_tmp0[1,:])
         
-        axs[0, thr_id].plot(w_maxs, delta_ln0, 'o--', color=blue, label=r'$x$=LN, $\rho=$0')
-        axs[0, thr_id].plot(w_maxs, delta_ln1, '*-', color=blue, label=r'$x$=LN, $\rho=$1')
-        axs[0, thr_id].plot(w_maxs, delta_nsi0, 'd--', color=red, label=r'$x$=NSI, $\rho=$0')
-        axs[0, thr_id].plot(w_maxs, delta_nsi1, '.-', color=red, label=r'$x$=NSI, $\rho=$1')
+        axs[0, thr_id].plot(w_maxs, delta_ln0, 'o--', color=orange, label=r'$x$=LN, $\rho=$0')
+        axs[0, thr_id].plot(w_maxs, delta_ln1, '*-', color=orange, label=r'$x$=LN, $\rho=$1')
+        axs[0, thr_id].plot(w_maxs, delta_nsi0, 'd--', color=blue, label=r'$x$=NSI, $\rho=$0')
+        axs[0, thr_id].plot(w_maxs, delta_nsi1, '.-', color=blue, label=r'$x$=NSI, $\rho=$1')
         axs[0, thr_id].set_xscale('log')
         axs[0, thr_id].set_yscale('log')
         axs[0, thr_id].set_title(r'$\Theta$:%d Hz'%thr, fontsize=fs)
-        axs[0, thr_id].text(.3, .15, 'a%d'%thr_id+'.', transform=axs[0,thr_id].transAxes,
-              fontsize=label_fs, fontweight='bold', va='top', ha='right')
         axs[0, thr_id].spines['right'].set_color('none')
         axs[0, thr_id].spines['top'].set_color('none')
+        axs[0, thr_id].text(-.1, 1.15, 'a%d'%thr_id+'.', transform=axs[0,thr_id].transAxes,
+              color= blue, fontsize=label_fs, fontweight='bold', va='top', ha='right')
         
-        axs[1, thr_id].plot(w_maxs, 1-dec_perc_nsi, 'o-', color=red,label='$x$=NSI')
-        axs[1, thr_id].plot(w_maxs, 1-dec_perc_ln, '*-', color=blue, label='$x$=LN')
+        axs[1, thr_id].plot(w_maxs, 1-dec_perc_ln, '*-', color=orange, label='$x$=LN')
+        axs[1, thr_id].plot(w_maxs, 1-dec_perc_nsi, 'o-', color=blue,label='$x$=NSI')        
         axs[1, thr_id].set_xscale('log')
         axs[1, thr_id].set_xlabel('$w_{max}$ (s)', fontsize=label_fs)
-        axs[1, thr_id].text(.3, .15, 'b%d'%thr_id+'.', transform=axs[1,thr_id].transAxes,
-              fontsize=label_fs, fontweight='bold', va='top', ha='right')
         axs[1, thr_id].spines['right'].set_color('none')
         axs[1, thr_id].spines['top'].set_color('none')
+        axs[1, thr_id].text(-.1, 1.15, 'b%d'%thr_id+'.', transform=axs[1,thr_id].transAxes,
+              color= blue, fontsize=label_fs, fontweight='bold', va='top', ha='right')
+        
+        
+        # original plot position:
+        ll, bb, ww, hh = axs[0, thr_id].get_position().bounds
+        axs[0, thr_id].set_position([ll,bb+.04,ww,hh])        
         
     axs[0, 0].set_ylabel(r'$\nu_{ind} - \nu_x$ (ms)', fontsize=label_fs)
     axs[0, 2].legend(fontsize=label_fs-3, frameon=False)
@@ -600,55 +605,58 @@ if resumen_fig:
 
 
 #%% *********************************************************
-## FIGURE frquencies for different values of bmax, wmax, thr
+## FIGURE Fig.PeakPN_wmax
 ## **********************************************************
 if thrwmax_fig:
+#    interm_th[id_rho, id_seed,id_w_max, id_b_max,]
     rs = np.size(b_maxs) 
-    cs = np.size(w_maxs)
-    corr_tmp = np.array(rhos) # 
-    #pn_m50_1[id_rho, id_inh,id_seed,id_w_max, id_b_max,]
+    cs = np.size(w_maxs)    
 
-    fig, axs = plt.subplots(rs, cs, figsize=(13,3.5), ) 
+    wh_tot  = np.ones((np.size(rhos), np.size(w_maxs)))
+    wh_tot  = 5*stim_dur*np.squeeze(interm_th[:, 0,:,0]) # id_rho, id_seed,id_w_max, id_b_max,]
+    corr_tmp = np.array(rhos) 
+    fig, axs = plt.subplots(rs, cs, figsize=(13,2.5), ) 
     
     id_b_max = 0
     b_max = b_maxs[0]
     id_w_max = -1
     for w_max in w_maxs:
         id_w_max = id_w_max + 1
+        
         if thr == 50:
-            pn_tmp = .5*(pn_m50_2+pn_m50_1)
-            axs[id_w_max].set_ylim((0,90500))
+            pn_tmp = .5*(pn_m50_2+pn_m50_1)            
+            axs[id_w_max].set_ylim((0,250)) # 90500))
             panel_id = 'a%d'%id_w_max+'.'
         elif thr == 100:
             pn_tmp = .5*(pn_m100_2+pn_m100_1)
-            axs[id_w_max].set_ylim((0,32500))
+            axs[id_w_max].set_ylim((0,60)) # 32500))
             panel_id = 'b%d'%id_w_max+'.'
         elif thr == 150:
             pn_tmp = .5*(pn_m150_2+pn_m150_1)
-            axs[id_w_max,].set_ylim((0,6500))
+            axs[id_w_max,].set_ylim((0,10)) # 6500))
             panel_id = 'c%d'%id_w_max+'.'
             
         y2plot_ln = np.squeeze(pn_tmp[:, 2, :, id_w_max, id_b_max])
         y2plot_nsi = np.squeeze(pn_tmp[:, 1, :, id_w_max, id_b_max])
         y2plot_noin = np.squeeze(pn_tmp[:, 0, :, id_w_max, id_b_max])
 
-        axs[id_w_max].errorbar(corr_tmp, np.mean(y2plot_noin, axis=1),
-           yerr=np.std(y2plot_noin, axis=1)/np.sqrt(n_seeds), 
+        axs[id_w_max].errorbar(corr_tmp, np.mean(y2plot_noin, axis=1)*100/wh_tot[:, id_w_max],
+           yerr=np.std(y2plot_noin, axis=1)/np.sqrt(n_seeds)*100/wh_tot[:, id_w_max], 
            linewidth=lw, color='magenta',label='Indep')
-        axs[id_w_max].errorbar(corr_tmp, np.mean(y2plot_ln, axis=1),
-           yerr=np.std(y2plot_ln, axis=1)/np.sqrt(n_seeds), 
+        axs[id_w_max].errorbar(corr_tmp, np.mean(y2plot_ln, axis=1)*100/wh_tot[:, id_w_max],
+           yerr=np.std(y2plot_ln, axis=1)/np.sqrt(n_seeds)*100/wh_tot[:, id_w_max], 
            linewidth=lw, color='orange',label='LN')
-        axs[id_w_max].errorbar(corr_tmp, np.mean(y2plot_nsi, axis=1),
-           yerr=np.std(y2plot_nsi, axis=1)/np.sqrt(n_seeds), 
+        axs[id_w_max].errorbar(corr_tmp, np.mean(y2plot_nsi, axis=1)*100/wh_tot[:, id_w_max],
+           yerr=np.std(y2plot_nsi, axis=1)/np.sqrt(n_seeds)*100/wh_tot[:, id_w_max], 
            linewidth=lw, color='blue',label='NSI')
                 
-        if id_w_max == 0:
-            axs[id_w_max].set_title('$w_{max}:%.2g s$'%w_max, fontsize=fs)
-        else:
-            axs[id_w_max].set_title('%.2g s'%w_max, fontsize=fs)
+#        if id_w_max == 0:
+#            axs[id_w_max].set_title('$w_{max}:%.2g s$'%w_max, fontsize=fs)
+#        else:
+#            axs[id_w_max].set_title('%.2g s'%w_max, fontsize=fs)
         
-        if id_w_max>0:
-            axs[id_w_max].set_yticks(())
+#        if id_w_max>0:
+#            axs[id_w_max].set_yticks(())
         axs[id_w_max].tick_params(axis='both', which='major', labelsize=label_fs-5)
         axs[id_w_max].set_xticks(corr_tmp[[0, 1, 2]])
         axs[id_w_max].set_xticklabels(np.array(1-np.power(.10, corr_tmp[[0,1,2]])))
@@ -656,20 +664,28 @@ if thrwmax_fig:
         axs[id_w_max].spines['right'].set_color('none')
         axs[id_w_max].spines['top'].set_color('none')
     
-        axs[id_w_max].text(.3, .15, panel_id, transform=axs[id_w_max].transAxes,
-              fontsize=label_fs, fontweight='bold', va='top', ha='right')
+        if id_w_max==0:
+            letter_pos = [-.25, 1.3]
+        else:
+            letter_pos = [-.1, 1.3]
+            
+        axs[id_w_max].text(letter_pos[0], letter_pos[1], panel_id, transform=axs[id_w_max].transAxes,color= blue,
+              fontsize=panel_fs-10, fontweight='bold', va='top', ha='right')
+               
         ll, bb, ww, hh = axs[id_w_max].get_position().bounds
-        axs[id_w_max].set_position([ll, bb+.04, ww, hh-.04])   
+        axs[id_w_max].set_position([ll+.015*id_w_max, bb+.09, ww, hh-.15])   
         
-    axs[0].set_ylabel(r'PN high activity, $\Theta$=%d Hz'%thr, fontsize=label_fs)
-    axs[0].set_xlabel('Theor. correlation', fontsize=label_fs)
-    axs[0].xaxis.set_label_coords(1.1, -.1)
-    axs[2].set_xlabel('Theor. correlation', fontsize=label_fs)
-    axs[2].xaxis.set_label_coords(1.1, -.1)
-    axs[4].set_xlabel('Theor. correlation', fontsize=label_fs)
-    axs[4].xaxis.set_label_coords(1.1, -.1)
-                               
-    axs[0].legend(fontsize=label_fs-3, frameon=False)
+    axs[0].set_ylabel('PN activity (\%)\n' + r'$\Theta$=%d Hz'%thr, fontsize=label_fs)
+    if thr == 150:
+        axs[0].set_xlabel('Theor. correlation', fontsize=label_fs)
+        axs[0].xaxis.set_label_coords(1.1, -.15)
+        axs[2].set_xlabel('Theor. correlation', fontsize=label_fs)
+        axs[2].xaxis.set_label_coords(1.1, -.15)
+        axs[4].set_xlabel('Theor. correlation', fontsize=label_fs)
+        axs[4].xaxis.set_label_coords(1.1, -.15)
+                             
+        axs[0].legend(fontsize=label_fs-3, frameon=False)
+#%%        
     if fig_save:
         fig.savefig(fld_analysis+ '/NSI_nuPN_LNvsNSIvsNoIn_%dHz'%thr+ fig_name[0] + '.png')    
     

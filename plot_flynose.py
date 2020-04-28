@@ -59,7 +59,7 @@ def martelli_plot(all_data_tmp, params2an, id_c):
         ax_conc_m.set_xlim(t2plot)
         ax_orn_m.set_xlim(t2plot)
 
-        ax_orn_m.set_ylim((0, 280))
+#        ax_orn_m.set_ylim((0, 280))
 
         ax_conc_m.tick_params(axis='both', labelsize=label_fs)
         ax_orn_m.tick_params(axis='both', labelsize=label_fs)
@@ -76,9 +76,14 @@ def martelli_plot(all_data_tmp, params2an, id_c):
         ax_orn_m.spines['right'].set_color('none')
         ax_orn_m.spines['top'].set_color('none')
         
-        ax_conc_m.text(-.05, 1.1, 'e.', transform=ax_conc_m.transAxes,color=blue,
+        ll, bb, ww, hh = ax_conc_m.get_position().bounds
+        ax_conc_m.set_position([ll+.05, bb, ww, hh])
+        ll, bb, ww, hh = ax_orn_m.get_position().bounds
+        ax_orn_m.set_position([ll+.05, bb, ww, hh])
+    
+        ax_conc_m.text(-.15, 1.1, 'e.', transform=ax_conc_m.transAxes,color=blue,
               fontsize=panel_fs, fontweight='bold', va='top', ha='right')
-        ax_orn_m.text(-.05, 1.1, 'f.', transform=ax_orn_m.transAxes, color=blue,
+        ax_orn_m.text(-.15, 1.1, 'f.', transform=ax_orn_m.transAxes, color=blue,
               fontsize=panel_fs, fontweight='bold', va='top', ha='right')
             
     else:
@@ -97,12 +102,11 @@ def orn_al_settings(ax_ornal):
     # ****************************************************
     # FIGURE SETTING
     
-    ll, bb, ww, hh = ax_ornal[0].get_position().bounds
-    ax_ornal[0].set_position([ll, bb+.075, ww, hh])
-    ll, bb, ww, hh = ax_ornal[1].get_position().bounds
-    ax_ornal[1].set_position([ll, bb+.05, ww, hh])
-    ll, bb, ww, hh = ax_ornal[2].get_position().bounds
-    ax_ornal[2].set_position([ll, bb+.025, ww, hh])
+    dx = 0.075
+    dy = np.linspace(0.075, 0, 4, )
+    for id_ax in range(4):
+        ll, bb, ww, hh = ax_ornal[id_ax].get_position().bounds
+        ax_ornal[id_ax].set_position([ll+dx, bb+dy[id_ax], ww-dx, hh])
 
     ax_ornal[0].set_xlim(t2plot)
     ax_ornal[1].set_xlim(t2plot)
@@ -127,13 +131,13 @@ def orn_al_settings(ax_ornal):
     ax_ornal[2].set_ylabel(r' PN  (Hz)', fontsize=label_fs)
     ax_ornal[3].set_ylabel(r' LN  (Hz)', fontsize=label_fs)
     ax_ornal[3].set_xlabel('Time  (ms)', fontsize=label_fs)
-    ax_ornal[0].text(-.05, 1.25, 'a.', transform=ax_ornal[0].transAxes, color=blue,
+    ax_ornal[0].text(-.2, 1.25, 'a.', transform=ax_ornal[0].transAxes, color=blue,
                  fontsize=panel_fs, fontweight='bold', va='top', ha='right')
-    ax_ornal[1].text(-.05, 1.25, 'b.', transform=ax_ornal[1].transAxes, color=blue,
+    ax_ornal[1].text(-.2, 1.25, 'b.', transform=ax_ornal[1].transAxes, color=blue,
                  fontsize=panel_fs, fontweight='bold', va='top', ha='right')
-    ax_ornal[2].text(-.05, 1.25, 'c.', transform=ax_ornal[2].transAxes, color=blue,
+    ax_ornal[2].text(-.2, 1.25, 'c.', transform=ax_ornal[2].transAxes, color=blue,
                  fontsize=panel_fs, fontweight='bold', va='top', ha='right')
-    ax_ornal[3].text(-.05, 1.25, 'd.', transform=ax_ornal[3].transAxes, color=blue,
+    ax_ornal[3].text(-.2, 1.25, 'd.', transform=ax_ornal[3].transAxes, color=blue,
                  fontsize=panel_fs, fontweight='bold', va='top', ha='right')
     
     ax_ornal[0].spines['right'].set_color('none')
@@ -304,55 +308,69 @@ def olsen2010_data(all_data_tmp, params2an):
 
 
 
-#*****************************************************
-# FIG: trials and errors
-peaks       = [1.4]#np.linspace(0, 7, 11)
-stim_dur    = 50  # 50 # 100 #500
-inh_conds   = ['nsi'] #['nsi', 'ln', 'noin'] #
-stim_type   = 'ts' # 'ss'   # 'ts'
-delay2an    = 0
-peak_ratio  = 1
-b_max       = [3] # 3, 50, 150
-w_max       = [3] # 3, 50, 150
-rho         = [0] #[0, 1, 3, 5]: 
-ln_spike_h  = 0.4
-nsi_str     = 0.3        
-n_lines     = np.size(peaks)
-fld_analysis = '../NSI_analysis/trialserrors'
-#/home/mario/MEGA/WORK/Code/PYTHON/NSI_analysis/trialserrors
-fig_name0   = 'ORN-PN_Olsen2010_timecourse_dur_%d'%stim_dur
-fig_name1   = 'ORN-PN_Olsen2010_dur_%d'%stim_dur
-fig_name2   = 'ORN-Martelli2013_dur_%d'%stim_dur
-al_fig      = 1
-olsen_fig   = 0
-martelli_fig = 0
-fig_save    = 0
-data_save   = 0#True
-
-
 ##*****************************************************
-## FIG: Olsen-Wilson 2010
-#peaks       = np.linspace(0, 7, 11)
-#stim_dur    = 500  # 50 # 100 #500
-#inh_conds   = ['noin'] #['nsi', 'ln', 'noin'] #
-#stim_type   = 'ss' # 'ss'   # 'ts'
+## FIG: trials and errors
+#peaks       = [1.4]#np.linspace(0, 7, 11)
+#stim_dur    = 50  # 50 # 100 #500
+#inh_conds   = ['nsi'] #['nsi', 'ln', 'noin'] #
+#stim_type   = 'ts' # 'ss'   # 'ts'
 #delay2an    = 0
 #peak_ratio  = 1
 #b_max       = [3] # 3, 50, 150
 #w_max       = [3] # 3, 50, 150
 #rho         = [0] #[0, 1, 3, 5]: 
-#ln_spike_h  = 0.6
+#ln_spike_h  = 0.4
 #nsi_str     = 0.3        
 #n_lines     = np.size(peaks)
-#fld_analysis = '../Olsen2010_Martelli2013'
-#fig_name0   = '/images/' +'ORN-PN_Olsen2010_timecourse_dur_%d'%stim_dur
-#fig_name1   = '/images/' +'ORN-PN_Olsen2010_dur_%d'%stim_dur
-#fig_name2   = '/images/' +'ORN-Martelli2013_dur_%d'%stim_dur
+#fld_analysis = '../NSI_analysis/trialserrors'
+##/home/mario/MEGA/WORK/Code/PYTHON/NSI_analysis/trialserrors
+#fig_name0   = 'test0_timecourse_dur_%d'%stim_dur
+#fig_name1   = 'test1_Olsen2010_dur_%d'%stim_dur
+#fig_name2   = 'test2_Martelli2013_dur_%d'%stim_dur
 #al_fig      = 1
 #olsen_fig   = 0
-#martelli_fig = 1
-#fig_save    = 1
+#martelli_fig = 0
+#fig_save    = 0
 #data_save   = 0#True
+
+## Fig.ImpulseResponse
+#fld_analysis = '../NSI_analysis/triangle_stim/ImpulseResponse'
+#inh_conds   = ['nsi', 'ln', 'noin'] #
+#stim_type   = 'ts'  # 'ts'
+#stim_dur    = 50
+#ln_spike_h  = 0.6
+#nsi_str     = 0.3
+#delays2an   = 0
+#peak_ratio  = 1
+#peaks       = [1.4,] 
+#orn_fig     = 0
+#al_fig      = 1
+#fig_ui      = 1        
+#
+
+#*****************************************************
+# FIG: Olsen-Wilson 2010
+peaks       = np.linspace(0, 7, 11)
+stim_dur    = 500  # 50 # 100 #500
+inh_conds   = ['noin'] #['nsi', 'ln', 'noin'] #
+stim_type   = 'ss' # 'ss'   # 'ts'
+delay2an    = 0
+peak_ratio  = 1
+b_max       = [3] # 3, 50, 150
+w_max       = [3] # 3, 50, 150
+rho         = [0] #[0, 1, 3, 5]: 
+ln_spike_h  = 0.6
+nsi_str     = 0.3        
+n_lines     = np.size(peaks)
+fld_analysis = '../Olsen2010_Martelli2013/data'
+fig_name0   = '/../images/' +'ORN-PN_Olsen2010_timecourse_dur_%d'%stim_dur
+fig_name1   = '/../images/' +'ORN-PN_Olsen2010_dur_%d'%stim_dur
+fig_name2   = '/../images/' +'ORN-Martelli2013_dur_%d'%stim_dur
+al_fig      = 0
+olsen_fig   = 1
+martelli_fig = 0
+fig_save    = 1
+data_save   = 0#True
 
 ##*****************************************************
 ## FIG: ratio analysis
@@ -514,8 +532,6 @@ for stim_seed in [0]:
             # Constrain the optimization region
             popt, pcov = curve_fit(olsen_orn_pn, 
                                    nu_orn, nu_pn, bounds=(0,[250, 300])) # , bounds=(0, [3., 1., 0.5])
-        #    popt_peak, pcov = curve_fit(olsen_orn_pn, 
-        #                                nu_orn_stim_peak, nu_pn_stim_peak, bounds=(0,[250, 300])) # , bounds=(0, [3., 1., 0.5])
             
             rs = 2
             cs = 1
@@ -523,7 +539,7 @@ for stim_seed in [0]:
             
             plt.rc('text', usetex=True)
             
-            axs[0].errorbar(nu_orn, nu_pn, yerr=nu_pn_err, linewidth=lw, label='simulation')
+            axs[0].errorbar(nu_orn, nu_pn, yerr=nu_pn_err, label='simulation', fmt='o'  )
             axs[0].plot(nu_orn, olsen_orn_pn(nu_orn, *popt), '--', linewidth=lw, 
                     label=r'fit: $\sigma$=%5.0f, $\nu_{max}$=%5.0f' % tuple(popt))
             
@@ -543,21 +559,23 @@ for stim_seed in [0]:
             axs[1].set_xlabel(r'concentration [au]', fontsize=label_fs)
             axs[1].legend(loc=0, fontsize=legend_fs, frameon=False)
             
-            axs[0].text(-.1, 1.1, 'e.', transform=axs[0].transAxes, color=blue,
-                     fontsize=30, fontweight='bold', va='top', ha='right')
-            axs[1].text(-.1, 1.1, 'f.', transform=axs[1].transAxes,color=blue,
-                     fontsize=30, fontweight='bold', va='top', ha='right')
+            axs[0].text(-.2, 1.1, 'e.', transform=axs[0].transAxes, color=blue,
+                     fontsize=panel_fs, fontweight='bold', va='top', ha='right')
+            axs[1].text(-.2, 1.1, 'f.', transform=axs[1].transAxes,color=blue,
+                     fontsize=panel_fs, fontweight='bold', va='top', ha='right')
         
             for j in [0,1]:
                 axs[j].tick_params(axis='both', labelsize=label_fs)
                 axs[j].spines['right'].set_color('none')
                 axs[j].spines['top'].set_color('none')
             
+            dx = 0.1
             ll, bb, ww, hh = axs[0].get_position().bounds
-            axs[0].set_position([ll, bb+.05, ww, hh])
+            axs[0].set_position([ll+dx, bb+.05, ww-dx, hh])
+            ll, bb, ww, hh = axs[1].get_position().bounds
+            axs[1].set_position([ll+dx, bb, ww-dx, hh])
 
             if fig_save:
-                fig3.savefig(fld_analysis+  '/images/'+fig_name1+'_'+inh_cond+'.png')
-    
+                fig3.savefig(fld_analysis+  fig_name1+'_'+inh_cond+'.png')
         print('')
 

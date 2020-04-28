@@ -25,10 +25,11 @@ from shutil import copyfile
 import sys
 sys.path.insert(0, '/flynose/')
 
-import flynose.corr_steps as corr_steps
-import flynose.corr_plumes as corr_plumes
-import flynose.sdf_krofczik as sdf_krofczik
-import flynose.stats_for_plumes as stats
+import corr_steps
+import corr_plumes
+import sdf_krofczik
+import stats_for_plumes as stats
+
 
 # *****************************************************************
 # FUNCTIONS
@@ -703,9 +704,9 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
         ax_orn2.yaxis.label.set_color(col_glo[0,:]/2)
         ax_orn2.set_ylabel(r'r ', fontsize=label_fs)
         ax_orn3.yaxis.label.set_color(green)
-        ax_orn3.set_ylabel(r'x ', fontsize=label_fs)
+        ax_orn3.set_ylabel(r'y ', fontsize=label_fs)
         ax_orn4.yaxis.label.set_color(col_glo[1,:]/2)
-        ax_orn4.set_ylabel(r'y ', fontsize=label_fs)
+        ax_orn4.set_ylabel(r'x ', fontsize=label_fs)
         ax_orn_fr.set_ylabel('firing rates (Hz)', fontsize=label_fs)
         ax_orn_fr.set_xlabel('Time  (ms)', fontsize=label_fs) 
         ax_orn_sc.set_ylabel('Neuron id', fontsize=label_fs)
@@ -1141,21 +1142,21 @@ if __name__ == '__main__':
 #        fig_save    = 0
 #        #***********************************************
         
-#        # FIG. ORN_response
-#        fld_analysis = '../NSI_analysis/ORN_dynamics' #/sdf_test
-#        inh_conds   = ['noin'] #
-#        stim_type   = 'ss' # 'ts' # 'ss' # 'rp'# '
-#        ln_spike_h  = 0.4
-#        nsi_str     = 0.3
-#        stim_dur    = 500
-#        delays2an   = 0
-#        peaks       = [0.8]
-#        peak_ratio  = 1
-#        orn_fig     = 1
-#        al_fig      = 0
-#        fig_ui      = 1
-#        fig_save    = 1
-#        #***********************************************        
+        # FIG. ORN_response
+        fld_analysis = '../NSI_analysis/ORN_dynamics' #/sdf_test
+        inh_conds   = ['noin'] #
+        stim_type   = 'ss' # 'ts' # 'ss' # 'rp'# '
+        ln_spike_h  = 0.4
+        nsi_str     = 0.3
+        stim_dur    = 500
+        delays2an   = 0
+        peaks       = [0.8]
+        peak_ratio  = 1
+        orn_fig     = 1
+        al_fig      = 0
+        fig_ui      = 1
+        fig_save    = 1
+        #***********************************************        
         
 #        # FIG. DelayResponse
 #        fld_analysis = '../NSI_analysis/triangle_stim/triangles_delay' #
@@ -1203,21 +1204,21 @@ if __name__ == '__main__':
 #        fig_ui      = 1        
 #        fig_save    = 1
 
-        #***********************************************
-        # Trials and errors
-        fld_analysis = '../NSI_analysis/trialserrors'
-        inh_conds   = ['nsi', ] #'ln', 'noin'
-        stim_type   = 'ts'  # 'ts' # 'ss'
-        stim_dur    = 50
-        ln_spike_h  = 0.4
-        nsi_str     = 0.3
-        delays2an   = 0
-        peak_ratio  = 1
-        peaks       = [1.4,] 
-        orn_fig     = 0
-        al_fig      = 1
-        fig_ui      = 1        
-        fig_save    = 0
+#        #***********************************************
+#        # Trials and errors
+#        fld_analysis = '../NSI_analysis/trialserrors'
+#        inh_conds   = ['nsi', ] #'ln', 'noin'
+#        stim_type   = 'ts'  # 'ts' # 'ss'
+#        stim_dur    = 50
+#        ln_spike_h  = 0.4
+#        nsi_str     = 0.3
+#        delays2an   = 0
+#        peak_ratio  = 1
+#        peaks       = [1.4,] 
+#        orn_fig     = 0
+#        al_fig      = 1
+#        fig_ui      = 1        
+#        fig_save    = 0
 
         
         

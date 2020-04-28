@@ -19,7 +19,7 @@ import numpy as np
 from scipy.stats import norm
 import matplotlib.pyplot as plt
 import timeit
-import flynose.stats_for_plumes as stats
+import stats_for_plumes as stats
 
 
 # *****************************************************************
