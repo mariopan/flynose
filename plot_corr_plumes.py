@@ -226,11 +226,11 @@ if fig_plumes_dist:
     ax_int.set_ylabel('probab distr funct', fontsize=label_fs)
     ax_int.legend(fontsize=label_fs-5, frameon=False)
     
-    ax_int.text(-.1, 1.05, 'f.', transform=ax_int.transAxes, color = blue,
+    ax_int.text(-.1, 1.05, 'e.', transform=ax_int.transAxes, color = blue,
                   fontsize=panel_fs, fontweight='bold', va='top', ha='right')
-    ax_ov.text(-.1, 1.05, 'g.', transform=ax_ov.transAxes, color = blue,
+    ax_ov.text(-.1, 1.05, 'f.', transform=ax_ov.transAxes, color = blue,
                   fontsize=panel_fs, fontweight='bold', va='top', ha='right')
-    ax_cor.text(-.1, 1.05, 'h.', transform=ax_cor.transAxes, color = blue,
+    ax_cor.text(-.1, 1.05, 'g.', transform=ax_cor.transAxes, color = blue,
                   fontsize=panel_fs, fontweight='bold', va='top', ha='right')
     
     ax_int.spines['top'].set_color('none')

@@ -123,7 +123,7 @@ if peak_fig:
     ratio2_peak_err_nsi = np.zeros((n_ratios, n_concs, n_durs))
     ratio2_peak_err_ln = np.zeros((n_ratios, n_concs,n_durs))
     
-if resumen_fig | peak_fig:
+if resumen_bar | resumen_fig | peak_fig:
     ratio2dist_peak_noin = np.zeros((n_ratios, n_concs,n_durs))
     ratio2dist_peak_nsi = np.zeros((n_ratios, n_concs,n_durs))
     ratio2dist_peak_ln = np.zeros((n_ratios, n_concs,n_durs))
@@ -249,7 +249,7 @@ for id_dur in range(n_durs):
                 ratio2_peak_err_nsi[:,pk, id_dur] = np.std(nsi_tmp, axis=1)
                 ratio2_peak_err_ln[:,pk, id_dur] = np.std(ln_tmp, axis=1)  
                 
-        if resumen_fig | peak_fig:
+        if resumen_fig | resumen_bar | peak_fig:
             for pk in [1, 2,3]:#range(4): #4
                 noin_tmp = (conc_ratio_mat/pn_ratio_peak_noin[:,pk,:]-1)**2
                 ln_tmp = (conc_ratio_mat/pn_ratio_peak_ln[:,pk,:]-1)**2
@@ -408,7 +408,7 @@ if resumen_bar:
     axs.bar(ptns+width, avg_ratio_peak_nsi, width=width, color='blue', 
             yerr=avg_ratio_peak_nsi_std/np.sqrt(n_ratios*n_concs), 
             label='NSI', )
-
+#%%
     # FIGURE SETTINGS
     axs.spines['right'].set_color('none')   
     axs.spines['top'].set_color('none')                

@@ -168,7 +168,7 @@ data_save = True
 def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
     
     orn_fig     = fig_opts[0]
-    al_dyn      = 0
+    al_dyn      = 1
     al_fig      = fig_opts[1]
     stimulus    = params2an[7] # 'ss'   # 'rs'   #  'pl'  # 'ts'
     
@@ -969,42 +969,24 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
         # FIGURE ORN, PN, LN
 
         t2plot = -100, t2simulate #000-t_on, t2simulate
-        if stimulus == 'pl':
-            #lw = 1.1
-            t2plot = 0, 1000#2000, 4000
         rs = 4 # number of rows
         cs = 1 # number of cols
+        fig_size = [7, 8] 
         
-        fig_pn = plt.figure(figsize=[7, 10])
+        if stimulus == 'pl':
+            #lw = 1.1
+            t2plot = 0, 4000
+            rs = 2 # number of rows
+            cs = 2 # number of cols
+            fig_size = [10, 5]
+
+        
+        fig_pn = plt.figure(figsize=fig_size)
         
         ax_conc = plt.subplot(rs, cs, 1)
-        ax_orn = plt.subplot(rs, cs, 1+cs)
-        ax_pn = plt.subplot(rs, cs, 1+cs*2)
-        ax_ln = plt.subplot(rs, cs, 1+cs*3)
-        
-        ax_conc.set_xlim(t2plot)
-        ax_orn.set_xlim(t2plot)
-        ax_pn.set_xlim(t2plot)
-        ax_ln.set_xlim(t2plot)
-        
-        ax_orn.set_ylim((0, 130))
-        ax_pn.set_ylim((0, 150))
-        ax_ln.set_ylim((0, 200))
-
-        ax_conc.tick_params(axis='both', labelsize=label_fs)
-        ax_orn.tick_params(axis='both', labelsize=label_fs)
-        ax_pn.tick_params(axis='both', labelsize=label_fs)
-        ax_ln.tick_params(axis='both', labelsize=label_fs)
-        
-        ax_conc.set_xticklabels('')
-        ax_orn.set_xticklabels('')
-        ax_pn.set_xticklabels('')
-        
-        ax_conc.set_ylabel('Input ORN ', fontsize=label_fs)
-        ax_orn.set_ylabel(r' ORN  (Hz)', fontsize=label_fs)
-        ax_pn.set_ylabel(r' PN  (Hz)', fontsize=label_fs)
-        ax_ln.set_ylabel(r' LN  (Hz)', fontsize=label_fs)
-        ax_ln.set_xlabel('Time  (ms)', fontsize=label_fs)
+        ax_orn = plt.subplot(rs, cs, 2)
+        ax_pn = plt.subplot(rs, cs, 3)
+        ax_ln = plt.subplot(rs, cs, 4)
         
         ax_conc.plot(t-t_on, 100*u_od[:,0], color=green, linewidth=lw+2, 
                       label='glom : '+'%d'%(1))
@@ -1031,6 +1013,48 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
             else:
                 ax_ln.plot(ln_sdf_time-t_on, ln_sdf_norm[:,ll], color=green,
                               linewidth=lw+1, label='LN : '+'%d'%(ll))      
+        ax_conc.set_xlim(t2plot)
+        ax_orn.set_xlim(t2plot)
+        ax_pn.set_xlim(t2plot)
+        ax_ln.set_xlim(t2plot)
+        
+        ax_orn.set_ylim((0, 130))
+        ax_pn.set_ylim((0, 150))
+        ax_ln.set_ylim((0, 200))
+
+        ax_conc.tick_params(axis='both', labelsize=label_fs)
+        ax_orn.tick_params(axis='both', labelsize=label_fs)
+        ax_pn.tick_params(axis='both', labelsize=label_fs)
+        ax_ln.tick_params(axis='both', labelsize=label_fs)
+        
+        ax_conc.set_xticklabels('')
+        ax_orn.set_xticklabels('')
+        ax_pn.set_xticklabels('')
+        
+        ax_conc.set_ylabel('Input ORN ', fontsize=label_fs)
+        ax_orn.set_ylabel(r' ORN  (Hz)', fontsize=label_fs)
+        ax_pn.set_ylabel(r' PN  (Hz)', fontsize=label_fs)
+        ax_ln.set_ylabel(r' LN  (Hz)', fontsize=label_fs)
+        ax_ln.set_xlabel('Time  (ms)', fontsize=label_fs)
+        if stimulus == 'pl':
+            ax_orn.set_ylim((0, 150))
+            ax_pn.set_ylim((0, 180))
+            ax_ln.set_ylim((0, 250))
+            ax_pn.set_xticks(np.linspace(0, t2plot[1], 6))
+            ax_ln.set_xticks(np.linspace(0, t2plot[1], 6))
+            ax_pn.set_xticklabels(np.linspace(0, t2plot[1], 6)/1e3)
+            ax_ln.set_xticklabels(np.linspace(0, t2plot[1], 6)/1e3)
+            ax_pn.set_xlabel('Time  (ms)', fontsize=label_fs)
+            ax_conc.text(-.15, 1.15, 'a.', transform=ax_conc.transAxes,
+                color=blue, fontsize=panel_fs, fontweight='bold', va='top', ha='right')
+            ax_orn.text(-.15, 1.15, 'b.', transform=ax_orn.transAxes,
+                color=blue, fontsize=panel_fs, fontweight='bold', va='top', ha='right')
+            ax_pn.text(-.15, 1.15, 'c.', transform=ax_pn.transAxes,
+                color=blue, fontsize=panel_fs, fontweight='bold', va='top', ha='right')
+            ax_ln.text(-.15, 1.15, 'd.', transform=ax_ln.transAxes,
+                color=blue, fontsize=panel_fs, fontweight='bold', va='top', ha='right')
+
+            
         ax_conc.spines['right'].set_color('none')
         ax_conc.spines['top'].set_color('none')
         ax_orn.spines['right'].set_color('none')
@@ -1040,6 +1064,21 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
         ax_ln.spines['right'].set_color('none')
         ax_ln.spines['top'].set_color('none')
         
+        if (stimulus == 'pl'):
+            dx = 0
+        else:
+            dx = 0.05
+        dy = 0.05
+            
+        ll, bb, ww, hh = ax_conc.get_position().bounds
+        ax_conc.set_position([ll+dx, bb+dy, ww, hh])
+        ll, bb, ww, hh = ax_pn.get_position().bounds
+        ax_pn.set_position([ll+dx, bb+dy, ww, hh])
+        ll, bb, ww, hh = ax_orn.get_position().bounds
+        ax_orn.set_position([ll+.05, bb+dy, ww, hh])
+        ll, bb, ww, hh = ax_ln.get_position().bounds
+        ax_ln.set_position([ll+.05, bb+dy, ww, hh])
+    
         if fig_save:
             if stimulus == 'ts':
                 fig_pn.savefig(fld_analysis+  '/ORNPNLN' +
@@ -1080,7 +1119,7 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
 
 if __name__ == '__main__':
     print('run directly')
-
+    stim_data_fld = ''
     for stim_seed in [0]:
 #        #***********************************************
 #        # Olsen-Wilson 2010 figure
@@ -1145,39 +1184,39 @@ if __name__ == '__main__':
 #        al_fig      = 1
 #        fig_ui      = 1        
         
-#        #***********************************************
-#        # Real plumes, example figure
-#        fld_analysis = '../NSI_analysis/analysis_real_plumes/example'
-#        inh_conds   = ['nsi', ] #'ln', 'noin'
-#        stim_type   = 'pl'  # 'ts' # 'ss'
-#        stim_dur    = 10000
-#        ln_spike_h  = 0.4
-#        nsi_str     = 0.3
-#        delays2an   = 0
-#        peak_ratio  = 1
-#        peaks       = [1.5,] 
-#        orn_fig     = 0
-#        al_fig      = 1
-#        fig_ui      = 1        
-#        fig_save    = 1
-
         #***********************************************
-        # Lazar and Kim data reproduction
-        fld_analysis    = '../NSI_analysis/lazar_sim/'
-        inh_conds       = ['nsi', ] #'ln', 'noin'
-        ext_stimulus    = True
-        stim_type       = 'ramp_3' #ex' # 'ts'  # 'ts' # 'ss' # 'step_3' 'parabola_3' 'ramp_3'
-        stim_data_fld   = '../lazar_data_hr/'
-        stim_dur        = 1000
-        ln_spike_h      = 0.4
-        nsi_str         = 0.3
-        delays2an       = 0
-        peak_ratio      = 1
-        peaks           = [1,] 
-        orn_fig         = 1
-        al_fig          = 0
-        fig_ui          = 1        
-        fig_save        = 1
+        # Real plumes, example figure
+        fld_analysis = '../NSI_analysis/analysis_real_plumes/example'
+        inh_conds   = ['nsi', ] #'ln', 'noin'
+        stim_type   = 'pl'  # 'ts' # 'ss'
+        stim_dur    = 5000
+        ln_spike_h  = 0.4
+        nsi_str     = 0.3
+        delays2an   = 0
+        peak_ratio  = 1
+        peaks       = [1.5,] 
+        orn_fig     = 0
+        al_fig      = 1
+        fig_ui      = 1        
+        fig_save    = 1
+
+#        #***********************************************
+#        # Lazar and Kim data reproduction
+#        fld_analysis    = '../NSI_analysis/lazar_sim/'
+#        inh_conds       = ['nsi', ] #'ln', 'noin'
+#        ext_stimulus    = True
+#        stim_type       = 'ramp_3' #ex' # 'ts'  # 'ts' # 'ss' # 'step_3' 'parabola_3' 'ramp_3'
+#        stim_data_fld   = '../lazar_data_hr/'
+#        stim_dur        = 1000
+#        ln_spike_h      = 0.4
+#        nsi_str         = 0.3
+#        delays2an       = 0
+#        peak_ratio      = 1
+#        peaks           = [1,] 
+#        orn_fig         = 1
+#        al_fig          = 0
+#        fig_ui          = 1        
+#        fig_save        = 1
 
 #        #***********************************************
 #        # Trials and errors
