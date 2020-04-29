@@ -70,28 +70,28 @@ def rect_func(b, x):
     ot = b[0]/(1 + np.exp(-b[1]*(x-b[2])))
     return ot
 
-def pn2ln_s(z,t, u_pn, ln_params, ):
-
-    #    ln_params = np.array([tau_s_ln, c_ln, g_ln, a_s_ln, vrev_ln, vrest_ln])
-    tau_s = ln_params[0]
-    a_s = ln_params[3]
-    
-    # PN -> LN equation of s:
-    s = z[0] 
-    dsdt = (a_s*u_pn*(1-s) - s)/tau_s       
-    return dsdt
-
-def pn2ln_v(z,t, s, ln_params, ):
-#    ln_params = np.array([tau_s_ln, c_ln, g_ln, a_s_ln, vrev_ln, vrest_ln])
-    c = ln_params[1]
-    g = ln_params[2]
-    vrev = ln_params[4]
-    vrest = ln_params[5]
-    
-    # PN -> LN equations:
-    v = z[0] 
-    dvdt = ((vrest-v) + g*s*(vrev-v) )/c
-    return dvdt
+#def pn2ln_s(z,t, u_pn, ln_params, ):
+#
+#    #    ln_params = np.array([tau_s_ln, c_ln, g_ln, a_s_ln, vrev_ln, vrest_ln])
+#    tau_s = ln_params[0]
+#    a_s = ln_params[3]
+#    
+#    # PN -> LN equation of s:
+#    s = z[0] 
+#    dsdt = (a_s*u_pn*(1-s) - s)/tau_s       
+#    return dsdt
+#
+#def pn2ln_v(z,t, s, ln_params, ):
+##    ln_params = np.array([tau_s_ln, c_ln, g_ln, a_s_ln, vrev_ln, vrest_ln])
+#    c = ln_params[1]
+#    g = ln_params[2]
+#    vrev = ln_params[4]
+#    vrest = ln_params[5]
+#    
+#    # PN -> LN equations:
+#    v = z[0] 
+#    dvdt = ((vrest-v) + g*s*(vrev-v) )/c
+#    return dvdt
 
 def pn2ln_v_ex(x0,t, s, ln_params, ):
 #    ln_params = np.array([tau_s_ln, c_ln, g_ln, a_s_ln, vrev_ln, vrest_ln])
@@ -122,28 +122,28 @@ def pn2ln_s_ex(x0,t, u_pn, ln_params, ):
 #    dsdt = (a_s*u_pn*(1-s) - s)/tau_s       
     return y
 
-def pn2ln(z,t, u_pn, ln_params, ):
-#    ln_params = np.array([tau_s_ln, c_ln, g_ln, a_s_ln, vrev_ln, vrest_ln])
-    tau_s = ln_params[0]
-    c = ln_params[1]
-    g = ln_params[2]
-    a_s = ln_params[3]
-    vrev = ln_params[4]
-    vrest = ln_params[5]
-    
-    # PN -> LN equations:
-    s = z[0] 
-    v = z[1] 
-    dsdt = (a_s*u_pn*(1-s) - s)/tau_s   
-    dvdt = ((vrest-v) + g*s*(vrev-v) )/c
-    
-    dzdt = [dsdt, dvdt]
-    return dzdt
+#def pn2ln(z,t, u_pn, ln_params, ):
+##    ln_params = np.array([tau_s_ln, c_ln, g_ln, a_s_ln, vrev_ln, vrest_ln])
+#    tau_s = ln_params[0]
+#    c = ln_params[1]
+#    g = ln_params[2]
+#    a_s = ln_params[3]
+#    vrev = ln_params[4]
+#    vrest = ln_params[5]
+#    
+#    # PN -> LN equations:
+#    s = z[0] 
+#    v = z[1] 
+#    dsdt = (a_s*u_pn*(1-s) - s)/tau_s   
+#    dvdt = ((vrest-v) + g*s*(vrev-v) )/c
+#    
+#    dzdt = [dsdt, dvdt]
+#    return dzdt
 
-def x_ln_fun(z,t, u_ln, tau_x, a_x,):
-    x = z[0] 
-    dxdt = (a_x*u_ln*(1-x) - x)/tau_x
-    return dxdt
+#def x_ln_fun(z,t, u_ln, tau_x, a_x,):
+#    x = z[0] 
+#    dxdt = (a_x*u_ln*(1-x) - x)/tau_x
+#    return dxdt
 
 def x_ln_fun_ex(x0,t,u_ln, tau_x, a_x,):
     b = (-a_x*u_ln-1)/tau_x
@@ -153,15 +153,15 @@ def x_ln_fun_ex(x0,t,u_ln, tau_x, a_x,):
     return y
 
 
-def orn2pn_s(z,t, u_orn, x_pn,x_ln,pn_params,):
-#    pn_params  = np.array([tau_s_pn, c_pn, g_pn, a_s_pn, vrev_pn, vrest_pn])
-    tau_s = pn_params[0]
-    a_s = pn_params[3]
-    
-    # ORN -> PN equations:
-    s = z[0] 
-    dsdt = (a_s*u_orn*(1-s)*(1-x_pn)*(1-x_ln) - s)/tau_s
-    return dsdt
+#def orn2pn_s(z,t, u_orn, x_pn,x_ln,pn_params,):
+##    pn_params  = np.array([tau_s_pn, c_pn, g_pn, a_s_pn, vrev_pn, vrest_pn])
+#    tau_s = pn_params[0]
+#    a_s = pn_params[3]
+#    
+#    # ORN -> PN equations:
+#    s = z[0] 
+#    dsdt = (a_s*u_orn*(1-s)*(1-x_pn)*(1-x_ln) - s)/tau_s
+#    return dsdt
 
 
 def orn2pn_s_ex(x0,t, u_orn, x_pn,x_ln,pn_params,):
@@ -177,17 +177,17 @@ def orn2pn_s_ex(x0,t, u_orn, x_pn,x_ln,pn_params,):
     return y
 
 
-def orn2pn_v(z,t, s, pn_params,):
-#    pn_params  = np.array([tau_s_pn, c_pn, g_pn, a_s_pn, vrev_pn, vrest_pn])
-    c       = pn_params[1]
-    g       = pn_params[2]
-    vrev    = pn_params[4]
-    vrest   = pn_params[5]
-    
-    # ORN -> PN equations:
-    v = z[0]  # v_PN
-    dvdt = ((vrest-v) + g*s*(vrev-v) )/c
-    return dvdt
+#def orn2pn_v(z,t, s, pn_params,):
+##    pn_params  = np.array([tau_s_pn, c_pn, g_pn, a_s_pn, vrev_pn, vrest_pn])
+#    c       = pn_params[1]
+#    g       = pn_params[2]
+#    vrev    = pn_params[4]
+#    vrest   = pn_params[5]
+#    
+#    # ORN -> PN equations:
+#    v = z[0]  # v_PN
+#    dvdt = ((vrest-v) + g*s*(vrev-v) )/c
+#    return dvdt
 
 def orn2pn_v_ex(x0,t, s, pn_params,):
 #    pn_params  = np.array([tau_s_pn, c_pn, g_pn, a_s_pn, vrev_pn, vrest_pn])
@@ -204,22 +204,22 @@ def orn2pn_v_ex(x0,t, s, pn_params,):
 #    dvdt = (vrest + g*s*vrev)/c  - v*(1 + g*s)/c
     return y
 
-def orn2pn(z,t, u_orn, x_pn,x_ln,pn_params,):
-#    pn_params  = np.array([tau_s_pn, c_pn, g_pn, a_s_pn, vrev_pn, vrest_pn])
-    tau_s = pn_params[0]
-    c = pn_params[1]
-    g = pn_params[2]
-    a_s = pn_params[3]
-    vrev = pn_params[4]
-    vrest = pn_params[5]
-    
-    # ORN -> PN equations:
-    s = z[0] 
-    v = z[1]  # v_PN
-    dsdt = (a_s*u_orn*(1-s)*(1-x_pn)*(1-x_ln) - s)/tau_s
-    dvdt = ((vrest-v) + g*s*(vrev-v) )/c
-    dzdt = [dsdt, dvdt]
-    return dzdt
+#def orn2pn(z,t, u_orn, x_pn,x_ln,pn_params,):
+##    pn_params  = np.array([tau_s_pn, c_pn, g_pn, a_s_pn, vrev_pn, vrest_pn])
+#    tau_s = pn_params[0]
+#    c = pn_params[1]
+#    g = pn_params[2]
+#    a_s = pn_params[3]
+#    vrev = pn_params[4]
+#    vrest = pn_params[5]
+#    
+#    # ORN -> PN equations:
+#    s = z[0] 
+#    v = z[1]  # v_PN
+#    dsdt = (a_s*u_orn*(1-s)*(1-x_pn)*(1-x_ln) - s)/tau_s
+#    dvdt = ((vrest-v) + g*s*(vrev-v) )/c
+#    dzdt = [dsdt, dvdt]
+#    return dzdt
 
 
 def x_adapt_ex(x0,t,u_orn, tau, a_ad,):
@@ -256,7 +256,7 @@ data_save = True
 def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
     
     orn_fig     = fig_opts[0]
-    al_dyn      = 1
+    al_dyn      = 0
     al_fig      = fig_opts[1]
     stimulus    = params2an[7] # 'ss'   # 'rs'   #  'pl'  # 'ts'
     
@@ -279,16 +279,20 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
     col_glo[0,:]    = cmap(int(255/(id_colors2u[0]+1.3)))
     col_glo[1,:]    = cmap(int(255/(id_colors2u[1]+1.3)))
     
-    t2simulate      = np.maximum(params2an[2],1200) # [ms]
-    t_on            = 300      # [ms]
+    
     # average sdf parameters
     tau_sdf         = 20
     dt_sdf          = 5   
     
+    # Sims params
+    t_on            = 300      # [ms]
+    t2simulate      = np.maximum(t_on+params2an[2],1200) # [ms]
     pts_ms          = 5             # simulated points per ms
     n2sim           = pts_ms*t2simulate + 1      # number of time points
     t               = np.linspace(0, t2simulate, n2sim) # time points
     
+    # Stimulus params
+    stim_on         = t_on*pts_ms 
     t_off           = t_on + dur2an     # [ms]
     stim_off        = t_off*pts_ms    
     t_on2           = t_on+delays2an     # [ms]
@@ -300,8 +304,6 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
     nu_pn_noise     = 200 # Hz  - PNs Noise into each PNs
     nu_ln_noise     = 0 # Hz    - LNs Noise into each PNs
     
-    # STEP stimulus 1st glomerulus
-    stim_on         = t_on*pts_ms 
         
     # initialize output vectors
     num_glo         = 2     # number of glomeruli
@@ -310,6 +312,7 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
     overlap_stim    = np.nan
     cor_whiff       = np.nan
     
+    ext_stimulus = False # flag indicating an external stimulus is provided        
     if stimulus == 'ss':
         # Single Step Stimuli
         
@@ -436,7 +439,33 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
             nonzero_concs1  = out_y[(out_y>0) & (out_w>0)]
             nonzero_concs2  = out_w[(out_y>0) & (out_w>0)]
             cor_whiff       = np.corrcoef(nonzero_concs1, nonzero_concs2)[0, 1] # np.corrcoef(concs1, concs2)[0, 1]
+    else:
+        ext_stimulus = True # flag indicating an external stimulus is provided
+        stim_data_name = params2an[10]+params2an[7]+'.dat'
+        ex_stim = np.loadtxt(stim_data_name)
+     
+        # Sims params
+        t2simulate      = ex_stim[-1,0]*1e3 # [ms] t2simulate depends on data
+        pts_ms          = 5             # simulated points per ms
+        n2sim           = np.size(ex_stim, axis=0)#pts_ms*t2simulate + 1      # number of time points
+        t               = np.linspace(0, t2simulate, n2sim) # time points
+        # t = ex_stim[:,0]*1e3         
+        
+        # Stimulus params
+        t_on            = 0      # [ms]
+        stim_on         = t_on*pts_ms 
+        t_off           = t_on + dur2an     # [ms]
+        stim_off        = t_off*pts_ms    
+        t_on2           = t_on+delays2an     # [ms]
+        stim_on2        = t_on2*pts_ms
+        t_off2          = t_on2 + dur2an    # [ms]
+        stim_off2       = t_off2*pts_ms
+        
+        u_od            = np.zeros((n2sim, num_glo))
+        u_od[:, 0]      = .01*ex_stim[:,1]
+        u_od[:, 1]      = .01*(ex_stim[0,1]+ex_stim[-1,1])/2
     
+        
     od_avg1 = np.mean(u_od[stim_on:, 0])
     od_avg2 = np.mean(u_od[stim_on:, 1])    
     
@@ -629,8 +658,14 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
                     '_delays2an_%d'%(params2an[3]) +
                     '_peak_%.2f'%(params2an[4]) +
                     '_peakratio_%.1f'%(params2an[5]) + # 
-                    '.pickle'] #'_rho_%.1f'%(params2an[6]) +  
-
+                    '.pickle'] #'_rho_%.1f'%(params2an[6]) +
+        if ext_stimulus:
+            name_data = ['/ORNrate' +
+                    '_stim_' + params2an[7] +
+                    '_nsi_%.1f'%(params2an[0]) +
+                    '_lnspH_%.2f'%(params2an[1]) +
+                    '.pickle']
+            
         output_names = ['t', 'u_od', 'orn_sdf_norm', 'orn_sdf_time', ]        
         
         params2an_names = ['nsi_value', 'ln_spike_height', 'dur2an', 'delays2an', 
@@ -645,11 +680,17 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
 
     if orn_fig:  
         t2plot = -200, 1000 #t2simulate #-t_on, t2simulate-t_on
-        if stimulus == 'pl':
-#            lw = 1.1
-            t2plot = 0, 1000#2000, 4000
         rs = 4 # number of rows
         cs = 1 # number of cols
+
+        if stimulus == 'pl':
+            t2plot = 0, 1000#2000, 4000
+            rs = 2 # number of rows
+            cs = 2 # number of cols
+            
+        if ext_stimulus:
+            t2plot = 0, t2simulate
+            
         panels_id = ['a.', 'b.', 'c.', 'd.']
         fig_orn = plt.figure(figsize=[8.5, 8])
 #        fig_orn.canvas.manager.window.wm_geometry("+%d+%d" % fig_position )
@@ -753,12 +794,16 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
         ax_orn_fr.set_xlim((t2plot))
         
         if fig_save:
-            fig_orn.savefig(fld_analysis + 
-                            '/ORN_t1_' + '%d'%(t_on-t_on) + '-' + '%d'%(t_off-t_on) + 
+            if ext_stimulus:
+                fig_name_orn = '/ORN_' + params2an[7] + '.png'
+            else:
+                fig_name_orn = ['/ORN_t1_' + '%d'%(t_on-t_on) + '-' + '%d'%(t_off-t_on) + 
                             '_t2_' + '%d'%(t_on2-t_on) + '-' + '%d'%(t_off2-t_on) + 
                             '_peak1_'  + '%0.2f'%(peak1) +
                             '_peak2_'  + '%0.2f'%(peak2) +
-                            '.png')
+                            '.png']
+            
+            fig_orn.savefig(fld_analysis + fig_name_orn)
     # ******************************************************************
  
     
@@ -1142,21 +1187,21 @@ if __name__ == '__main__':
 #        fig_save    = 0
 #        #***********************************************
         
-        # FIG. ORN_response
-        fld_analysis = '../NSI_analysis/ORN_dynamics' #/sdf_test
-        inh_conds   = ['noin'] #
-        stim_type   = 'ss' # 'ts' # 'ss' # 'rp'# '
-        ln_spike_h  = 0.4
-        nsi_str     = 0.3
-        stim_dur    = 500
-        delays2an   = 0
-        peaks       = [0.8]
-        peak_ratio  = 1
-        orn_fig     = 1
-        al_fig      = 0
-        fig_ui      = 1
-        fig_save    = 1
-        #***********************************************        
+#        # FIG. ORN_response
+#        fld_analysis = '../NSI_analysis/ORN_dynamics' #/sdf_test
+#        inh_conds   = ['noin'] #
+#        stim_type   = 'ss' # 'ts' # 'ss' # 'rp'# '
+#        ln_spike_h  = 0.4
+#        nsi_str     = 0.3
+#        stim_dur    = 500
+#        delays2an   = 0
+#        peaks       = [0.8]
+#        peak_ratio  = 1
+#        orn_fig     = 1
+#        al_fig      = 0
+#        fig_ui      = 1
+#        fig_save    = 1
+#        #***********************************************        
         
 #        # FIG. DelayResponse
 #        fld_analysis = '../NSI_analysis/triangle_stim/triangles_delay' #
@@ -1204,23 +1249,39 @@ if __name__ == '__main__':
 #        fig_ui      = 1        
 #        fig_save    = 1
 
+        #***********************************************
+        # Lazar and Kim data reproduction
+        fld_analysis    = '../NSI_analysis/lazar_sim/'
+        inh_conds       = ['nsi', ] #'ln', 'noin'
+        ext_stimulus    = True
+        stim_type       = 'ramp_3' #ex' # 'ts'  # 'ts' # 'ss' # 'step_3' 'parabola_3' 'ramp_3'
+        stim_data_fld   = '../lazar_data_hr/'
+        stim_dur        = 1000
+        ln_spike_h      = 0.4
+        nsi_str         = 0.3
+        delays2an       = 0
+        peak_ratio      = 1
+        peaks           = [1,] 
+        orn_fig         = 1
+        al_fig          = 0
+        fig_ui          = 1        
+        fig_save        = 1
+
 #        #***********************************************
 #        # Trials and errors
-#        fld_analysis = '../NSI_analysis/trialserrors'
-#        inh_conds   = ['nsi', ] #'ln', 'noin'
-#        stim_type   = 'ts'  # 'ts' # 'ss'
-#        stim_dur    = 50
-#        ln_spike_h  = 0.4
-#        nsi_str     = 0.3
-#        delays2an   = 0
-#        peak_ratio  = 1
-#        peaks       = [1.4,] 
-#        orn_fig     = 0
-#        al_fig      = 1
-#        fig_ui      = 1        
-#        fig_save    = 0
-
-        
+#        fld_analysis    = '../NSI_analysis/trialserrors'
+#        inh_conds       = ['nsi', ] #'ln', 'noin'
+#        stim_type       =  # 'ts'  # 'ts' # 'ss'
+#        stim_dur        = 100
+#        ln_spike_h      = 0.4
+#        nsi_str         = 0.3
+#        delays2an       = 0
+#        peak_ratio      = 1
+#        peaks           = [1,] 
+#        orn_fig         = 1
+#        al_fig          = 1
+#        fig_ui          = 1        
+#        fig_save        = 0
         
         fig_opts = [orn_fig, al_fig, fig_ui]
         if path.isdir(fld_analysis):
@@ -1243,6 +1304,8 @@ if __name__ == '__main__':
                     for rho in [0]: #[0, 1, 3, 5]: 
                         params2an = [0, .0, stim_dur, delays2an, peak, 
                                      peak_ratio, rho, stim_type,w_max,b_max]
+                        if len(stim_type)>2:
+                            params2an.append(stim_data_fld)
                         tic = timeit.default_timer()
                         for inh_cond in inh_conds:
                             if inh_cond == 'nsi':
