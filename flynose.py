@@ -34,7 +34,6 @@ import stats_for_plumes as stats
 # *****************************************************************
 # FUNCTIONS
 
-
 def depalo_eq2(z,t,u,u2,orn_params,):
     ax = orn_params[0]
     cx = orn_params[1]
@@ -70,28 +69,6 @@ def rect_func(b, x):
     ot = b[0]/(1 + np.exp(-b[1]*(x-b[2])))
     return ot
 
-#def pn2ln_s(z,t, u_pn, ln_params, ):
-#
-#    #    ln_params = np.array([tau_s_ln, c_ln, g_ln, a_s_ln, vrev_ln, vrest_ln])
-#    tau_s = ln_params[0]
-#    a_s = ln_params[3]
-#    
-#    # PN -> LN equation of s:
-#    s = z[0] 
-#    dsdt = (a_s*u_pn*(1-s) - s)/tau_s       
-#    return dsdt
-#
-#def pn2ln_v(z,t, s, ln_params, ):
-##    ln_params = np.array([tau_s_ln, c_ln, g_ln, a_s_ln, vrev_ln, vrest_ln])
-#    c = ln_params[1]
-#    g = ln_params[2]
-#    vrev = ln_params[4]
-#    vrest = ln_params[5]
-#    
-#    # PN -> LN equations:
-#    v = z[0] 
-#    dvdt = ((vrest-v) + g*s*(vrev-v) )/c
-#    return dvdt
 
 def pn2ln_v_ex(x0,t, s, ln_params, ):
 #    ln_params = np.array([tau_s_ln, c_ln, g_ln, a_s_ln, vrev_ln, vrest_ln])
@@ -122,28 +99,6 @@ def pn2ln_s_ex(x0,t, u_pn, ln_params, ):
 #    dsdt = (a_s*u_pn*(1-s) - s)/tau_s       
     return y
 
-#def pn2ln(z,t, u_pn, ln_params, ):
-##    ln_params = np.array([tau_s_ln, c_ln, g_ln, a_s_ln, vrev_ln, vrest_ln])
-#    tau_s = ln_params[0]
-#    c = ln_params[1]
-#    g = ln_params[2]
-#    a_s = ln_params[3]
-#    vrev = ln_params[4]
-#    vrest = ln_params[5]
-#    
-#    # PN -> LN equations:
-#    s = z[0] 
-#    v = z[1] 
-#    dsdt = (a_s*u_pn*(1-s) - s)/tau_s   
-#    dvdt = ((vrest-v) + g*s*(vrev-v) )/c
-#    
-#    dzdt = [dsdt, dvdt]
-#    return dzdt
-
-#def x_ln_fun(z,t, u_ln, tau_x, a_x,):
-#    x = z[0] 
-#    dxdt = (a_x*u_ln*(1-x) - x)/tau_x
-#    return dxdt
 
 def x_ln_fun_ex(x0,t,u_ln, tau_x, a_x,):
     b = (-a_x*u_ln-1)/tau_x
@@ -151,18 +106,6 @@ def x_ln_fun_ex(x0,t,u_ln, tau_x, a_x,):
     dt = t[1]-t[0]
     y = (x0 + a/b)*np.exp(b*dt)-a/b
     return y
-
-
-#def orn2pn_s(z,t, u_orn, x_pn,x_ln,pn_params,):
-##    pn_params  = np.array([tau_s_pn, c_pn, g_pn, a_s_pn, vrev_pn, vrest_pn])
-#    tau_s = pn_params[0]
-#    a_s = pn_params[3]
-#    
-#    # ORN -> PN equations:
-#    s = z[0] 
-#    dsdt = (a_s*u_orn*(1-s)*(1-x_pn)*(1-x_ln) - s)/tau_s
-#    return dsdt
-
 
 def orn2pn_s_ex(x0,t, u_orn, x_pn,x_ln,pn_params,):
     #    pn_params  = np.array([tau_s_pn, c_pn, g_pn, a_s_pn, vrev_pn, vrest_pn])
@@ -175,19 +118,6 @@ def orn2pn_s_ex(x0,t, u_orn, x_pn,x_ln,pn_params,):
     dt = t[1]-t[0]
     y = (x0 + a/b)*np.exp(b*dt)-a/b
     return y
-
-
-#def orn2pn_v(z,t, s, pn_params,):
-##    pn_params  = np.array([tau_s_pn, c_pn, g_pn, a_s_pn, vrev_pn, vrest_pn])
-#    c       = pn_params[1]
-#    g       = pn_params[2]
-#    vrev    = pn_params[4]
-#    vrest   = pn_params[5]
-#    
-#    # ORN -> PN equations:
-#    v = z[0]  # v_PN
-#    dvdt = ((vrest-v) + g*s*(vrev-v) )/c
-#    return dvdt
 
 def orn2pn_v_ex(x0,t, s, pn_params,):
 #    pn_params  = np.array([tau_s_pn, c_pn, g_pn, a_s_pn, vrev_pn, vrest_pn])
@@ -203,24 +133,6 @@ def orn2pn_v_ex(x0,t, s, pn_params,):
     y = (x0 + a/b)*np.exp(b*dt)-a/b
 #    dvdt = (vrest + g*s*vrev)/c  - v*(1 + g*s)/c
     return y
-
-#def orn2pn(z,t, u_orn, x_pn,x_ln,pn_params,):
-##    pn_params  = np.array([tau_s_pn, c_pn, g_pn, a_s_pn, vrev_pn, vrest_pn])
-#    tau_s = pn_params[0]
-#    c = pn_params[1]
-#    g = pn_params[2]
-#    a_s = pn_params[3]
-#    vrev = pn_params[4]
-#    vrest = pn_params[5]
-#    
-#    # ORN -> PN equations:
-#    s = z[0] 
-#    v = z[1]  # v_PN
-#    dsdt = (a_s*u_orn*(1-s)*(1-x_pn)*(1-x_ln) - s)/tau_s
-#    dvdt = ((vrest-v) + g*s*(vrev-v) )/c
-#    dzdt = [dsdt, dvdt]
-#    return dzdt
-
 
 def x_adapt_ex(x0,t,u_orn, tau, a_ad,):
     b = (-a_ad*u_orn-1)/tau
