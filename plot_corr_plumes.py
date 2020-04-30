@@ -10,8 +10,8 @@ plot_corr_plumes.py
 
 import timeit
 import numpy as np
-import datetime
 import matplotlib.pyplot as plt
+
 import corr_plumes 
 import stats_for_plumes as stats
 
@@ -42,9 +42,6 @@ green   = 'xkcd:green'
 purple  = 'xkcd:purple'
 orange  = 'xkcd:orange'
 # *****************************************************************
-
-
-now = datetime.datetime.now()
 
 
 quenched        = True      # if True Tbl and Twh are chosen to compensate the distance between stimuli

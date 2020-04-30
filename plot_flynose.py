@@ -8,20 +8,11 @@ plot_flynose.py
 @author: mario
 """
 
-
 import numpy as np
-#import scipy.stats as spst
-#from scipy.integrate import odeint
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 
-#import timeit
-#from os import getcwd as pwd
-#from scipy.integrate import quad
-
 import pickle        
-#from os import path
-#from os import mkdir
 from shutil import copyfile
 import matplotlib as mpl
 
@@ -35,7 +26,7 @@ plt.rc('text', usetex=True)  # laTex in the polot
 fig_position = 1300,10
 title_fs = 20 # font size of ticks
 label_fs = 20 # font size of labels
-panel_fs = 30
+panel_fs = 30 # font size of panel' letters
 legend_fs = 12
 
 black   = 'xkcd:black'

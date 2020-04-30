@@ -25,10 +25,10 @@ from shutil import copyfile
 import sys
 sys.path.insert(0, '/flynose/')
 
-import corr_steps
-import corr_plumes
-import sdf_krofczik
-import stats_for_plumes as stats
+import flynose.corr_steps as corr_steps
+import flynose.corr_plumes as corr_plumes
+import flynose.sdf_krofczik as sdf_krofczik
+import flynose.stats_for_plumes as stats
 
 
 # *****************************************************************
@@ -1184,21 +1184,21 @@ if __name__ == '__main__':
 #        al_fig      = 1
 #        fig_ui      = 1        
         
-        #***********************************************
-        # Real plumes, example figure
-        fld_analysis = '../NSI_analysis/analysis_real_plumes/example'
-        inh_conds   = ['nsi', ] #'ln', 'noin'
-        stim_type   = 'pl'  # 'ts' # 'ss'
-        stim_dur    = 5000
-        ln_spike_h  = 0.4
-        nsi_str     = 0.3
-        delays2an   = 0
-        peak_ratio  = 1
-        peaks       = [1.5,] 
-        orn_fig     = 0
-        al_fig      = 1
-        fig_ui      = 1        
-        fig_save    = 1
+#        #***********************************************
+#        # Real plumes, example figure
+#        fld_analysis = '../NSI_analysis/analysis_real_plumes/example'
+#        inh_conds   = ['nsi', ] #'ln', 'noin'
+#        stim_type   = 'pl'  # 'ts' # 'ss'
+#        stim_dur    = 5000
+#        ln_spike_h  = 0.4
+#        nsi_str     = 0.3
+#        delays2an   = 0
+#        peak_ratio  = 1
+#        peaks       = [1.5,] 
+#        orn_fig     = 0
+#        al_fig      = 1
+#        fig_ui      = 1        
+#        fig_save    = 1
 
 #        #***********************************************
 #        # Lazar and Kim data reproduction
