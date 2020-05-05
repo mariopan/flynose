@@ -269,31 +269,34 @@ def olsen2010_data(all_data_tmp, params2an):
     out_olsen[5] = nu_pn_err
     out_olsen[6] = nu_ln_err
     
-#*****************************************************
-# FIG.Laz
-peaks       = [1, 2, 3]#np.linspace(0, 7, 11)
-stim_dur    = 1000  # 50 # 100 #500
-inh_conds   = ['nsi'] #['nsi', 'ln', 'noin'] #
-stim_type_tmp ='step_' # 'parabola_' #'ramp_' #
-stim_type   = stim_type_tmp
-delay2an    = 0
-peak_ratio  = 1
-b_max       = [3] # 3, 50, 150
-w_max       = [3] # 3, 50, 150
-rho         = [0] #[0, 1, 3, 5]: 
-ln_spike_h  = 0.4
-nsi_str     = 0.3        
-n_lines     = np.size(peaks)
-fld_analysis = '../NSI_analysis/lazar_sim/'
-
-martelli_fig = 1
-fig_martelli_name   = stim_type_tmp
-orn_al_fig      = 0
-fig_orn_al_name = ''
-olsen_fig   = 0
-fig_olsen_fit_name = ''
-
-fig_save    = 1
+    return out_olsen
+    
+##*****************************************************
+## FIG.Laz
+#peaks       = [1, 2, 3]#np.linspace(0, 7, 11)
+#stim_dur    = 1000  # 50 # 100 #500
+#inh_conds   = ['nsi'] #['nsi', 'ln', 'noin'] #
+#stim_type_tmp ='step_' # 'parabola_' #'ramp_' #
+#stim_type   = stim_type_tmp
+#delay2an    = 0
+#peak_ratio  = 1
+#b_max       = [3] # 3, 50, 150
+#w_max       = [3] # 3, 50, 150
+#rho         = [0] #[0, 1, 3, 5]: 
+#ln_spike_h  = 0.4
+#nsi_str     = 0.3        
+#n_lines     = np.size(peaks)
+#fld_analysis = '../NSI_analysis/lazar_sim/'
+#
+#martelli_fig= 1
+#orn_al_fig  = 0
+#olsen_fig   = 0
+#
+#fig_martelli_name   = stim_type_tmp
+#fig_orn_al_name = ''
+#fig_olsen_fit_name = ''
+#
+#fig_save    = 0
 
 ##*****************************************************
 ## FIG: trials and errors
@@ -321,7 +324,7 @@ fig_save    = 1
 #fig_save    = 0
 #data_save   = 0#True
 
-#*****************************************************
+##*****************************************************
 ## Fig.ImpulseResponse
 #fld_analysis = '../NSI_analysis/triangle_stim/ImpulseResponse'
 #inh_conds   = ['nsi', 'ln', 'noin'] #
@@ -335,34 +338,36 @@ fig_save    = 1
 #orn_fig     = 0
 #orn_al_fig      = 1
 #fig_ui      = 1        
-#
+##fig_save    = 0
+##data_save   = 0#True
+
+
+#*****************************************************
+# FIG: Olsen-Wilson 2010 / Martelli 2013
+peaks       = np.linspace(0, 7, 11)
+stim_dur    = 500  # 50 # 100 #500
+inh_conds   = ['noin'] #['nsi', 'ln', 'noin'] #
+stim_type   = 'ss' # 'ss'   # 'ts'
+delay2an    = 0
+peak_ratio  = 1
+b_max       = 3 # 3, 50, 150
+w_max       = 3 # 3, 50, 150
+rho         = 0 #[0, 1, 3, 5]: 
+ln_spike_h  = 0.6
+nsi_str     = 0.3        
+n_lines     = np.size(peaks)
+fld_analysis = '../Olsen2010_Martelli2013/data'
+fig_orn_al_name   = '/../images/' +'ORN-PN_Olsen2010_timecourse_dur_%d'%stim_dur
+fig_olsen_fit_name   = '/../images/' +'ORN-PN_Olsen2010_dur_%d'%stim_dur
+fig_martelli_name   = '/../images/' +'ORN-Martelli2013_dur_%d'%stim_dur
+orn_al_fig      = 1
+olsen_fig   = 1
+martelli_fig = 1
+fig_save    = 0
+data_save   = 0#True
 
 ##*****************************************************
-## FIG: Olsen-Wilson 2010
-#peaks       = np.linspace(0, 7, 11)
-#stim_dur    = 500  # 50 # 100 #500
-#inh_conds   = ['noin'] #['nsi', 'ln', 'noin'] #
-#stim_type   = 'ss' # 'ss'   # 'ts'
-#delay2an    = 0
-#peak_ratio  = 1
-#b_max       = [3] # 3, 50, 150
-#w_max       = [3] # 3, 50, 150
-#rho         = [0] #[0, 1, 3, 5]: 
-#ln_spike_h  = 0.6
-#nsi_str     = 0.3        
-#n_lines     = np.size(peaks)
-#fld_analysis = '../Olsen2010_Martelli2013/data'
-#fig_orn_al_name   = '/../images/' +'ORN-PN_Olsen2010_timecourse_dur_%d'%stim_dur
-#fig_olsen_fit_name   = '/../images/' +'ORN-PN_Olsen2010_dur_%d'%stim_dur
-#fig_martelli_name   = '/../images/' +'ORN-Martelli2013_dur_%d'%stim_dur
-#orn_al_fig      = 0
-#olsen_fig   = 1
-#martelli_fig = 0
-#fig_save    = 1
-#data_save   = 0#True
-
-##*****************************************************
-## FIG: ratio analysis
+## TRASH
 #peaks       = np.linspace(0.2, 1.4,4)
 #stim_dur    = 100  # [10,20,50,100,200]
 #inh_conds   = ['nsi', 'ln', 'noin'] #['noin'] #
@@ -394,11 +399,19 @@ fig_save    = 1
 #rho         = [] #[0, 1, 3, 5]: 
 #ln_spike_h  = 0.6
 #nsi_str     = 0.3        
-#fld_analysis = '../Olsen2010/data'
+#fld_analysis = '../Olsen2010_Martelli2013/data'
 #n_lines = np.size(peaks)
-#fld_analysis = '../NSI_analysis/analysis_ratio/ratio_short_stimuli5/ratio_stim_dur_%d'%stim_dur
+#fld_analysis = '../NSI_analysis/analysis_ratio/ratio_short_stimuli5/ratio_stim_dur_%d'%stim_dur+'_delay_0/data/'
 #fig_orn_al_name   = 'ORN-PN_ratio_timecourse_dur_%d'%stim_dur
 #fig_olsen_fit_name   = 'ORN-PN_ratio_dur_%d'%stim_dur
+#orn_al_fig      = 0
+#olsen_fig   = 1
+#martelli_fig = 0
+#fig_save    = 0
+#data_save   = 0#True
+
+
+
 
 
 c = np.arange(1, n_lines + 4)
@@ -487,30 +500,32 @@ for stim_seed in [0]:
             if martelli_fig:
                 martelli_plot(all_data_tmp, params2an, id_c)
 
+            if olsen_fig:
+                out_olsen = olsen2010_data(all_data_tmp, params2an)
+                conc[id_c] = out_olsen[0]
+                conc_th[id_c] = params2an[4]
+                nu_orn[id_c] = out_olsen[1]
+                nu_pn[id_c] = out_olsen[2]
+                nu_ln[id_c] = out_olsen[3]
+                nu_orn_err[id_c] = out_olsen[4]
+                nu_pn_err[id_c] = out_olsen[5]
+                nu_ln_err[id_c] = out_olsen[6]
+                
         if fig_save:
             print('saving figure in '+fld_analysis)
             if orn_al_fig:
                 fig_pn.savefig(fld_analysis+  fig_orn_al_name+'_'+inh_cond+'.png')
             if martelli_fig:
                 fig_pn_m.savefig(fld_analysis+  fig_martelli_name+'_'+inh_cond+'.png')
-                           
+        
+
 
         
         #%% *********************************************************************
         # FIGURE Olsen 2010: ORN vs PN during step stimulus
 
-        
         if olsen_fig:
-            [out_olsen] = olsen2010_data(all_data_tmp, params2an)
-            conc[id_c] = out_olsen[0]
-            conc_th[id_c] = params2an[4]
-            nu_orn[id_c] = out_olsen[1]
-            nu_pn[id_c] = out_olsen[2]
-            nu_ln[id_c] = out_olsen[3]
-            nu_orn_err[id_c] = out_olsen[4]
-            nu_pn_err[id_c] = out_olsen[5]
-            nu_ln_err[id_c] = out_olsen[6]
-
+            
             # Constrain the optimization region
             popt, pcov = curve_fit(olsen_orn_pn, nu_orn, nu_pn, 
                         bounds=(0,[250, 300])) # , bounds=(0, [3., 1., 0.5])
