@@ -367,26 +367,6 @@ fig_save    = 0
 data_save   = 0#True
 
 ##*****************************************************
-## TRASH
-#peaks       = np.linspace(0.2, 1.4,4)
-#stim_dur    = 100  # [10,20,50,100,200]
-#inh_conds   = ['nsi', 'ln', 'noin'] #['noin'] #
-#stim_type   = 'ts' # 'ss'   # 'ts'
-#delay2an    = 0
-#peak_ratio  = 1
-#b_max       = [] # 3, 50, 150
-#w_max       = [] # 3, 50, 150
-#rho         = [] #[0, 1, 3, 5]: 
-#ln_spike_h  = 0.6
-#nsi_str     = 0.3        
-#fld_analysis = '../Olsen2010'
-#n_lines = np.size(peaks)
-#fld_analysis = '../NSI_analysis/analysis_ratio/ratio_short_stimuli5/ratio_stim_dur_%d'%stim_dur
-#fig_orn_al_name   = 'ORN-PN_ratio_timecourse_dur_%d'%stim_dur
-#fig_olsen_fit_name   = 'ORN-PN_ratio_dur_%d'%stim_dur
-
-
-##*****************************************************
 ## FIG: ratio analysis
 #peaks       = np.linspace(0.2, 1.4,4)
 #stim_dur    = 100  # [10,20,50,100,200]

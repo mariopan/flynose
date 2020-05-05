@@ -1114,81 +1114,80 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
         pn_stim = np.zeros(4)
     
     return  [orn_stim, pn_stim, ]
-# old return command:
-#    return [nu_pn_spon, nu_pn_stim]
+
 
 if __name__ == '__main__':
     print('run directly')
     stim_data_fld = ''
-    for stim_seed = 0   # if =np.nan() no traceable random
+    stim_seed = 0   # if =np.nan() no traceable random
     
-        #***********************************************
-        # Trials and errors
-        fld_analysis    = '../NSI_analysis/trialserrors'
-        inh_conds       = ['nsi', ] #'ln', 'noin'
-        stim_type       = 'ss' # 'ts'  # 'ts' # 'ss' # 'pl'
-        stim_dur        = 100
-        ln_spike_h      = 0.4
-        nsi_str         = 0.3
-        delays2an       = 0
-        peak_ratio      = 1
-        peak            = 1 
-        
-        # real plumes params
-        b_max           = 3   # 3, 50, 150
-        w_max           = 3   # 3, 50, 150
-        rho             =   0   #[0, 1, 3, 5]: 
+    #***********************************************
+    # Trials and errors
+    fld_analysis    = '../NSI_analysis/trialserrors'
+    inh_conds       = ['nsi', ] #'ln', 'noin'
+    stim_type       = 'ss' # 'ts'  # 'ts' # 'ss' # 'pl'
+    stim_dur        = 100
+    ln_spike_h      = 0.4
+    nsi_str         = 0.3
+    delays2an       = 0
+    peak_ratio      = 1
+    peak            = 1 
+    
+    # real plumes params
+    b_max           = 3   # 3, 50, 150
+    w_max           = 3   # 3, 50, 150
+    rho             = 0   #[0, 1, 3, 5]: 
 
-        orn_fig         = 1
-        al_fig          = 1
-        fig_ui          = 1        
-        fig_save        = 0
-        
-        fig_opts = [orn_fig, al_fig, fig_ui, fig_save]
-        print('conc: %.1f, stim_dur:%dms, spike LN: %.1f, NSI strength: %.1f'
-              %(peak, stim_dur,ln_spike_h,nsi_str))
-        
+    orn_fig         = 1
+    al_fig          = 1
+    fig_ui          = 1        
+    fig_save        = 0
+    
+    fig_opts = [orn_fig, al_fig, fig_ui, fig_save]
+    print('conc: %.1f, stim_dur:%dms, spike LN: %.1f, NSI strength: %.1f'
+          %(peak, stim_dur,ln_spike_h,nsi_str))
+    
 
-        if path.isdir(fld_analysis):
-            print('OLD analysis fld: ' + fld_analysis)    
-        else:
-            print('NEW analysis fld: ' + fld_analysis)    
-            mkdir(fld_analysis)
-        copyfile('flynose.py', fld_analysis+'/flynose.copy.py') 
-        
-        
-        pn_avg_dif  = 0
-        pn_avg      = 0
-        pn_peak     = 0
+    if path.isdir(fld_analysis):
+        print('OLD analysis fld: ' + fld_analysis)    
+    else:
+        print('NEW analysis fld: ' + fld_analysis)    
+        mkdir(fld_analysis)
+    copyfile('flynose.py', fld_analysis+'/flynose.copy.py') 
+    
+    
+    pn_avg_dif  = 0
+    pn_avg      = 0
+    pn_peak     = 0
 
-        params2an = [0, .0, stim_dur, delays2an, peak, 
-                     peak_ratio, rho, stim_type,w_max,b_max]
-        if len(stim_type)>2:
-            params2an.append(stim_data_fld)
-        tic = timeit.default_timer()
-        for inh_cond in inh_conds:
-            if inh_cond == 'nsi':
-                params2an[0:2] = [nsi_str, .0, ]
-            elif inh_cond == 'noin':
-                params2an[0:2] = [0, 0, ]
-            elif inh_cond == 'ln':
-                params2an[0:2] = [.0, ln_spike_h,]
-            
-            #    params2an = [nsi_value, ln_spike_height, dur2an, delays2an, peak, peak_ratio]
-            plt.ion()      # ioff() # to avoid showing the plot every time     
-            
-            [orn_stim, pn_stim,] = main(params2an, fig_opts, verbose = False, 
-                fld_analysis = fld_analysis, stim_seed=stim_seed)
-            pn_avg_dif = (pn_stim[0]-pn_stim[1])
-            pn_avg = (pn_stim[0]+pn_stim[1])/2
-            pn_peak = (pn_stim[2]+pn_stim[3])/2        
-            
-            print(inh_cond+' inh, peak:%.1f, avg:%.1f, avg dif:%.1f'
-                  %(pn_peak, pn_avg, pn_avg_dif))
-            
-            toc = timeit.default_timer()
-        print('time to run %d sims: %.1fs'%(np.size(inh_conds),toc-tic))
-        print('')
+    params2an = [0, .0, stim_dur, delays2an, peak, 
+                 peak_ratio, rho, stim_type,w_max,b_max]
+    if len(stim_type)>2:
+        params2an.append(stim_data_fld)
+    tic = timeit.default_timer()
+    for inh_cond in inh_conds:
+        if inh_cond == 'nsi':
+            params2an[0:2] = [nsi_str, .0, ]
+        elif inh_cond == 'noin':
+            params2an[0:2] = [0, 0, ]
+        elif inh_cond == 'ln':
+            params2an[0:2] = [.0, ln_spike_h,]
+        
+        #    params2an = [nsi_value, ln_spike_height, dur2an, delays2an, peak, peak_ratio]
+        plt.ion()      # ioff() # to avoid showing the plot every time     
+        
+        [orn_stim, pn_stim,] = main(params2an, fig_opts, verbose = False, 
+            fld_analysis = fld_analysis, stim_seed=stim_seed)
+        pn_avg_dif = (pn_stim[0]-pn_stim[1])
+        pn_avg = (pn_stim[0]+pn_stim[1])/2
+        pn_peak = (pn_stim[2]+pn_stim[3])/2        
+        
+        print(inh_cond+' inh, peak:%.1f, avg:%.1f, avg dif:%.1f'
+              %(pn_peak, pn_avg, pn_avg_dif))
+        
+        toc = timeit.default_timer()
+    print('time to run %d sims: %.1fs'%(np.size(inh_conds),toc-tic))
+    print('')
                         
 else:
     print('run from import')
