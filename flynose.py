@@ -71,25 +71,25 @@ def rect_func(b, x):
 
 
 def pn2ln_v_ex(x0,t, s, ln_params, ):
-#    ln_params = np.array([tau_s_ln, c_ln, g_ln, a_s_ln, vrev_ln, vrest_ln])
-    c = ln_params[1]
-    g = ln_params[2]
-    vrev = ln_params[4]
-    vrest = ln_params[5]
+#    ln_params = np.array([tau_s, tau_v, a_s_ln, vrev_ln, vrest_ln])
+    tau_v = ln_params[1]
+    
+    vrev = ln_params[3]
+    vrest = ln_params[4]
     
     # PN -> LN equations:
     # ORN -> PN equations:
     dt = t[1]-t[0]
-    b = -(1 + g*s)/c
-    a = (vrest + g*s*vrev)/c
+    b = -(1 + s)/tau_v
+    a = (vrest + s*vrev)/tau_v
     y = (x0 + a/b)*np.exp(b*dt)-a/b
-    #dvdt = ((vrest-v) + g*s*(vrev-v) )/c
+    #dvdt = ((vrest-v) + s*(vrev-v) )/tau_v
     return y
 
 def pn2ln_s_ex(x0,t, u_pn, ln_params, ):
-    #    ln_params = np.array([tau_s_ln, c_ln, g_ln, a_s_ln, vrev_ln, vrest_ln])
+    #    ln_params = np.array([tau_s, tau_v, a_s_ln, vrev_ln, vrest_ln])
     tau_s = ln_params[0]
-    a_s = ln_params[3]
+    a_s = ln_params[2]
     
     # PN -> LN equation of s:
     b = (-1-a_s*u_pn)/tau_s
@@ -108,9 +108,9 @@ def x_ln_fun_ex(x0,t,u_ln, tau_x, a_x,):
     return y
 
 def orn2pn_s_ex(x0,t, u_orn, x_pn,x_ln,pn_params,):
-    #    pn_params  = np.array([tau_s_pn, c_pn, g_pn, a_s_pn, vrev_pn, vrest_pn])
+    #    pn_params  = np.array([tau_s, tau_v, a_s_pn, vrev_pn, vrest_pn])
     tau_s = pn_params[0]
-    a_s = pn_params[3]
+    a_s = pn_params[2]
     
     # ORN -> PN equations:
     b = (-1-a_s*u_orn*(1-x_pn)*(1-x_ln))/tau_s
@@ -120,18 +120,18 @@ def orn2pn_s_ex(x0,t, u_orn, x_pn,x_ln,pn_params,):
     return y
 
 def orn2pn_v_ex(x0,t, s, pn_params,):
-#    pn_params  = np.array([tau_s_pn, c_pn, g_pn, a_s_pn, vrev_pn, vrest_pn])
-    c = pn_params[1]
-    g = pn_params[2]
-    vrev = pn_params[4]
-    vrest = pn_params[5]
+#    pn_params  = np.array([tau_s, tau_v, a_s_pn, vrev_pn, vrest_pn])
+    tau_v = pn_params[1]
+    
+    vrev = pn_params[3]
+    vrest = pn_params[4]
     
     # ORN -> PN equations:
     dt = t[1]-t[0]
-    b = -(1 + g*s)/c
-    a = (vrest + g*s*vrev)/c
+    b = -(1 + s)/tau_v
+    a = (vrest + s*vrev)/tau_v
     y = (x0 + a/b)*np.exp(b*dt)-a/b
-#    dvdt = (vrest + g*s*vrev)/c  - v*(1 + g*s)/c
+#    dvdt = (vrest + s*vrev)/tau_v  - v*(1 + g*s)/tau_v
     return y
 
 def x_adapt_ex(x0,t,u_orn, tau, a_ad,):
@@ -412,15 +412,15 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
     
     # Transduction params
     n                   = 1                 # 1
-    b                   = 0.01      #*100# 1.75
-    d                   = 0.009     #*100# 1.1
+    b                   = 0.01              #*100# 1.75
+    d                   = 0.009             #*100# 1.1
     orn_params          = np.array([ax, cx, bx, by,dy,b,d,ar,n,nsi_value,])
 
     #**************************************
     # ORN, PN and LN PARAMETERS
-    spike_length        = int(4*pts_ms)
-    t_ref               = 2*pts_ms  # ms; refractory period 
-    thr                 = 1         # [mV] firing threshold
+    spike_length        = int(4*pts_ms)     # [ms]
+    t_ref               = 2*pts_ms          # ms; refractory period 
+    theta               = 1                 # [mV] firing threshold
     
     orn_spike_height    = .3
     pn_spike_height     = .3
@@ -727,37 +727,31 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
     # *****************************************************************
     # PN and LN PARAMETERS and OUTPUT VECTORS
 
-
+    tau_v               = .5        # [ms]
+    tau_s               = 10        # [ms]
+    
     #**************************************
     # PN PARAMETERS
-    c_pn                = .5        # 0.5
-    a_s_pn              = 2.5       # 2.5
-    g_pn                = 1         # IF neuron capacitance
-    
-    vrest_pn            = -6.5      # -4.5 [mV] resting potential
+    a_s_pn              = 2.5       #     
+    vrest_pn            = -6.5      # [mV] resting potential
     vrev_pn             = 15.0      # [mV] reversal potential
     
-    tau_s_pn            = 10        # [ms]
-    a_x_pn              = 2.         # ORN input coeff for adaptation variable x_pn
-    tau_x_pn            = 600    # [ms] time scale for dynamics of adaptation variable x_pn
+    alpha_x             = 2.         # ORN input coeff for adaptation variable x_pn
+    tau_x               = 600    # [ms] time scale for dynamics of adaptation variable x_pn
     x_pn0               = 0.48*np.ones(num_pns_tot)     # 0.27
     
-    pn_params  = np.array([tau_s_pn, c_pn, g_pn, a_s_pn, vrev_pn, vrest_pn])
+    pn_params  = np.array([tau_s, tau_v, a_s_pn, vrev_pn, vrest_pn])
     
     #**************************************
     # LN PARAMETERS
-    c_ln                = .5        # 0.5
-    a_s_ln              = 2.5       # 2.5
-    g_ln                = 1         # IF neuron capacitance
-    
+    a_s_ln              = 2.5       #     
     vrest_ln            = -3.0      # -1.5 [mV] resting potential
     vrev_ln             = 15.0      # [mV] reversal potential
     
-    tau_s_ln            = 10        # [ms]
-    a_x_ln              = 10.         # ORN input coeff for adaptation variable x_ln
-    tau_x_ln            = 600    # [ms] time scale for dynamics of adaptation variable x_ln
+    alpha_ln            = 10.         # ORN input coeff for adaptation variable x_ln
+    tau_y               = 600    # [ms] time scale for dynamics of adaptation variable x_ln
     x_ln0               = 0.025*np.ones(num_pns_tot) # 0.2
-    ln_params = np.array([tau_s_ln, c_ln, g_ln, a_s_ln, vrev_ln, vrest_ln])
+    ln_params = np.array([tau_s, tau_v, a_s_ln, vrev_ln, vrest_ln])
     #**************************************
     
     # INITIALIZE LN to PN output vectors
@@ -801,11 +795,11 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
             # ******************************************************************
             # adaptation variable of PN neuron
             x_pn[tt, pp_rnd] = x_adapt_ex(x_pn[tt-1,pp_rnd],tspan, 
-                    u_orn[tt, pp_rnd], tau_x_pn, a_x_pn, )        
+                    u_orn[tt, pp_rnd], tau_x, alpha_x, )        
         
             # Inhibitory input to PNs
             x_ln[tt, pp_rnd] = x_ln_fun_ex(x_ln[tt-1, pp_rnd],tspan, 
-                    u_ln[tt, pp_rnd], tau_x_ln, a_x_ln, )
+                    u_ln[tt, pp_rnd], tau_y, alpha_ln, )
         
             # *********************************
             # ORN -> PN synapses
@@ -824,7 +818,7 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
             pn_ref_cnt[pn_ref_no0] = pn_ref_cnt[pn_ref_no0] - 1  # Refractory period count down
             
             # For those PNs whose Voltage is above threshold AND whose ref_cnt is equal to zero:
-            pn_above_thr = (v_pn[tt, :] >= thr) & (pn_ref_cnt==0)
+            pn_above_thr = (v_pn[tt, :] >= theta) & (pn_ref_cnt==0)
             num_spike_pn[tt, pn_above_thr] = num_spike_pn[tt, pn_above_thr] + 1
             u_pn[tt:tt+spike_length, :] = (u_pn[tt:tt+spike_length, :] + 
                     np.sum(pn_ln_mat[pn_above_thr,:], axis=0))
@@ -846,7 +840,7 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
             ln_ref_cnt[ln_ref_no0] = ln_ref_cnt[ln_ref_no0] - 1  # Refractory period count down
             
             # For those LNs whose Voltage is above threshold AND whose ref_cnt is equal to zero:
-            ln_above_thr = (v_ln[tt, :] >= thr) & (ln_ref_cnt==0)
+            ln_above_thr = (v_ln[tt, :] >= theta) & (ln_ref_cnt==0)
             num_spike_ln[tt, ln_above_thr] = num_spike_ln[tt, ln_above_thr] + 1
             u_ln[tt:tt+spike_length, :] = (u_ln[tt:tt+spike_length, :] + 
                         np.sum(ln_pn_mat[ln_above_thr,:], axis=0))
@@ -1138,7 +1132,7 @@ if __name__ == '__main__':
     w_max           = 3   # 3, 50, 150
     rho             = 0   #[0, 1, 3, 5]: 
 
-    orn_fig         = 1
+    orn_fig         = 0
     al_fig          = 1
     fig_ui          = 1        
     fig_save        = 0

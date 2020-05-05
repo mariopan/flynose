@@ -88,13 +88,13 @@ def martelli_plot(all_data_tmp, params2an, id_c):
             ax_orn_m.set_xticklabels(['0', '', '', '1500', '', '', '3000'])
             
             ax_conc_m.set_yticks(np.linspace(0,400, 5))
-            ax_orn_m.set_yticks(np.linspace(0,200, 5))
+            ax_orn_m.set_yticks(np.linspace(0,250, 6))
             
             ax_conc_m.tick_params(axis='both', labelsize=label_fs)
             ax_orn_m.tick_params(axis='both', labelsize=label_fs)
             
             ax_conc_m.set_ylim((-5, 400))
-            ax_orn_m.set_ylim((0, 200))            
+            ax_orn_m.set_ylim((0, 250))            
             
             ax_conc_m.grid(True, which='both',lw=1, ls=':')
             ax_orn_m.grid(True, which='both',lw=1, ls=':')
@@ -271,32 +271,32 @@ def olsen2010_data(all_data_tmp, params2an):
     
     return out_olsen
     
-##*****************************************************
-## FIG.Laz
-#peaks       = [1, 2, 3]#np.linspace(0, 7, 11)
-#stim_dur    = 1000  # 50 # 100 #500
-#inh_conds   = ['nsi'] #['nsi', 'ln', 'noin'] #
-#stim_type_tmp ='step_' # 'parabola_' #'ramp_' #
-#stim_type   = stim_type_tmp
-#delay2an    = 0
-#peak_ratio  = 1
-#b_max       = [3] # 3, 50, 150
-#w_max       = [3] # 3, 50, 150
-#rho         = [0] #[0, 1, 3, 5]: 
-#ln_spike_h  = 0.4
-#nsi_str     = 0.3        
-#n_lines     = np.size(peaks)
-#fld_analysis = '../NSI_analysis/lazar_sim/'
-#
-#martelli_fig= 1
-#orn_al_fig  = 0
-#olsen_fig   = 0
-#
-#fig_martelli_name   = stim_type_tmp
-#fig_orn_al_name = ''
-#fig_olsen_fit_name = ''
-#
-#fig_save    = 0
+#*****************************************************
+# FIG.Laz
+peaks       = [1, 2, 3]#np.linspace(0, 7, 11)
+stim_dur    = 1000  # 50 # 100 #500
+inh_conds   = ['nsi'] #['nsi', 'ln', 'noin'] #
+stim_type_tmp ='ramp_' #'step_' # 'parabola_' #
+stim_type   = stim_type_tmp
+delay2an    = 0
+peak_ratio  = 1
+b_max       = [3] # 3, 50, 150
+w_max       = [3] # 3, 50, 150
+rho         = [0] #[0, 1, 3, 5]: 
+ln_spike_h  = 0.4
+nsi_str     = 0.3        
+n_lines     = np.size(peaks)
+fld_analysis = '../NSI_analysis/lazar_sim/'
+
+martelli_fig= 1
+orn_al_fig  = 0
+olsen_fig   = 0
+
+fig_martelli_name   = stim_type_tmp
+fig_orn_al_name = ''
+fig_olsen_fit_name = ''
+
+fig_save    = 1
 
 ##*****************************************************
 ## FIG: trials and errors
@@ -342,55 +342,29 @@ def olsen2010_data(all_data_tmp, params2an):
 ##data_save   = 0#True
 
 
-#*****************************************************
-# FIG: Olsen-Wilson 2010 / Martelli 2013
-peaks       = np.linspace(0, 7, 11)
-stim_dur    = 500  # 50 # 100 #500
-inh_conds   = ['noin'] #['nsi', 'ln', 'noin'] #
-stim_type   = 'ss' # 'ss'   # 'ts'
-delay2an    = 0
-peak_ratio  = 1
-b_max       = 3 # 3, 50, 150
-w_max       = 3 # 3, 50, 150
-rho         = 0 #[0, 1, 3, 5]: 
-ln_spike_h  = 0.6
-nsi_str     = 0.3        
-n_lines     = np.size(peaks)
-fld_analysis = '../Olsen2010_Martelli2013/data'
-fig_orn_al_name   = '/../images/' +'ORN-PN_Olsen2010_timecourse_dur_%d'%stim_dur
-fig_olsen_fit_name   = '/../images/' +'ORN-PN_Olsen2010_dur_%d'%stim_dur
-fig_martelli_name   = '/../images/' +'ORN-Martelli2013_dur_%d'%stim_dur
-orn_al_fig      = 1
-olsen_fig   = 1
-martelli_fig = 1
-fig_save    = 0
-data_save   = 0#True
-
 ##*****************************************************
-## FIG: ratio analysis
-#peaks       = np.linspace(0.2, 1.4,4)
-#stim_dur    = 100  # [10,20,50,100,200]
-#inh_conds   = ['nsi', 'ln', 'noin'] #['noin'] #
-#stim_type   = 'ts' # 'ss'   # 'ts'
+## FIG: Olsen-Wilson 2010 / Martelli 2013
+#peaks       = np.linspace(0, 7, 11)
+#stim_dur    = 500  # 50 # 100 #500
+#inh_conds   = ['noin'] #['nsi', 'ln', 'noin'] #
+#stim_type   = 'ss' # 'ss'   # 'ts'
 #delay2an    = 0
 #peak_ratio  = 1
-#b_max       = [] # 3, 50, 150
-#w_max       = [] # 3, 50, 150
-#rho         = [] #[0, 1, 3, 5]: 
+#b_max       = 3 # 3, 50, 150
+#w_max       = 3 # 3, 50, 150
+#rho         = 0 #[0, 1, 3, 5]: 
 #ln_spike_h  = 0.6
 #nsi_str     = 0.3        
+#n_lines     = np.size(peaks)
 #fld_analysis = '../Olsen2010_Martelli2013/data'
-#n_lines = np.size(peaks)
-#fld_analysis = '../NSI_analysis/analysis_ratio/ratio_short_stimuli5/ratio_stim_dur_%d'%stim_dur+'_delay_0/data/'
-#fig_orn_al_name   = 'ORN-PN_ratio_timecourse_dur_%d'%stim_dur
-#fig_olsen_fit_name   = 'ORN-PN_ratio_dur_%d'%stim_dur
-#orn_al_fig      = 0
+#fig_orn_al_name   = '/../images/' +'ORN-PN_Olsen2010_timecourse_dur_%d'%stim_dur
+#fig_olsen_fit_name   = '/../images/' +'ORN-PN_Olsen2010_dur_%d'%stim_dur
+#fig_martelli_name   = '/../images/' +'ORN-Martelli2013_dur_%d'%stim_dur
+#orn_al_fig      = 1
 #olsen_fig   = 1
-#martelli_fig = 0
+#martelli_fig = 1
 #fig_save    = 0
 #data_save   = 0#True
-
-
 
 
 
