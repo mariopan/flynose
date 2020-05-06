@@ -35,16 +35,18 @@ import stats_for_plumes as stats
 # FUNCTIONS
 
 def depalo_eq2(z,t,u,u2,orn_params,):
-    ax = orn_params[0]
-    cx = orn_params[1]
-    bx = orn_params[2]
-    by = orn_params[3]
-    dy = orn_params[4]
-    b = orn_params[5]
-    d = orn_params[6]
-    ar = orn_params[7]
+    a_y = orn_params[0]
+    c_x = orn_params[1]
+    b_y = orn_params[2]
+    
+    b_x = orn_params[3]
+    d_x = orn_params[4]
+    
+    b_r = orn_params[5]
+    d_r = orn_params[6]
+    a_r = orn_params[7]
     n = orn_params[8]
-    nsi_value = orn_params[9]
+    omega_nsi = orn_params[9]
     
     r = z[0]
     x = z[1]
@@ -54,19 +56,22 @@ def depalo_eq2(z,t,u,u2,orn_params,):
     q = z[4] # x2
     w = z[5] # y2
     
-    drdt = b*u**n*(1-r) - d*r
-    dsdt = b*u2**n*(1-s) - d*s
+    drdt = b_r*u**n*(1-r) - d_r*r
+    dsdt = b_r*u2**n*(1-s) - d_r*s
     
-    dydt = ar*r - cx*x*(1+dy*y) - by*y - nsi_value*w*y 
-    dxdt = ax*y - bx*x
+    dydt = a_r*r - c_x*x*(1+d_x*y) - b_x*y - omega_nsi*w*y 
+    dxdt = a_y*y - b_y*x
     
-    dwdt = ar*s - cx*q*(1+dy*w) - by*w - nsi_value*y*w
-    dqdt = ax*w - bx*q
+    dwdt = a_r*s - c_x*q*(1+d_x*w) - b_x*w - omega_nsi*y*w
+    dqdt = a_y*w - b_y*q
     dzdt = [drdt,dxdt,dydt,dsdt,dqdt,dwdt]
     return dzdt
 
 def rect_func(b, x):
-    ot = b[0]/(1 + np.exp(-b[1]*(x-b[2])))
+    nu_max = b[0]
+    a_rect = b[1]
+    c_rect = b[2]
+    ot = nu_max/(1 + np.exp(-a_rect*(x-c_rect)))
     return ot
 
 
@@ -100,21 +105,21 @@ def pn2ln_s_ex(x0,t, u_pn, ln_params, ):
     return y
 
 
-def x_ln_fun_ex(x0,t,u_ln, tau_x, a_x,):
-    b = (-a_x*u_ln-1)/tau_x
-    a = a_x*u_ln/tau_x
+def y_ln_fun_ex(y0, t, u_ln, tau_y, alpha_ln,):
+    b = (-alpha_ln*u_ln-1)/tau_y
+    a = alpha_ln*u_ln/tau_y
     dt = t[1]-t[0]
-    y = (x0 + a/b)*np.exp(b*dt)-a/b
+    y = (y0 + a/b)*np.exp(b*dt)-a/b
     return y
 
-def orn2pn_s_ex(x0,t, u_orn, x_pn,x_ln,pn_params,):
+def orn2pn_s_ex(x0,t, u_orn, x_pn,y_ln,pn_params,):
     #    pn_params  = np.array([tau_s, tau_v, a_s_pn, vrev_pn, vrest_pn])
     tau_s = pn_params[0]
     a_s = pn_params[2]
     
     # ORN -> PN equations:
-    b = (-1-a_s*u_orn*(1-x_pn)*(1-x_ln))/tau_s
-    a = a_s*u_orn*(1-x_pn)*(1-x_ln)/tau_s
+    b = (-1-a_s*u_orn*(1-x_pn)*(1-y_ln))/tau_s
+    a = a_s*u_orn*(1-x_pn)*(1-y_ln)/tau_s
     dt = t[1]-t[0]
     y = (x0 + a/b)*np.exp(b*dt)-a/b
     return y
@@ -175,8 +180,8 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
     # *****************************************************************
     # STIMULUS GENERATION
     
-    nsi_value       = params2an[0] # 0.3     #.2 0.1 0.05 0.00
-    ln_spike_height = params2an[1] # .0        # .3
+    omega_nsi       = params2an[0] # 0.3     #.2 0.1 0.05 0.00
+    alpha_ln        = params2an[1] # 10 ORN input coeff for adaptation variable y_ln
     
     # Stimuli params 
     dur2an          = params2an[2] # 250
@@ -403,18 +408,19 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
     B0                  = [nu_max_rect, a_rect, c_rect]
     
     # Spiking machine params
-    ax                  = 0.25  
-    bx                  = 0.002     
-    cx                  = 0.0028     # 0.004
-    by                  = 0.2       # 0.12
-    dy                  = 1           
-    ar                  = 1
+    a_y                  = 0.25  
+    b_y                  = 0.002  
+    
+    c_x                  = 0.0028     # 0.004
+    b_x                  = 0.2       # 0.12
+    d_x                  = 1           
+    a_r                  = 1
     
     # Transduction params
     n                   = 1                 # 1
-    b                   = 0.01              #*100# 1.75
-    d                   = 0.009             #*100# 1.1
-    orn_params          = np.array([ax, cx, bx, by,dy,b,d,ar,n,nsi_value,])
+    b_r                 = 0.01              #*100# 1.75
+    d_r                 = 0.009             #*100# 1.1
+    orn_params          = np.array([a_y, c_x, b_y, b_x,d_x,b_r,d_r,a_r,n,omega_nsi,])
 
     #**************************************
     # ORN, PN and LN PARAMETERS
@@ -424,6 +430,7 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
     
     orn_spike_height    = .3
     pn_spike_height     = .3
+    ln_spike_height     = .3
     
     # *****************************************************************
     # GENERATION OF THE CONNECTIVITY MATRIX
@@ -580,7 +587,7 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
             
         output_names = ['t', 'u_od', 'orn_sdf_norm', 'orn_sdf_time', ]        
         
-        params2an_names = ['nsi_value', 'ln_spike_height', 'dur2an', 'delays2an', 
+        params2an_names = ['omega_nsi', 'alpha_ln', 'dur2an', 'delays2an', 
                            'peak', 'peak_ratio', 'rho', 'stim_type', ]
 
         with open(fld_analysis+name_data[0], 'wb') as f:
@@ -748,9 +755,9 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
     vrest_ln            = -3.0      # -1.5 [mV] resting potential
     vrev_ln             = 15.0      # [mV] reversal potential
     
-    alpha_ln            = 10.         # ORN input coeff for adaptation variable x_ln
-    tau_y               = 600    # [ms] time scale for dynamics of adaptation variable x_ln
-    x_ln0               = 0.025*np.ones(num_pns_tot) # 0.2
+
+    tau_y               = 600    # [ms] time scale for dynamics of adaptation variable y_ln
+    y_ln0               = 0.025*np.ones(num_pns_tot) # 0.2
     ln_params = np.array([tau_s, tau_v, a_s_ln, vrev_ln, vrest_ln])
     #**************************************
     
@@ -758,7 +765,7 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
     x_pn            = np.zeros((n2sim, num_pns_tot))
     u_pn            = np.zeros((n2sim, num_lns_tot))
     u_ln            = np.zeros((n2sim, num_pns_tot))
-    x_ln            = np.zeros((n2sim, num_pns_tot))
+    y_ln            = np.zeros((n2sim, num_pns_tot))
     
     # INITIALIZE PN output vectors
     num_spike_pn    = np.zeros((n2sim, num_pns_tot))
@@ -774,7 +781,7 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
     v_pn            = np.ones((n2sim, num_pns_tot))*vrest_pn
     pn_ref_cnt      = np.zeros(num_pns_tot) # Refractory period counter starts from 0
     
-    x_ln[0, :]      = x_ln0
+    y_ln[0, :]      = y_ln0
     s_ln            = np.zeros((n2sim, num_lns_tot))
     v_ln            = np.ones((n2sim, num_lns_tot))*vrest_ln
     ln_ref_cnt      = np.zeros(num_lns_tot) # initially the ref period cnter is equal to 0
@@ -798,7 +805,7 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
                     u_orn[tt, pp_rnd], tau_x, alpha_x, )        
         
             # Inhibitory input to PNs
-            x_ln[tt, pp_rnd] = x_ln_fun_ex(x_ln[tt-1, pp_rnd],tspan, 
+            y_ln[tt, pp_rnd] = y_ln_fun_ex(y_ln[tt-1, pp_rnd],tspan, 
                     u_ln[tt, pp_rnd], tau_y, alpha_ln, )
         
             # *********************************
@@ -808,7 +815,7 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
             # For those PNs whose ref_cnt is different from zero:
             pn_ref_0 = pn_ref_cnt==0
             s_pn[tt, pn_ref_0] = orn2pn_s_ex(s_pn[tt-1, pn_ref_0],tspan, 
-                u_orn[tt, pn_ref_0], x_pn[tt-1, pn_ref_0], x_ln[tt-1, pn_ref_0], pn_params, )
+                u_orn[tt, pn_ref_0], x_pn[tt-1, pn_ref_0], y_ln[tt-1, pn_ref_0], pn_params, )
             v_pn[tt, pn_ref_0] = orn2pn_v_ex(v_pn[tt-1, pn_ref_0],tspan, 
                     s_pn[tt-1, pn_ref_0], pn_params, )
             
@@ -903,7 +910,7 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
                             'pn_sdf_norm', 'pn_sdf_time', 
                             'ln_sdf_norm', 'ln_sdf_time', ]
             
-            params2an_names = ['nsi_value', 'ln_spike_height', 'dur2an', 'delays2an', 
+            params2an_names = ['omega_nsi', 'alpha_ln', 'dur2an', 'delays2an', 
                                'peak', 'peak_ratio', 'rho', 'stim_type', ]
     
             with open(fld_analysis+name_data[0], 'wb') as f:
@@ -945,7 +952,7 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
                              'pn_m50_2', 'pn_m100_2', 'pn_m150_2', ]
             
             
-            params2an_names = ['nsi_value', 'ln_spike_height', 'dur2an', 'delays2an', 
+            params2an_names = ['omega_nsi', 'alpha_ln', 'dur2an', 'delays2an', 
                                'peak', 'peak_ratio', 'rho', 'stim_type', 'w_max', 'b_max']
             if stimulus == 'pl':
                 with open(fld_analysis+name_data[0], 'wb') as f:
@@ -1121,7 +1128,7 @@ if __name__ == '__main__':
     inh_conds       = ['nsi', ] #'ln', 'noin'
     stim_type       = 'ss' # 'ts'  # 'ts' # 'ss' # 'pl'
     stim_dur        = 100
-    ln_spike_h      = 0.4
+    alpha_ln        = 13.3# 0.4
     nsi_str         = 0.3
     delays2an       = 0
     peak_ratio      = 1
@@ -1139,7 +1146,7 @@ if __name__ == '__main__':
     
     fig_opts = [orn_fig, al_fig, fig_ui, fig_save]
     print('conc: %.1f, stim_dur:%dms, spike LN: %.1f, NSI strength: %.1f'
-          %(peak, stim_dur,ln_spike_h,nsi_str))
+          %(peak, stim_dur,alpha_ln,nsi_str))
     
 
     if path.isdir(fld_analysis):
@@ -1165,9 +1172,9 @@ if __name__ == '__main__':
         elif inh_cond == 'noin':
             params2an[0:2] = [0, 0, ]
         elif inh_cond == 'ln':
-            params2an[0:2] = [.0, ln_spike_h,]
+            params2an[0:2] = [.0, alpha_ln,]
         
-        #    params2an = [nsi_value, ln_spike_height, dur2an, delays2an, peak, peak_ratio]
+        #    params2an = [omega_nsi, alpha_ln, dur2an, delays2an, peak, peak_ratio]
         plt.ion()      # ioff() # to avoid showing the plot every time     
         
         [orn_stim, pn_stim,] = main(params2an, fig_opts, verbose = False, 
