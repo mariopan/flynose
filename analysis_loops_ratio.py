@@ -63,7 +63,6 @@ fld_home = fld_py+'NSI_analysis/analysis_ratio/'
 #n_ratios        = 1
 #resumen_fig     = 0
 #fig_save        = 1 
-#data_save       = 1 
 ##*****************************************************
 
 
@@ -74,8 +73,11 @@ fld_home = fld_py+'NSI_analysis/analysis_ratio/'
 #fld_analysis = fld_home+'ratio_short_stimuli2/'
 #n_ratios    = 5
 #fld_analysis = fld_home+'ratio_short_stimuli3/'
-fld_analysis = fld_home+'ratio_short_stimuli4/'
+fld_analysis = fld_home+'ratio_short_stimuli4/' # Fig.ResumeEncodeRatio
 #fld_analysis = fld_home+'ratio_short_stimuli5/'
+fld_analysis = fld_home+'ratio_short_stimuli6/'
+#fld_analysis = fld_home+'ratio_batch_ln13.3/'
+
 n_ratios    = 10
 
 n_loops     = 50
@@ -88,7 +90,6 @@ resumen_bar = 1 # Fig.ResumeEncodeRatioBar
 avg_fig     = 0
 delay_fig   = 0
 fig_save        = 1 
-data_save       = 1 
 
 #*****************************************************
 
@@ -131,11 +132,6 @@ if resumen_bar | resumen_fig | peak_fig:
     ratio2dist_peak_err_nsi = np.zeros((n_ratios, n_concs, n_durs))
     ratio2dist_peak_err_ln = np.zeros((n_ratios, n_concs,n_durs))   
     
-
-# save the PRESENT version of this script:
-if data_save:
-    copyfile('analysis_loops_ratio2.py', fld_analysis+'/analysis_loops_ratio2.copy.py') 
-        
 for id_dur in range(n_durs):
     duration = durs[id_dur]
     dk = -1

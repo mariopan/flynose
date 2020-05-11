@@ -166,7 +166,7 @@ green   = 'xkcd:green'
 purple  = 'xkcd:purple'
 orange  = 'xkcd:orange'
 cmap    = plt.get_cmap('rainbow')
-data_save = True
+
 # *****************************************************************
 
 
@@ -177,6 +177,8 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
     al_fig      = fig_opts[1]
     stimulus    = params2an[7] # 'ss'   # 'rs'   #  'pl'  # 'ts'
     fig_save    = fig_opts[3]
+    data_save   = fig_opts[4]
+    
     # *****************************************************************
     # STIMULUS GENERATION
     
@@ -203,7 +205,7 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
     
     # Sims params
     t_on            = 300      # [ms]
-    t2simulate      = np.maximum(t_on+params2an[2],1200) # [ms]
+    t2simulate      = np.maximum(t_on+dur2an, 1200) # [ms]
     pts_ms          = 5             # simulated points per ms
     n2sim           = pts_ms*t2simulate + 1      # number of time points
     t               = np.linspace(0, t2simulate, n2sim) # time points
@@ -568,21 +570,21 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
     orn_sdf_norm = orn_sdf_norm*1e3
     
     # SAVE SDF OF ORN FIRING RATE
-    if data_save & al_dyn==0:
+    if data_save & (al_dyn==0):
         name_data = ['/ORNrate' +
                     '_stim_' + params2an[7] +
                     '_nsi_%.1f'%(params2an[0]) +
-                    '_lnspH_%.2f'%(params2an[1]) +
+                    '_ln_%.2f'%(params2an[1]) +
                     '_dur2an_%d'%(params2an[2]) +
                     '_delays2an_%d'%(params2an[3]) +
                     '_peak_%.2f'%(params2an[4]) +
-                    '_peakratio_%.1f'%(params2an[5]) + # 
-                    '.pickle'] #'_rho_%.1f'%(params2an[6]) +
+                    '_peakratio_%.1f'%(params2an[5]) + 
+                    '.pickle'] 
         if ext_stimulus:
             name_data = ['/ORNrate' +
                     '_stim_' + params2an[7] +
                     '_nsi_%.1f'%(params2an[0]) +
-                    '_lnspH_%.2f'%(params2an[1]) +
+                    '_ln_%.2f'%(params2an[1]) +
                     '.pickle']
             
         output_names = ['t', 'u_od', 'orn_sdf_norm', 'orn_sdf_time', ]        
@@ -899,12 +901,12 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
             name_data = ['/ORNALrate' +
                         '_stim_' + params2an[7] +
                         '_nsi_%.1f'%(params2an[0]) +
-                        '_lnspH_%.2f'%(params2an[1]) +
+                        '_ln_%.2f'%(params2an[1]) +
                         '_dur2an_%d'%(params2an[2]) +
                         '_delays2an_%d'%(params2an[3]) +
                         '_peak_%.2f'%(params2an[4]) +
                         '_peakratio_%.1f'%(params2an[5]) + # 
-                        '.pickle'] #'_rho_%.1f'%(params2an[6]) +  
+                        '.pickle'] 
                                 
             output_names = ['t', 'u_od', 'orn_sdf_norm', 'orn_sdf_time', 
                             'pn_sdf_norm', 'pn_sdf_time', 
@@ -919,42 +921,42 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
                              ln_sdf_norm, ln_sdf_time, 
                              params2an_names, output_names], f)
                 
-        if data_save:
-            name_data = ['/ORNPNLN' +
+            if stimulus == 'pl':
+                name_data = ['/ORNPNLN' +
                         '_stim_' + params2an[7] +
                         '_nsi_%.1f'%(params2an[0]) +
-                        '_lnspH_%.2f'%(params2an[1]) +
+                        '_ln_%.2f'%(params2an[1]) +
                         '_dur2an_%d'%(params2an[2]) +
                         '_peak_%.1f'%(params2an[4]) +
                         '_rho_%d'%(params2an[6])]  
-    
-            if params2an[8]<10:
-                name_data = [name_data[0] +
-                             '_wmax_%.1g'%(params2an[8])]
-            else:
-                name_data = [name_data[0] +
-                             '_wmax_%.2g'%(params2an[8])]
-    
-            if params2an[9]>10:
-                name_data = [name_data[0] +
-                        '_bmax_%.2g'%(params2an[9]) +
-                        '.pickle']
-            else:
-                name_data = [name_data[0] +
-                        '_bmax_%.1g'%(params2an[9]) +
-                        '.pickle']
+        
+                if params2an[8]<10:
+                    name_data = [name_data[0] +
+                                 '_wmax_%.1g'%(params2an[8])]
+                else:
+                    name_data = [name_data[0] +
+                                 '_wmax_%.2g'%(params2an[8])]
+        
+                if params2an[9]>10:
+                    name_data = [name_data[0] +
+                            '_bmax_%.2g'%(params2an[9]) +
+                            '.pickle']
+                else:
+                    name_data = [name_data[0] +
+                            '_bmax_%.1g'%(params2an[9]) +
+                            '.pickle']
                     
                 
-            output_names = ['cor_stim', 'overlap_stim', 'cor_whiff', 
-                             'interm_th', 'interm_est_1', 'interm_est_2', 'od_avg1', 
-                             'od_avg2', 'orn_avg1', 'orn_avg2', 'pn_avg1', 'pn_avg2', 
-                             'pn_m50_1', 'pn_m100_1', 'pn_m150_1', 
-                             'pn_m50_2', 'pn_m100_2', 'pn_m150_2', ]
+                output_names = ['cor_stim', 'overlap_stim', 'cor_whiff', 
+                                 'interm_th', 'interm_est_1', 'interm_est_2', 'od_avg1', 
+                                 'od_avg2', 'orn_avg1', 'orn_avg2', 'pn_avg1', 'pn_avg2', 
+                                 'pn_m50_1', 'pn_m100_1', 'pn_m150_1', 
+                                 'pn_m50_2', 'pn_m100_2', 'pn_m150_2', ]
             
             
-            params2an_names = ['omega_nsi', 'alpha_ln', 'dur2an', 'delays2an', 
-                               'peak', 'peak_ratio', 'rho', 'stim_type', 'w_max', 'b_max']
-            if stimulus == 'pl':
+                params2an_names = ['omega_nsi', 'alpha_ln', 'dur2an', 'delays2an', 
+                                   'peak', 'peak_ratio', 'rho', 'stim_type', 'w_max', 'b_max']
+            
                 with open(fld_analysis+name_data[0], 'wb') as f:
                     pickle.dump([params2an, cor_stim, overlap_stim, cor_whiff, 
                                  interm_th, interm_est_1, interm_est_2, od_avg1, od_avg2, orn_avg1, 
@@ -1126,7 +1128,7 @@ if __name__ == '__main__':
     # Trials and errors
     fld_analysis    = '../NSI_analysis/trialserrors'
     inh_conds       = ['nsi', ] #'ln', 'noin'
-    stim_type       = 'ss' # 'ts'  # 'ts' # 'ss' # 'pl'
+    stim_type       = 'ts' # 'ts'  # 'ts' # 'ss' # 'pl'
     stim_dur        = 100
     alpha_ln        = 13.3# 0.4
     nsi_str         = 0.3
@@ -1135,16 +1137,17 @@ if __name__ == '__main__':
     peak            = 1 
     
     # real plumes params
-    b_max           = 3   # 3, 50, 150
-    w_max           = 3   # 3, 50, 150
-    rho             = 0   #[0, 1, 3, 5]: 
+    b_max           = np.nan # 3, 50, 150
+    w_max           = np.nan #3, 50, 150
+    rho             = np.nan #[0, 1, 3, 5]: 
 
     orn_fig         = 0
-    al_fig          = 1
+    al_fig          = 0
     fig_ui          = 1        
     fig_save        = 0
+    data_save       = 0    
+    fig_opts = [orn_fig, al_fig, fig_ui, fig_save, data_save]
     
-    fig_opts = [orn_fig, al_fig, fig_ui, fig_save]
     print('conc: %.1f, stim_dur:%dms, spike LN: %.1f, NSI strength: %.1f'
           %(peak, stim_dur,alpha_ln,nsi_str))
     

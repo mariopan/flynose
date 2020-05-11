@@ -271,75 +271,34 @@ def olsen2010_data(all_data_tmp, params2an):
     
     return out_olsen
     
-#*****************************************************
-# FIG.Laz
-peaks       = [1, 2, 3]#np.linspace(0, 7, 11)
-stim_dur    = 1000  # 50 # 100 #500
-inh_conds   = ['nsi'] #['nsi', 'ln', 'noin'] #
-stim_type_tmp ='ramp_' #'step_' # 'parabola_' #
-stim_type   = stim_type_tmp
-delay2an    = 0
-peak_ratio  = 1
-b_max       = [3] # 3, 50, 150
-w_max       = [3] # 3, 50, 150
-rho         = [0] #[0, 1, 3, 5]: 
-ln_spike_h  = 0.4
-nsi_str     = 0.3        
-n_lines     = np.size(peaks)
-fld_analysis = '../NSI_analysis/lazar_sim/'
-
-martelli_fig= 1
-orn_al_fig  = 0
-olsen_fig   = 0
-
-fig_martelli_name   = stim_type_tmp
-fig_orn_al_name = ''
-fig_olsen_fit_name = ''
-
-fig_save    = 1
-
 ##*****************************************************
-## FIG: trials and errors
+## FIG.Laz
 #peaks       = [1, 2, 3]#np.linspace(0, 7, 11)
 #stim_dur    = 1000  # 50 # 100 #500
 #inh_conds   = ['nsi'] #['nsi', 'ln', 'noin'] #
-#stim_type_tmp = 'ramp_' # 'ss'   # 'ts'
+#stim_type_tmp ='ramp_' #'step_' # 'parabola_' #
 #stim_type   = stim_type_tmp
 #delay2an    = 0
 #peak_ratio  = 1
 #b_max       = [3] # 3, 50, 150
 #w_max       = [3] # 3, 50, 150
 #rho         = [0] #[0, 1, 3, 5]: 
-#ln_spike_h  = 0.4
+#alpha_ln    = 13.3 # ln_spike_h  = 0.4
 #nsi_str     = 0.3        
 #n_lines     = np.size(peaks)
-#fld_analysis = '../NSI_analysis/lazar_sim'
-##/home/mario/MEGA/WORK/Code/PYTHON/NSI_analysis/trialserrors
-#fig_orn_al_name   = 'test0_timecourse_dur_%d'%stim_dur
-#fig_olsen_fit_name   = 'test1_Olsen2010_dur_%d'%stim_dur
-#fig_martelli_name   = 'test2_Martelli2013_dur_%d'%stim_dur
-#orn_al_fig      = 0
+#fld_analysis = '../NSI_analysis/lazar_sim/'
+#
+#martelli_fig= 1
+#orn_al_fig  = 0
 #olsen_fig   = 0
-#martelli_fig = 1
-#fig_save    = 0
-#data_save   = 0#True
+#
+#fig_martelli_name   = stim_type_tmp
+#fig_orn_al_name = ''
+#fig_olsen_fit_name = ''
+#
+#fig_save    = 1
 
-##*****************************************************
-## Fig.ImpulseResponse
-#fld_analysis = '../NSI_analysis/triangle_stim/ImpulseResponse'
-#inh_conds   = ['nsi', 'ln', 'noin'] #
-#stim_type   = 'ts'  # 'ts'
-#stim_dur    = 50
-#ln_spike_h  = 0.6
-#nsi_str     = 0.3
-#delays2an   = 0
-#peak_ratio  = 1
-#peaks       = [1.4,] 
-#orn_fig     = 0
-#orn_al_fig      = 1
-#fig_ui      = 1        
-##fig_save    = 0
-##data_save   = 0#True
+
 
 
 ##*****************************************************
