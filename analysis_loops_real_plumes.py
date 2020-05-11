@@ -95,23 +95,12 @@ cmap    = plt.get_cmap('rainbow')
 
 # *****************************************************************
 
-
-fld_py_h    = '/home/m/mp/mp525/MEGA/WORK/Code/PYTHON/'
-fld_py_w    = '/home/mario/MEGA/WORK/Code/PYTHON/'
-
-if path.isdir(fld_py_h):
-    fld_py = fld_py_h
-elif path.isdir(fld_py_w):
-    fld_py = fld_py_w
-else:
-    print('ERROR: no python folder!')
-    
-    
-fld_home = fld_py+'NSI_analysis/analysis_real_plumes/'
+fld_home = '../NSI_analysis/analysis_real_plumes/'
 
 # *******************************************************************
 # Fig.PeakPN_wmax and Fig.PeakPN_resumen
 fld_analysis = fld_home+'stim_200secs/'     # last longest simulation 200secs 
+fld_analysis = fld_home+'200secs/'     # last longest simulation 200secs 
 stim_dur    =  201000
 w_maxs      = [.01,.03,.3, 3, 25, 50, ]# max value in the whiff distribution
 seeds       = np.arange(1, 30)

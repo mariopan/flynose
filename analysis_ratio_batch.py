@@ -38,17 +38,8 @@ orange  = 'xkcd:orange'
 magenta = 'xkcd:magenta'
 # *****************************************************************
 
-fld_py_h    = '/home/m/mp/mp525/MEGA/WORK/Code/PYTHON/'
-fld_py_w    = '/home/mario/MEGA/WORK/Code/PYTHON/'
 
-if path.isdir(fld_py_h):
-    fld_py = fld_py_h
-elif path.isdir(fld_py_w):
-    fld_py = fld_py_w
-else:
-    print('ERROR: no python folder!')
-    
-fld_home = fld_py+'NSI_analysis/analysis_ratio/'
+fld_home = '../NSI_analysis/analysis_ratio/'
 
 ##*****************************************************
 ## # Fig.ResumeDelayedStimuli: ratio analysis with delayes
