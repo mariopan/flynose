@@ -133,7 +133,7 @@ for stim_seed in [0]:
     fld_analysis = '../NSI_analysis/analysis_real_plumes/example'
     inh_conds   = ['nsi', ] #'ln', 'noin'
     stim_type   = 'pl'  # 'ts' # 'ss'
-    stim_dur    = 5000
+    stim_dur    = 20000
     alpha_ln    = 13.3  #    ln_spike_h  = 0.4
     nsi_str     = 0.3
     delays2an   = 0
@@ -143,7 +143,7 @@ for stim_seed in [0]:
     al_fig      = 1
     fig_ui      = 1        
     fig_save    = 0    
-    data_save   = 0    
+    data_save   = 1    
     
     
     

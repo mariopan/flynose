@@ -67,7 +67,7 @@ tot_n_samples   = int(t2sim*sample_rate) # [] duration of whole simulated stimul
 #  PARAMS FOR WHIFF AND BLANK DISTRIOBUTIONS
 g               = -1/2  # -1/2 for a power law of -3/2, 1 for uniform distribution
 whiff_min       = 3e-3  # [s]
-whiff_max       = 3     # [s] 3, 50,150
+whiff_max       = 10     # [s] 3, 50,150
 
 blank_min       = 3e-3   # [s]
 blank_max       = 25     # [s]  25

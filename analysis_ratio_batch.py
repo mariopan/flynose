@@ -4,18 +4,12 @@
 Created on Thu Jul 11 13:49:09 2019
 
 @author: mp525
-analysis_loops_script_corr.py
+analysis_ratio_batch.py
 """
 
-
 import numpy as np
-#import system_ORNPNLN_corr
 import matplotlib.pyplot as plt
-
 import pickle        
-from os import path
-from os import mkdir
-from shutil import copyfile
 
 plt.ion()
 # *****************************************************************
@@ -49,11 +43,12 @@ fld_home = '../NSI_analysis/analysis_ratio/'
 #id_peak2plot    = 2
 #delays2an       = [0,10, 20, 50, 100, 200,500,] 
 #peak_fig        = 0
-#avg_fig         = 0
+#avg_fig         = 0 # Fig.RatioPeak
 #delay_fig       = 1 # Fig.ResumeDelayedStimuli
+#resumen_bar     = 0 # Fig.ResumeEncodeRatioBar
 #n_ratios        = 1
 #resumen_fig     = 0
-#fig_save        = 1 
+#fig_save        = 1
 ##*****************************************************
 
 
@@ -61,13 +56,14 @@ fld_home = '../NSI_analysis/analysis_ratio/'
 ## # Fig.ResumeEncodeRatio: ratio analysis with delayes
 #fld_analysis = fld_home+'ratio_short_stimuli/'
 #n_loops     = 10
-#fld_analysis = fld_home+'ratio_short_stimuli2/'
+#fld_analysis = fld_home+'ratio_batch_spln0.3/'
 #n_ratios    = 5
-#fld_analysis = fld_home+'ratio_short_stimuli3/'
-fld_analysis = fld_home+'ratio_short_stimuli4/' # Fig.ResumeEncodeRatio
-#fld_analysis = fld_home+'ratio_short_stimuli5/'
-fld_analysis = fld_home+'ratio_short_stimuli6/'
-#fld_analysis = fld_home+'ratio_batch_ln13.3/'
+#fld_analysis = fld_home+'ratio_batch_spln0.25/'
+fld_analysis = fld_home+'ratio_batch_spln0.4/' # Fig.ResumeEncodeRatio
+#fld_analysis = fld_home+'ratio_batch_spln0.4_bis/' # Fig.ResumeEncodeRatio
+#fld_analysis = fld_home+'ratio_batch_spln0.6/'
+#fld_analysis = fld_home+'ratio_batch_spln0.5/'
+fld_analysis = fld_home+'ratio_batch_ln13.3/'
 
 n_ratios    = 10
 
@@ -80,7 +76,7 @@ resumen_fig = 0 # Fig.ResumeEncodeRatio
 resumen_bar = 1 # Fig.ResumeEncodeRatioBar
 avg_fig     = 0
 delay_fig   = 0
-fig_save        = 1 
+fig_save    = 1 
 
 #*****************************************************
 
@@ -152,8 +148,8 @@ for id_dur in range(n_durs):
         
         orn_peak1_noin   = all_data[7]
         orn_peak2_noin   = all_data[8]
-        pn_peak1_noin    = all_data[9]
-        pn_peak2_noin    = all_data[10]
+        pn_peak1_noin    = np.fmax(1*np.ones_like(all_data[9]),all_data[9])  # minimum value 10Hz
+        pn_peak2_noin    = np.fmax(1*np.ones_like(all_data[10]),all_data[10]) 
         
         data_name = 'LN_ratio_an'
         all_data    = pickle.load( open( fld_analysis_tmp+'/' +data_name+'.pickle',  "rb" ) )
@@ -168,8 +164,8 @@ for id_dur in range(n_durs):
         
         orn_peak1_ln = all_data[7]
         orn_peak2_ln   = all_data[8]
-        pn_peak1_ln    = all_data[9]
-        pn_peak2_ln    = all_data[10]
+        pn_peak1_ln    = np.fmax(1*np.ones_like(all_data[9]),all_data[9]) # minimum value 10Hz
+        pn_peak2_ln    = np.fmax(1*np.ones_like(all_data[10]),all_data[10]) # minimum value 10Hz
         
         data_name = 'NSI_ratio_an'
         all_data    = pickle.load( open( fld_analysis_tmp+'/' +data_name+'.pickle',  "rb" ) )
@@ -184,8 +180,8 @@ for id_dur in range(n_durs):
         
         orn_peak1_nsi   = all_data[7]
         orn_peak2_nsi   = all_data[8]
-        pn_peak1_nsi    = all_data[9]
-        pn_peak2_nsi    = all_data[10]
+        pn_peak1_nsi    = np.fmax(1*np.ones_like(all_data[9]),all_data[9]) # minimum value 10Hz
+        pn_peak2_nsi    = np.fmax(1*np.ones_like(all_data[10]),all_data[10])  # minimum value 10Hz
         
         orn_ratio_avg_nsi   = orn_avg2_nsi/orn_avg1_nsi
         orn_ratio_avg_ln    = orn_avg2_ln/orn_avg1_ln
@@ -242,6 +238,10 @@ for id_dur in range(n_durs):
                 ln_tmp = (conc_ratio_mat/pn_ratio_peak_ln[:,pk,:]-1)**2
                 nsi_tmp = (conc_ratio_mat/pn_ratio_peak_nsi[:,pk,:]-1)**2
                 
+                noin_tmp = noin_tmp+(pn_ratio_peak_noin[:,pk,:]/conc_ratio_mat-1)**2
+                ln_tmp = ln_tmp+(pn_ratio_peak_ln[:,pk,:]/conc_ratio_mat-1)**2
+                nsi_tmp = nsi_tmp+(pn_ratio_peak_nsi[:,pk,:]/conc_ratio_mat-1)**2
+                
                 ratio2dist_peak_noin[:,pk, id_dur] = np.mean(noin_tmp, axis=1)
                 ratio2dist_peak_nsi[:,pk, id_dur] = np.mean(nsi_tmp, axis=1)
                 ratio2dist_peak_ln[:,pk, id_dur] = np.mean(ln_tmp, axis=1)
@@ -251,7 +251,7 @@ for id_dur in range(n_durs):
                 ratio2dist_peak_err_ln[:,pk, id_dur] = np.ma.std(ln_tmp, axis=1)
       
 
-#%% **********************************************************
+#%% *********************************************************
 ## FIGURE peak
 ## **********************************************************
 #durs = [50]
@@ -260,7 +260,7 @@ if peak_fig:
     panels_id   = ['a.', 'b.', 'c.', 'd.', 'e.', 'f.', 'g.', 'h.', 'i.', ]
     for id_dur, duration in enumerate(durs):
         lw = 3
-        rs = 3
+        rs = 2
         cs = 3
         fig, axs = plt.subplots(rs, cs, figsize=(10,7), ) 
         
@@ -295,34 +295,34 @@ if peak_fig:
                 marker='o', label=r'conc1: '+'%.1f'%(conc_1[pk]), 
                color=colors(pk*clr_fct) )
             
-            axs[2,0].errorbar(conc_ratio_t+dx*pk, conc_ratio_t/ratio2_peak_noin[:,pk, id_dur],
-               yerr= ratio2dist_peak_err_noin[:,pk, id_dur]/np.sqrt(n_loops),
-               marker='o', label=r'conc1: '+'%.1f'%(conc_1[pk]),
-               color=colors(pk*clr_fct) )
-            
-            axs[2,1].errorbar(conc_ratio_t+dx*pk, conc_ratio_t/ratio2_peak_ln[:,pk, id_dur],
-               yerr= ratio2dist_peak_err_ln[:,pk, id_dur]/np.sqrt(n_loops),
-               marker='o', label=r'conc1: '+'%.1f'%(conc_1[pk]), 
-               color=colors(pk*clr_fct) )
-            
-            axs[2,2].errorbar(conc_ratio_t+dx*pk, conc_ratio_t/ratio2_peak_nsi[:,pk, id_dur],
-               yerr= ratio2dist_peak_err_nsi[:,pk, id_dur]/np.sqrt(n_loops),
-                marker='o', label=r'conc1: '+'%.1f'%(conc_1[pk]), 
-               color=colors(pk*clr_fct) )
+#            axs[2,0].errorbar(conc_ratio_t+dx*pk, conc_ratio_t/ratio2_peak_noin[:,pk, id_dur],
+#               yerr= ratio2dist_peak_err_noin[:,pk, id_dur]/np.sqrt(n_loops),
+#               marker='o', label=r'conc1: '+'%.1f'%(conc_1[pk]),
+#               color=colors(pk*clr_fct) )
+#            
+#            axs[2,1].errorbar(conc_ratio_t+dx*pk, conc_ratio_t/ratio2_peak_ln[:,pk, id_dur],
+#               yerr= ratio2dist_peak_err_ln[:,pk, id_dur]/np.sqrt(n_loops),
+#               marker='o', label=r'conc1: '+'%.1f'%(conc_1[pk]), 
+#               color=colors(pk*clr_fct) )
+#            
+#            axs[2,2].errorbar(conc_ratio_t+dx*pk, conc_ratio_t/ratio2_peak_nsi[:,pk, id_dur],
+#               yerr= ratio2dist_peak_err_nsi[:,pk, id_dur]/np.sqrt(n_loops),
+#                marker='o', label=r'conc1: '+'%.1f'%(conc_1[pk]), 
+#               color=colors(pk*clr_fct) )
         
         # FIGURE settings
         axs[0,0].set_ylabel('ratio\nORN response', fontsize=fs)
         axs[1,0].set_ylabel('ratio\nPN response', fontsize=fs)
-        axs[2,0].set_ylabel('PN ratio \n error', fontsize=fs)
+#        axs[2,0].set_ylabel('PN ratio \n error', fontsize=fs)
         
 
         for cc in range(cs):
-            axs[2, cc].set_xlabel('conc ratio', fontsize=fs)
+            axs[1, cc].set_xlabel('conc ratio', fontsize=fs)
                 
             axs[0, cc].plot(conc_ratio_t, conc_ratio_t, '--', lw=lw, color='black', label='expec.')
             axs[1, cc].plot(conc_ratio_t, conc_ratio_t, '--', lw=lw, color='black', label='expec.')
-            axs[2, cc].plot(conc_ratio_t, np.ones_like(conc_ratio_t), '--', 
-               lw=lw, color='black', label='expec.')
+#            axs[2, cc].plot(conc_ratio_t, np.ones_like(conc_ratio_t), '--', 
+#               lw=lw, color='black', label='expec.')
             for rr in range(rs):
                 axs[rr, cc].tick_params(axis='both', which='major', labelsize=label_fs-3)
                 
@@ -340,13 +340,13 @@ if peak_fig:
                 if cc == 0:
                     axs[rr,cc].set_yticklabels(['0','5','10', '15', '20'], fontsize=fs)
                 
-                if rr == 2:
-                    axs[rr,cc].set_xticklabels(['0','5','10', '15', '20'], fontsize=fs)
-                    axs[rr,cc].set_ylim((0, 15.5))
+#                if rr == 2:
+#                    axs[rr,cc].set_xticklabels(['0','5','10', '15', '20'], fontsize=fs)
+#                    axs[rr,cc].set_ylim((0, 15.5))
                 
                 # change plot position:
                 ll, bb, ww, hh = axs[rr,cc].get_position().bounds
-                axs[rr,cc].set_position([ll+cc*.04, bb+(2-rr)*.04,ww,hh])        
+                axs[rr,cc].set_position([ll+cc*.03, bb+(2-rr)*.03,ww,hh])        
 
         
         #axs[0,0].set_title('Independent \n peak, dur:%d ms'%duration+', delay:%d ms'%delay, fontsize=fs)
@@ -356,12 +356,12 @@ if peak_fig:
         
 
         for cc in [1,2]:
-            for rr in range(3):
-                axs[rr,cc].text(-.2, 1.2, panels_id[cc*3+rr], transform=axs[rr,cc].transAxes,
+            for rr in range(2):
+                axs[rr,cc].text(-.2, 1.2, panels_id[cc*rs+rr], transform=axs[rr,cc].transAxes,
                                fontsize=panel_fs, color=blue, weight='bold', va='top', ha='right')
         cc = 0
-        for rr in range(3):
-            axs[rr,cc].text(-.35, 1.2, panels_id[cc*3+rr], transform=axs[rr,cc].transAxes,
+        for rr in range(2):
+            axs[rr,cc].text(-.35, 1.2, panels_id[cc*rs+rr], transform=axs[rr,cc].transAxes,
                            fontsize=panel_fs, color=blue, weight='bold', va='top', ha='right')
         
         
@@ -395,18 +395,18 @@ if resumen_bar:
     axs.bar(ptns+width, avg_ratio_peak_nsi, width=width, color='blue', 
             yerr=avg_ratio_peak_nsi_std/np.sqrt(n_ratios*n_concs), 
             label='NSI', )
-#%%
+
     # FIGURE SETTINGS
     axs.spines['right'].set_color('none')   
     axs.spines['top'].set_color('none')                
-                
+    axs.set_ylim((.8, 300))
     axs.legend(fontsize=label_fs,loc='upper left', frameon=False)
-    axs.set_ylabel('avg coding error (au)', fontsize=label_fs)
+    axs.set_ylabel('coding error (au)', fontsize=label_fs)
     axs.set_xlabel('stimulus duration (ms)', fontsize=label_fs)        
     axs.tick_params(axis='both', which='major', labelsize=label_fs-3)
     axs.set_xticks(ptns)
     axs.set_xticklabels(durs, fontsize=fs)
-#    axs.set_yscale('log')    
+    axs.set_yscale('log')    
     axs.text(-.15, 1.0, 'j.', transform=axs.transAxes, color= blue,
              fontsize=panel_fs, fontweight='bold', va='top', ha='right')
     
@@ -479,10 +479,11 @@ if delay_fig:
         axs[id_dur].errorbar(delays2an, ratio_peak_nsi[:, id_dur],
            yerr=ratio_peak_nsi_err[:, id_dur]/n_loops**.5, color='blue', lw = lw, label= 'NSI')    
         
+        # FIGURE SETTINGS
         axs[id_dur].set_xlabel('Delay (ms)', fontsize=fs)
         axs[id_dur].set_title(' %d ms'%(duration), fontsize=fs)
     
-        axs[id_dur].set_ylim((.5, 1.2))
+        axs[id_dur].set_ylim((.4, 1.1))
         axs[id_dur].spines['right'].set_color('none')   
         axs[id_dur].spines['top'].set_color('none')     
         axs[id_dur].tick_params(axis='both', which='major', labelsize=label_fs-3)
@@ -500,9 +501,9 @@ if delay_fig:
     axs[0].set_title('Duration: %d ms'%(durs[0]), fontsize=fs)
     
     conc2plot = np.squeeze(conc_1_r[0,id_peak2plot,0])
-    axs[0].set_ylabel('freq PN ratio', fontsize=fs)
+    axs[0].set_ylabel(r'$R^{PN}=\nu_b^{PN}/\nu_a^{PN}$', fontsize=fs)
 #    axs[0].set_title('Duration: %d ms, \nconc: %.2g'%(durs[0], conc2plot), fontsize=fs)    
-    axs[1].legend(bbox_to_anchor=(.3, .45), frameon=False, fontsize=label_fs-5)
+    axs[0].legend(bbox_to_anchor=(1, .45), frameon=False, fontsize=label_fs-5)
     
     if fig_save:
         fig.savefig(fld_analysis+  '/ratio1_delays0-500_dur20-200_conc%.2g'%conc2plot +'.png')
