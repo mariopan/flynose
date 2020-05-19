@@ -890,14 +890,16 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
         pn_m100_2 = np.sum(np.mean(pn_sdf_norm[id_stim2, num_pns_glo:], axis=1)>100)*pn_sdf_dt
         pn_m150_2 = np.sum(np.mean(pn_sdf_norm[id_stim2, num_pns_glo:], axis=1)>100)*pn_sdf_dt
             
-        id_post_stim = np.flatnonzero((pn_sdf_time>t_on) & (pn_sdf_time<t_off+100))
-        id_post_stim2 = np.flatnonzero((pn_sdf_time>t_on2) & (pn_sdf_time<t_off2+100))
+        id_post_stim = np.flatnonzero((pn_sdf_time>t_on) & (pn_sdf_time<t_on+100))
+        id_post_stim2 = np.flatnonzero((pn_sdf_time>t_on2) & (pn_sdf_time<t_on2+100))
         pn_peak1  = np.max(np.mean(pn_sdf_norm[id_post_stim, :num_pns_glo], axis=1)) # using average PN
         pn_peak2  = np.max(np.mean(pn_sdf_norm[id_post_stim2, num_pns_glo:], axis=1)) # using average PN
         
         
         # SAVE SDF OF conc, ORN, PN and LN FIRING RATE
         if data_save:
+            pn_spike_matrix
+            
             name_data = ['/ORNALrate' +
                         '_stim_' + params2an[7] +
                         '_nsi_%.1f'%(params2an[0]) +
@@ -915,11 +917,29 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
             params2an_names = ['omega_nsi', 'alpha_ln', 'dur2an', 'delays2an', 
                                'peak', 'peak_ratio', 'rho', 'stim_type', ]
     
-            with open(fld_analysis+name_data[0], 'wb') as f:
-                pickle.dump([params2an, t, u_od, orn_sdf_norm, orn_sdf_time, 
+            if not(stimulus == 'pl'):
+                with open(fld_analysis+name_data[0], 'wb') as f:
+                    pickle.dump([params2an, t, u_od, orn_sdf_norm, orn_sdf_time, 
                              pn_sdf_norm, pn_sdf_time, 
                              ln_sdf_norm, ln_sdf_time, 
                              params2an_names, output_names], f)
+            
+                
+            name_data = ['/ALspike' +
+                        '_stim_' + params2an[7] +
+                        '_nsi_%.1f'%(params2an[0]) +
+                        '_ln_%.2f'%(params2an[1]) +
+                        '_dur2an_%d'%(params2an[2]) +
+                        '_delays2an_%d'%(params2an[3]) +
+                        '_peak_%.2f'%(params2an[4]) +
+                        '_peakratio_%.1f'%(params2an[5]) + # 
+                        '.pickle'] 
+                                
+            output_names = ['pn_spike_matrix', 'ln_spike_matrix',] 
+                            
+            with open(fld_analysis+name_data[0], 'wb') as f:
+                pickle.dump([params2an, pn_spike_matrix, ln_spike_matrix, 
+                         params2an_names, output_names], f)
                 
             if stimulus == 'pl':
                 name_data = ['/ORNPNLN' +
@@ -1115,7 +1135,9 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
         pn_stim = [pn_avg1, pn_avg2, pn_peak1, pn_peak2,]
     else:
         pn_stim = np.zeros(4)
-    
+#    print('PN peak1:%.4f'%pn_peak1)
+#    print('PN peak2:%.4f'%pn_peak2)
+
     return  [orn_stim, pn_stim, ]
 
 
@@ -1127,15 +1149,16 @@ if __name__ == '__main__':
     #***********************************************
     # Trials and errors
     fld_analysis    = '../NSI_analysis/trialserrors'
-    inh_conds       = ['nsi', ] #'ln', 'noin'
     stim_type       = 'ts' # 'ts'  # 'ts' # 'ss' # 'pl'
-    stim_dur        = 100
-    alpha_ln        = 13.3# 0.4
+    stim_dur        = 20
+    alpha_ln        = 13.3# ln spike h=0.4
     nsi_str         = 0.3
     delays2an       = 0
-    peak_ratio      = 1
-    peak            = 1 
-    
+    peak            = 1.
+    peak_ratio      = 10
+     
+#    params2an = [.0, .0, 20, 0, 1.6, 1]
+#    params2an = [nsi_value, ln_spike_height, dur2an, delay2an, peak, peak_ratio]
     # real plumes params
     b_max           = np.nan # 3, 50, 150
     w_max           = np.nan #3, 50, 150
@@ -1160,37 +1183,36 @@ if __name__ == '__main__':
     copyfile('flynose.py', fld_analysis+'/flynose.copy.py') 
     
     
-    pn_avg_dif  = 0
-    pn_avg      = 0
-    pn_peak     = 0
+    n_loops = 10
+    pn_avg_dif  = np.zeros(n_loops)
+    pn_avg_ratio      = np.zeros(n_loops)
+    pn_peak_ratio    = np.zeros(n_loops)
 
-    params2an = [0, .0, stim_dur, delays2an, peak, 
+    params2an = [nsi_str, alpha_ln, stim_dur, delays2an, peak, 
                  peak_ratio, rho, stim_type,w_max,b_max]
     if len(stim_type)>2:
         params2an.append(stim_data_fld)
     tic = timeit.default_timer()
-    for inh_cond in inh_conds:
-        if inh_cond == 'nsi':
-            params2an[0:2] = [nsi_str, .0, ]
-        elif inh_cond == 'noin':
-            params2an[0:2] = [0, 0, ]
-        elif inh_cond == 'ln':
-            params2an[0:2] = [.0, alpha_ln,]
         
-        #    params2an = [omega_nsi, alpha_ln, dur2an, delays2an, peak, peak_ratio]
-        plt.ion()      # ioff() # to avoid showing the plot every time     
-        
+    #    params2an = [omega_nsi, alpha_ln, dur2an, delays2an, peak, peak_ratio]
+    plt.ion()      # ioff() # to avoid showing the plot every time     
+    
+    for ii in range(n_loops):
         [orn_stim, pn_stim,] = main(params2an, fig_opts, verbose = False, 
             fld_analysis = fld_analysis, stim_seed=stim_seed)
-        pn_avg_dif = (pn_stim[0]-pn_stim[1])
-        pn_avg = (pn_stim[0]+pn_stim[1])/2
-        pn_peak = (pn_stim[2]+pn_stim[3])/2        
-        
-        print(inh_cond+' inh, peak:%.1f, avg:%.1f, avg dif:%.1f'
-              %(pn_peak, pn_avg, pn_avg_dif))
-        
-        toc = timeit.default_timer()
-    print('time to run %d sims: %.1fs'%(np.size(inh_conds),toc-tic))
+        pn_avg_dif[ii] = (pn_stim[0]-pn_stim[1])
+        pn_avg_ratio[ii] = (pn_stim[1]/pn_stim[0])
+        pn_peak_ratio[ii]  = np.max((.1,pn_stim[3]))/pn_stim[2]
+#        print('peak ratio:%.1f, avg ratio:%.1f, avg dif:%.1f Hz'
+#          %(np.mean(pn_peak_ratio[ii]), np.mean(pn_avg_ratio[ii]), np.mean(pn_avg_dif[ii])))
+        print('peak ratio:%.1f, peak 1:%.1f Hz, peak 2:%.1f Hz'
+          %(pn_peak_ratio[ii], pn_stim[2], pn_stim[3]))
+    print('peak ratio:%.1f, avg ratio:%.1f, avg dif:%.1f Hz'
+          %(np.mean(np.ma.masked_invalid(pn_peak_ratio)), 
+            np.mean(np.ma.masked_invalid(pn_avg_ratio)), np.mean(pn_avg_dif)))
+    
+    toc = timeit.default_timer()
+    print('time to do %d sims: %.0f'%(n_loops, toc-tic))
     print('')
                         
 else:

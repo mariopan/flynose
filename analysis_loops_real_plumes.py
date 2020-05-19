@@ -21,7 +21,7 @@ def pars2name(params2an,):
     name_data = ['ORNPNLN' +
                 '_stim_' + params2an[7] +
                 '_nsi_%.1f'%(params2an[0]) +
-                '_lnspH_%.2f'%(params2an[1]) +
+                '_ln_%.2f'%(params2an[1]) +
                 '_dur2an_%d'%(params2an[2]) +
                 '_peak_%.1f'%(params2an[4]) +
                 '_rho_%d'%(params2an[6])] 
@@ -100,16 +100,16 @@ fld_home = '../NSI_analysis/analysis_real_plumes/'
 # *******************************************************************
 # Fig.PeakPN_wmax and Fig.PeakPN_resumen
 fld_analysis = fld_home+'stim_200secs/'     # last longest simulation 200secs 
-fld_analysis = fld_home+'200secs/'     # last longest simulation 200secs 
+#fld_analysis = fld_home+'200secs/'     # last longest simulation 200secs 
 stim_dur    =  201000
 w_maxs      = [.01,.03,.3, 3, 25, 50, ]# max value in the whiff distribution
 seeds       = np.arange(1, 30)
 data_save   = 0
-fig_save    = 0
+fig_save    = 1
 peak_fig    = 0 # Fig.PeakPNActivity
 avg_fig     = 0 # Fig.AverPNActivity
-resumen_fig = 1 # Fig.PeakPN_resumen
-thrwmax_fig = 0 # Fig.PeakPN_wmax
+resumen_fig = 0 # Fig.PeakPN_resumen
+thrwmax_fig = 1 # Fig.PeakPN_wmax
 thr         = 150 # [50, 100, 150]
 # *******************************************************************
 
@@ -614,29 +614,29 @@ if thrwmax_fig:
         
         if thr == 50:
             pn_tmp = .5*(pn_m50_2+pn_m50_1)            
-            axs[id_w_max].set_ylim((0,250)) # 90500))
+            axs[id_w_max].set_ylim((0,90500)) # 250)) # 
             panel_id = 'a%d'%id_w_max+'.'
         elif thr == 100:
             pn_tmp = .5*(pn_m100_2+pn_m100_1)
-            axs[id_w_max].set_ylim((0,60)) # 32500))
+            axs[id_w_max].set_ylim((0,32500))#60)) # 
             panel_id = 'b%d'%id_w_max+'.'
         elif thr == 150:
             pn_tmp = .5*(pn_m150_2+pn_m150_1)
-            axs[id_w_max,].set_ylim((0,10)) # 6500))
+            axs[id_w_max,].set_ylim((0,6500))#10)) # 
             panel_id = 'c%d'%id_w_max+'.'
             
         y2plot_ln = np.squeeze(pn_tmp[:, 2, :, id_w_max, id_b_max])
         y2plot_nsi = np.squeeze(pn_tmp[:, 1, :, id_w_max, id_b_max])
         y2plot_noin = np.squeeze(pn_tmp[:, 0, :, id_w_max, id_b_max])
 
-        axs[id_w_max].errorbar(corr_tmp, np.mean(y2plot_noin, axis=1)*100/wh_tot[:, id_w_max],
-           yerr=np.std(y2plot_noin, axis=1)/np.sqrt(n_seeds)*100/wh_tot[:, id_w_max], 
+        axs[id_w_max].errorbar(corr_tmp, np.mean(y2plot_noin, axis=1),#*100/wh_tot[:, id_w_max],
+           yerr=np.std(y2plot_noin, axis=1)/np.sqrt(n_seeds),#*100/wh_tot[:, id_w_max], 
            linewidth=lw, color='magenta',label='Indep')
-        axs[id_w_max].errorbar(corr_tmp, np.mean(y2plot_ln, axis=1)*100/wh_tot[:, id_w_max],
-           yerr=np.std(y2plot_ln, axis=1)/np.sqrt(n_seeds)*100/wh_tot[:, id_w_max], 
+        axs[id_w_max].errorbar(corr_tmp, np.mean(y2plot_ln, axis=1),#*100/wh_tot[:, id_w_max],
+           yerr=np.std(y2plot_ln, axis=1)/np.sqrt(n_seeds),#*100/wh_tot[:, id_w_max], 
            linewidth=lw, color='orange',label='LN')
-        axs[id_w_max].errorbar(corr_tmp, np.mean(y2plot_nsi, axis=1)*100/wh_tot[:, id_w_max],
-           yerr=np.std(y2plot_nsi, axis=1)/np.sqrt(n_seeds)*100/wh_tot[:, id_w_max], 
+        axs[id_w_max].errorbar(corr_tmp, np.mean(y2plot_nsi, axis=1),#*100/wh_tot[:, id_w_max],
+           yerr=np.std(y2plot_nsi, axis=1)/np.sqrt(n_seeds),#*100/wh_tot[:, id_w_max], 
            linewidth=lw, color='blue',label='NSI')
                 
 #        if id_w_max == 0:
@@ -664,7 +664,7 @@ if thrwmax_fig:
         ll, bb, ww, hh = axs[id_w_max].get_position().bounds
         axs[id_w_max].set_position([ll+.015*id_w_max, bb+.09, ww, hh-.15])   
         
-    axs[0].set_ylabel('PN activity (\%)\n' + r'$\Theta$=%d Hz'%thr, fontsize=label_fs)
+    axs[0].set_ylabel('PN activity (ms)\n' + r'$\Theta$=%d Hz'%thr, fontsize=label_fs)
     if thr == 150:
         axs[0].set_xlabel('Theor. correlation', fontsize=label_fs)
         axs[0].xaxis.set_label_coords(1.1, -.15)

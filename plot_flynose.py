@@ -296,7 +296,7 @@ def olsen2010_data(all_data_tmp, params2an):
 #fig_orn_al_name = ''
 #fig_olsen_fit_name = ''
 #
-#fig_save    = 1
+#fig_save    = 0
 
 
 
@@ -393,7 +393,7 @@ for stim_seed in [0]:
             if len(stim_type)==2:
                 tmp_name_data = ['/ORNALrate_stim_' + params2an[7] +
                     '_nsi_%.1f'%(params2an[0]) +
-                    '_lnspH_%.2f'%(params2an[1]) +
+                    '_ln_%.2f'%(params2an[1]) +
                     '_dur2an_%d'%(params2an[2]) +
                     '_delays2an_%d'%(params2an[3]) +
                     '_peak_%.2f'%(params2an[4]) +
@@ -402,7 +402,7 @@ for stim_seed in [0]:
             else:
                 tmp_name_data = ['/ORNrate_stim_' + params2an[7] + 
                                  '_nsi_%.1f'%(params2an[0]) +
-                                 '_lnspH_%.2f'%(params2an[1]) +
+                                 '_ln_%.2f'%(params2an[1]) +
                                 '.pickle']
             all_name_data = tmp_name_data[0]
             
