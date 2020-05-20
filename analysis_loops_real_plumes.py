@@ -7,14 +7,10 @@ Created on Thu Jul 11 13:49:09 2019
 analysis_loops_real_plumes.py
 """
 
-
 import numpy as np
-#import system_ORNPNLN_corr
 import matplotlib.pyplot as plt
 
 import pickle        
-from os import path
-from os import mkdir
 from shutil import copyfile
 
 def pars2name(params2an,):
@@ -35,12 +31,10 @@ def pars2name(params2an,):
     
     if params2an[9]<10:
         name_data = [name_data[0] +
-                     '_bmax_%.1g'%(params2an[9]) +
-                     '.pickle']
+                     '_bmax_%.1g'%(params2an[9])]
     else:
         name_data = [name_data[0] +
-                     '_bmax_%.2g'%(params2an[9]) +
-                     '.pickle']
+                     '_bmax_%.2g'%(params2an[9])]
             
     return name_data[0]
 
@@ -59,16 +53,13 @@ def pars2name_all(params2an, rhos, w_maxs, b_maxs, ):
         
     if b_maxs[-1]<10:
         name_data = [name_data[0] +
-                     '_bmax_%.1g-%.1g'%(b_maxs[0],b_maxs[-1]) +
-                     '.pickle']
+                     '_bmax_%.1g-%.1g'%(b_maxs[0],b_maxs[-1])]
     elif (b_maxs[0]<10) & (b_maxs[-1]>10):
         name_data = [name_data[0] +
-                     '_bmax_%.1g-%.2g'%(b_maxs[0],b_maxs[-1]) +
-                     '.pickle']                
+                     '_bmax_%.1g-%.2g'%(b_maxs[0],b_maxs[-1])]                
     else:
         name_data = [name_data[0] +
-                     '_bmax_%.2g-%.2g'%(b_maxs[0],b_maxs[-1]) +
-                     '.pickle']                
+                     '_bmax_%.2g-%.2g'%(b_maxs[0],b_maxs[-1])]                
     
     return name_data[0]
 
@@ -95,7 +86,7 @@ cmap    = plt.get_cmap('rainbow')
 
 # *****************************************************************
 
-fld_home = '../NSI_analysis/analysis_real_plumes/'
+fld_home = 'NSI_analysis/analysis_real_plumes/'
 
 # *******************************************************************
 # Fig.PeakPN_wmax and Fig.PeakPN_resumen
@@ -105,12 +96,13 @@ stim_dur    =  201000
 w_maxs      = [.01,.03,.3, 3, 25, 50, ]# max value in the whiff distribution
 seeds       = np.arange(1, 30)
 data_save   = 0
-fig_save    = 1
-peak_fig    = 0 # Fig.PeakPNActivity
-avg_fig     = 0 # Fig.AverPNActivity
-resumen_fig = 0 # Fig.PeakPN_resumen
-thrwmax_fig = 1 # Fig.PeakPN_wmax
-thr         = 150 # [50, 100, 150]
+fig_save    = 0
+
+peak_fig    = 0     # Fig.PeakPNActivity
+avg_fig     = 1     # Fig.AverPNActivity
+resumen_fig = 0     # Fig.PeakPN_resumen
+thrwmax_fig = 0     # Fig.PeakPN_wmax
+thr         = 150   # [50, 100, 150]
 # *******************************************************************
 
 
@@ -236,7 +228,8 @@ for stim_seed in seeds:
                     params2an = [nsi_value, ln_sp_hgt, stim_dur, 0, peak, 
                                  1, rho, stim_type,w_max,b_max]
                     name_data = pars2name(params2an,)
-                    all_data_tmp = pickle.load(open(tmp_fld_analysis+'/' + name_data,  "rb" ))
+                    all_data_tmp = pickle.load(open(tmp_fld_analysis + 
+                                '/' + name_data  + '.pickle',  "rb" ))
                     
                     cor_stim[id_rho, id_seed,id_w_max, id_b_max,]  = all_data_tmp[cor_stim_id]
                     cor_whiff[id_rho, id_seed,id_w_max, id_b_max,]  = all_data_tmp[cor_whiff_id]
@@ -277,7 +270,7 @@ if data_save:
                        'peak', 'peak_ratio', 'rho', 'stim_type', 'w_max', 'b_max']
     
     # save the data from all the simulations in a single pickle file
-    with open(fld_analysis+name_data_all, 'wb') as f:
+    with open(fld_analysis+name_data_all + '.pickle', 'wb') as f:
         pickle.dump([params2an, cor_stim, overlap_stim, cor_whiff, 
                      interm_th, interm_est_1, interm_est_2, od_avg1, od_avg2, 
                      orn_avg1, orn_avg2, pn_avg1, pn_avg2, 
@@ -398,16 +391,103 @@ if peak_fig:
 ## FIGURE Fig.AverPNActivity
 ## **********************************************************
 if avg_fig:
-    fig2 = plt.figure(figsize=(13,6), ) 
-    rs = 2
+    fig2 = plt.figure(figsize=(12,4), ) 
+    rs = 1
+    cs = 2
+    lw = 4
+    
+    ax_orn = plt.subplot(rs,cs, 1)
+    ax_pn = plt.subplot(rs,cs, 2)
+    
+    corr_th = np.array(rhos)
+    corr_obs = np.mean(np.squeeze(cor_stim[:, :,3,0]), axis=1)
+                                    #[id_rho, id_inh,id_seed,id_w_max, id_b_max,]
+                                    #[id_rho, id_inh,id_seed] 
+     
+    ax_orn.errorbar(corr_obs, np.squeeze(np.mean(orn_avg1[:, 0, :,3,0], axis=1)),
+                  yerr=np.squeeze(np.std(orn_avg1[:, 0, :,3,0], axis=1))/
+                  (np.size(orn_avg1[:, 0, :,3,0],axis=1))**.5, linewidth=lw, ls='-', 
+                  color='green',label='Ind Glo 1', fmt='o')
+    ax_orn.errorbar(corr_obs, np.squeeze(np.mean(orn_avg1[:, 1, :,3,0], axis=1)),
+                  yerr=np.squeeze(np.std(orn_avg1[:, 1, :,3,0], axis=1))/
+                  (np.size(orn_avg1[:, 1, :,3,0],axis=1))**.5, linewidth=lw, ls='--', 
+                  color='green',label='NSI Glo 1', fmt='*')
+    
+#    ax_orn.errorbar(corr_obs, np.squeeze(np.mean(orn_avg2[:, 0, :,3,0], axis=1)),
+#                  yerr=np.squeeze(np.std(orn_avg2[:, 0, :,3,0], axis=1))/
+#                  (np.size(orn_avg2[:, 0, :,3,0],axis=1))**.5, linewidth=lw, 
+#                  color='purple',label='Ind Glo 2')
+#    ax_orn.errorbar(corr_obs, np.squeeze(np.mean(orn_avg2[:, 1, :,3,0], axis=1)),
+#                  yerr=np.squeeze(np.std(orn_avg2[:, 1, :,3,0], axis=1))/
+#                  (np.size(orn_avg2[:, 1, :,3,0],axis=1))**.5, linewidth=lw, 
+#                  ls='--', color='purple',label='NSI Glo 2')
+    
+    ax_pn.errorbar(corr_obs, np.squeeze(np.mean(pn_avg1[:, 0, :,3,0], axis=1)),
+                  yerr=np.squeeze(np.std(pn_avg1[:, 0, :,3,0], axis=1))/
+                  (np.size(pn_avg1[:, 0, :,3,0],axis=1))**.5, linewidth=lw, ls='-', 
+                  color='green',label='Ind Glo 1', fmt='o')
+    ax_pn.errorbar(corr_obs, np.squeeze(np.mean(pn_avg1[:, 1, :,3,0], axis=1)),
+                  yerr=np.squeeze(np.std(pn_avg1[:, 1, :,3,0], axis=1))/
+                  (np.size(pn_avg1[:, 1, :,3,0],axis=1))**.5, linewidth=lw, ls='--', 
+                  color='green',label='NSI Glo 1', fmt='*')
+    ax_pn.errorbar(corr_obs, np.squeeze(np.mean(pn_avg1[:, 2, :,3,0], axis=1)),
+                  yerr=np.squeeze(np.std(pn_avg1[:, 2, :,3,0], axis=1))/
+                  (np.size(pn_avg1[:, 2, :,3,0],axis=1))**.5, linewidth=lw, ls='-.', 
+                  color='green',label='LN Glo 1', fmt='d')
+
+#    ax_pn.errorbar(corr_obs, np.squeeze(np.mean(pn_avg2[:, 0, :,3,0], axis=1)),
+#                  yerr=np.squeeze(np.std(pn_avg2[:, 0, :,3,0], axis=1))/
+#                  (np.size(pn_avg2[:, 0, :,3,0],axis=1))**.5, linewidth=lw, 
+#                  color='purple',label='Ind Glo 2')
+#    ax_pn.errorbar(corr_obs, np.squeeze(np.mean(pn_avg2[:, 1, :,3,0], axis=1)),
+#                  yerr=np.squeeze(np.std(pn_avg2[:, 1, :,3,0], axis=1))/
+#                  (np.size(pn_avg2[:, 1, :,3,0],axis=1))**.5, linewidth=lw, 
+#                  ls='--', color='purple',label='NSI Glo 1')
+#    ax_pn.errorbar(corr_obs, np.squeeze(np.mean(pn_avg2[:, 2, :,3,0], axis=1)),
+#                  yerr=np.squeeze(np.std(pn_avg2[:, 2, :,3,0], axis=1))/
+#                  (np.size(pn_avg2[:, 2, :,3,0],axis=1))**.5, linewidth=lw, 
+#                  ls='-.', color='purple',label='LN Glo 1')
+    
+    ax_orn.tick_params(axis='both', which='major', labelsize=label_fs-3)
+    ax_pn.tick_params(axis='both', which='major', labelsize=label_fs-3)
+    
+    ax_orn.set_ylabel('ORN avg (Hz)', fontsize=label_fs)
+    ax_pn.set_ylabel('PN avg (Hz)', fontsize=label_fs)
+    
+    ax_orn.set_xlabel('Obs. correlation', fontsize=label_fs)
+    ax_pn.set_xlabel('Obs. correlation', fontsize=label_fs,)
+    
+    ax_orn.spines['right'].set_color('none')
+    ax_orn.spines['top'].set_color('none')
+    ax_pn.spines['right'].set_color('none')
+    ax_pn.spines['top'].set_color('none')
+
+    ax_orn.text(-.15, 1.15, 'a.', transform=ax_orn.transAxes,color= blue,
+              fontsize=panel_fs, fontweight='bold', va='top', ha='right')
+    ax_pn.text(-.15, 1.15, 'b.', transform=ax_pn.transAxes,color= blue,
+              fontsize=panel_fs, fontweight='bold', va='top', ha='right')
+    # change panels positions and sizes:
+    ll, bb, ww, hh = ax_orn.get_position().bounds
+    ax_orn.set_position([ll,bb+.04,ww,hh-.04])        
+    ll, bb, ww, hh = ax_pn.get_position().bounds
+    ax_pn.set_position([ll+.04,bb+.04,ww,hh-.04])        
+    
+    if fig_save:
+        fig2.savefig(fld_analysis+  '/NSI_AverActiv_'+name_data_all+'.png')
+
+#%% *********************************************************
+## FIGURE Fig.AverPlumeCorr
+## **********************************************************
+avgplume_fig = 1
+if avgplume_fig:
+    fig2 = plt.figure(figsize=(12,4), ) 
+    rs = 1
     cs = 2
     lw = 4
     
     ax_conc = plt.subplot(rs,cs,1)
     ax_corr = plt.subplot(rs,cs,2) # Correlation/Overlap between stimuli
-    ax_orn = plt.subplot(rs,cs,3)
-    ax_pn = plt.subplot(rs,cs, 4)
-    
+
     corr_th = np.array(rhos)
     corr_obs = np.mean(np.squeeze(cor_stim[:, :,3,0]), axis=1)
     overlap_obs = np.mean(np.squeeze(overlap_stim[:, :,3,0]), axis=1)
@@ -419,80 +499,26 @@ if avg_fig:
                                     #[id_rho, id_inh,id_seed,id_w_max, id_b_max,]
                                     #[id_rho, id_inh,id_seed] 
     ax_conc.errorbar(corr_obs, np.squeeze(np.mean(od_avg1[:, 0, :,3,0], axis=1)),
-                  yerr= .1, linewidth=lw, color='green',label='Glo 1')
+                  yerr= .1, linewidth=lw, fmt='o', color='green',label='Glo 1')
     ax_conc.errorbar(corr_obs+.01, 
                      np.squeeze(np.mean(od_avg2[:, 0, :,3,0], axis=1)),
                   yerr= .1, linewidth=lw, color='purple',label='Glo 2')
     ax_conc.set_ylabel('Odorants \n concentration', fontsize=label_fs)
-  
-    
+      
     ax_corr.plot(corr_th, corr_obs, '.-', label='corr stim')
     ax_corr.plot(corr_th, overlap_obs, '.-', label='overlap stim')
     ax_corr.plot(corr_th, interm_av_th, '.-', label='interm theor')
     ax_corr.errorbar(corr_th, interm_obs, 
                   yerr=interm_obs_std,  label='interm obs')
      
-    ax_orn.errorbar(corr_obs, np.squeeze(np.mean(orn_avg1[:, 0, :,3,0], axis=1)),
-                  yerr=np.squeeze(np.std(orn_avg1[:, 0, :,3,0], axis=1))/
-                  (np.size(orn_avg1[:, 0, :,3,0],axis=1))**.5, linewidth=lw, 
-                  color='green',label='Ind Glo 1')
-    ax_orn.errorbar(corr_obs, np.squeeze(np.mean(orn_avg1[:, 1, :,3,0], axis=1)),
-                  yerr=np.squeeze(np.std(orn_avg1[:, 1, :,3,0], axis=1))/
-                  (np.size(orn_avg1[:, 1, :,3,0],axis=1))**.5, linewidth=lw, 
-                  ls='--', color='green',label='NSI Glo 1')
-    
-    ax_orn.errorbar(corr_obs, np.squeeze(np.mean(orn_avg2[:, 0, :,3,0], axis=1)),
-                  yerr=np.squeeze(np.std(orn_avg2[:, 0, :,3,0], axis=1))/
-                  (np.size(orn_avg2[:, 0, :,3,0],axis=1))**.5, linewidth=lw, 
-                  color='purple',label='Ind Glo 2')
-    ax_orn.errorbar(corr_obs, np.squeeze(np.mean(orn_avg2[:, 1, :,3,0], axis=1)),
-                  yerr=np.squeeze(np.std(orn_avg2[:, 1, :,3,0], axis=1))/
-                  (np.size(orn_avg2[:, 1, :,3,0],axis=1))**.5, linewidth=lw, 
-                  ls='--', color='purple',label='NSI Glo 2')
-    
-    ax_pn.errorbar(corr_obs, np.squeeze(np.mean(pn_avg1[:, 0, :,3,0], axis=1)),
-                  yerr=np.squeeze(np.std(pn_avg1[:, 0, :,3,0], axis=1))/
-                  (np.size(pn_avg1[:, 0, :,3,0],axis=1))**.5, linewidth=lw, 
-                  color='green',label='Ind Glo 1')
-    ax_pn.errorbar(corr_obs, np.squeeze(np.mean(pn_avg1[:, 1, :,3,0], axis=1)),
-                  yerr=np.squeeze(np.std(pn_avg1[:, 1, :,3,0], axis=1))/
-                  (np.size(pn_avg1[:, 1, :,3,0],axis=1))**.5, linewidth=lw, 
-                  ls='--', color='green',label='NSI Glo 1')
-    ax_pn.errorbar(corr_obs, np.squeeze(np.mean(pn_avg1[:, 2, :,3,0], axis=1)),
-                  yerr=np.squeeze(np.std(pn_avg1[:, 2, :,3,0], axis=1))/
-                  (np.size(pn_avg1[:, 2, :,3,0],axis=1))**.5, linewidth=lw, 
-                  ls='-.', color='green',label='LN Glo 1')
-
-    ax_pn.errorbar(corr_obs, np.squeeze(np.mean(pn_avg2[:, 0, :,3,0], axis=1)),
-                  yerr=np.squeeze(np.std(pn_avg2[:, 0, :,3,0], axis=1))/
-                  (np.size(pn_avg2[:, 0, :,3,0],axis=1))**.5, linewidth=lw, 
-                  color='purple',label='Ind Glo 2')
-    ax_pn.errorbar(corr_obs, np.squeeze(np.mean(pn_avg2[:, 1, :,3,0], axis=1)),
-                  yerr=np.squeeze(np.std(pn_avg2[:, 1, :,3,0], axis=1))/
-                  (np.size(pn_avg2[:, 1, :,3,0],axis=1))**.5, linewidth=lw, 
-                  ls='--', color='purple',label='NSI Glo 1')
-    ax_pn.errorbar(corr_obs, np.squeeze(np.mean(pn_avg2[:, 2, :,3,0], axis=1)),
-                  yerr=np.squeeze(np.std(pn_avg2[:, 2, :,3,0], axis=1))/
-                  (np.size(pn_avg2[:, 2, :,3,0],axis=1))**.5, linewidth=lw, 
-                  ls='-.', color='purple',label='LN Glo 1')
-    
     ax_conc.tick_params(axis='both', which='major', labelsize=label_fs-3)
     ax_corr.tick_params(axis='both', which='major', labelsize=label_fs-3)
-    ax_orn.tick_params(axis='both', which='major', labelsize=label_fs-3)
-    ax_pn.tick_params(axis='both', which='major', labelsize=label_fs-3)
     
     ax_corr.legend(fontsize=label_fs-7, frameon=False)
     
-    ax_orn.set_ylabel('ORN avg (Hz)', fontsize=label_fs)
-    ax_pn.set_ylabel('PN avg (Hz)', fontsize=label_fs)
+    ax_conc.set_xlabel('Theor. correlation', fontsize=label_fs)
+    ax_corr.set_xlabel('Theor. correlation', fontsize=label_fs)
     
-    ax_orn.set_xlabel('Theor. correlation', fontsize=label_fs)
-    ax_pn.set_xlabel('Theor. correlation', fontsize=label_fs,)
-    
-    ax_orn.spines['right'].set_color('none')
-    ax_orn.spines['top'].set_color('none')
-    ax_pn.spines['right'].set_color('none')
-    ax_pn.spines['top'].set_color('none')
     ax_corr.spines['right'].set_color('none')
     ax_corr.spines['top'].set_color('none')
     ax_conc.spines['right'].set_color('none')
@@ -502,13 +528,15 @@ if avg_fig:
               fontsize=panel_fs, fontweight='bold', va='top', ha='right')
     ax_corr.text(-.15, 1.15, 'b.', transform=ax_corr.transAxes,color= blue,
               fontsize=panel_fs, fontweight='bold', va='top', ha='right')
-    ax_orn.text(-.15, 1.15, 'c.', transform=ax_orn.transAxes,color= blue,
-              fontsize=panel_fs, fontweight='bold', va='top', ha='right')
-    ax_pn.text(-.15, 1.15, 'd.', transform=ax_pn.transAxes,color= blue,
-              fontsize=panel_fs, fontweight='bold', va='top', ha='right')
     
+    # change panels positions and sizes:
+    ll, bb, ww, hh = ax_conc.get_position().bounds
+    ax_conc.set_position([ll,bb+.04,ww,hh-.04])        
+    ll, bb, ww, hh = ax_corr.get_position().bounds
+    ax_corr.set_position([ll+.04,bb+.04,ww,hh-.04])        
+        
     if fig_save:
-        fig2.savefig(fld_analysis+  '/NSI_AverActiv_'+name_data_all+'.png')
+        fig2.savefig(fld_analysis+  '/NSI_PlumeAverActiv_'+name_data_all+'.png')
         
         
 #%%**********************************************************

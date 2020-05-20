@@ -85,7 +85,7 @@ def martelli_plot(all_data_tmp, params2an, id_c):
             ax_conc_m.set_xticks(np.linspace(0, t2simulate, 8))
             ax_conc_m.set_xticklabels('')
             ax_orn_m.set_xticks(np.linspace(0, t2simulate, 8))
-            ax_orn_m.set_xticklabels(['0', '', '', '1500', '', '', '3000'])
+            ax_orn_m.set_xticklabels([])#['0', '', '', '1500', '', '', '3000'])
             
             ax_conc_m.set_yticks(np.linspace(0,400, 5))
             ax_orn_m.set_yticks(np.linspace(0,250, 6))
@@ -104,11 +104,11 @@ def martelli_plot(all_data_tmp, params2an, id_c):
             ax_orn_m.spines['right'].set_color('none')
             ax_orn_m.spines['top'].set_color('none')
         ax_orn_m.set_xlabel('Time  (ms)', fontsize=label_fs)
-        
+
         ll, bb, ww, hh = ax_conc_m.get_position().bounds
-        ax_conc_m.set_position([ll+.05, bb, ww, hh])
+        ax_conc_m.set_position([ll+.075, bb, ww, hh])
         ll, bb, ww, hh = ax_orn_m.get_position().bounds
-        ax_orn_m.set_position([ll+.05, bb, ww, hh])
+        ax_orn_m.set_position([ll+.075, bb, ww, hh])
     
         ax_conc_m.text(-.15, 1.1, panel_letters[0], transform=ax_conc_m.transAxes,color=blue,
               fontsize=panel_fs, fontweight='bold', va='top', ha='right')
@@ -276,7 +276,7 @@ def olsen2010_data(all_data_tmp, params2an):
 peaks       = [1, 2, 3]#np.linspace(0, 7, 11)
 stim_dur    = 1000  # 50 # 100 #500
 inh_conds   = ['nsi'] #['nsi', 'ln', 'noin'] #
-stim_type_tmp ='ramp_' #'step_' # 'parabola_' #
+stim_type_tmp ='parabola_' #'ramp_' #'step_' # 
 stim_type   = stim_type_tmp
 delay2an    = 0
 peak_ratio  = 1
@@ -288,7 +288,7 @@ nsi_str     = 0.3
 n_lines     = np.size(peaks)
 fld_analysis = 'NSI_analysis/lazar_sim/'
 
-martelli_fig= 1
+martelli_fig= 1 # Fig.laz
 orn_al_fig  = 0
 olsen_fig   = 0
 
@@ -296,7 +296,7 @@ fig_martelli_name   = stim_type_tmp
 fig_orn_al_name = ''
 fig_olsen_fit_name = ''
 
-fig_save    = 0
+fig_save    = 1
 
 
 
@@ -319,9 +319,9 @@ fig_save    = 0
 #fig_orn_al_name     = '/../images/' +'ORN-PN_Olsen2010_timecourse_dur_%d'%stim_dur
 #fig_olsen_fit_name  = '/../images/' +'ORN-PN_Olsen2010_dur_%d'%stim_dur
 #fig_martelli_name   = '/../images/' +'ORN-Martelli2013_dur_%d'%stim_dur
-#orn_al_fig      = 1
-#olsen_fig       = 1
-#martelli_fig    = 1
+#orn_al_fig      = 1 # PNORNactivity, time course side
+#olsen_fig       = 1 # PNORNactivity, Olsen side
+#martelli_fig    = 0 # ORN_response, Martelli side
 #fig_save        = 0
 #data_save       = 0
 
@@ -360,7 +360,7 @@ for stim_seed in [0]:
             rs = 2 # number of rows
             cs = 1 # number of cols
             
-            fig_pn_m = plt.figure(figsize=[7, 7])
+            fig_pn_m = plt.figure(figsize=[5, 7])
             ax_conc_m = plt.subplot(rs, cs, 1)
             ax_orn_m = plt.subplot(rs, cs, 1+cs)
         
@@ -442,6 +442,7 @@ for stim_seed in [0]:
             # Constrain the optimization region
             popt, pcov = curve_fit(olsen_orn_pn, nu_orn, nu_pn, 
                         bounds=(0,[250, 300])) # , bounds=(0, [3., 1., 0.5])
+            nuorn_fit = np.linspace(2, nu_orn[-1]*1.1, 100)
             
             rs = 2
             cs = 1
@@ -449,8 +450,8 @@ for stim_seed in [0]:
             
             plt.rc('text', usetex=True)
             
-            axs[0].errorbar(nu_orn, nu_pn, yerr=nu_pn_err, label='simulation', fmt='o'  )
-            axs[0].plot(nu_orn, olsen_orn_pn(nu_orn, *popt), '--', linewidth=lw, 
+            axs[0].errorbar(nu_orn, nu_pn, yerr=nu_pn_err, label='simulation', fmt='o')
+            axs[0].plot(nuorn_fit , olsen_orn_pn(nuorn_fit , *popt), '--', linewidth=lw, 
                     label=r'fit: $\sigma$=%5.0f, $\nu_{max}$=%5.0f' % tuple(popt))
             
             axs[0].set_ylabel(r'PN (Hz)', fontsize=label_fs)
