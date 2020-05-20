@@ -271,32 +271,32 @@ def olsen2010_data(all_data_tmp, params2an):
     
     return out_olsen
     
-##*****************************************************
-## FIG.Laz
-#peaks       = [1, 2, 3]#np.linspace(0, 7, 11)
-#stim_dur    = 1000  # 50 # 100 #500
-#inh_conds   = ['nsi'] #['nsi', 'ln', 'noin'] #
-#stim_type_tmp ='ramp_' #'step_' # 'parabola_' #
-#stim_type   = stim_type_tmp
-#delay2an    = 0
-#peak_ratio  = 1
-#b_max       = [3] # 3, 50, 150
-#w_max       = [3] # 3, 50, 150
-#rho         = [0] #[0, 1, 3, 5]: 
-#alpha_ln    = 13.3 # ln_spike_h  = 0.4
-#nsi_str     = 0.3        
-#n_lines     = np.size(peaks)
-#fld_analysis = '../NSI_analysis/lazar_sim/'
-#
-#martelli_fig= 1
-#orn_al_fig  = 0
-#olsen_fig   = 0
-#
-#fig_martelli_name   = stim_type_tmp
-#fig_orn_al_name = ''
-#fig_olsen_fit_name = ''
-#
-#fig_save    = 0
+#*****************************************************
+# FIG.Laz
+peaks       = [1, 2, 3]#np.linspace(0, 7, 11)
+stim_dur    = 1000  # 50 # 100 #500
+inh_conds   = ['nsi'] #['nsi', 'ln', 'noin'] #
+stim_type_tmp ='ramp_' #'step_' # 'parabola_' #
+stim_type   = stim_type_tmp
+delay2an    = 0
+peak_ratio  = 1
+b_max       = [3] # 3, 50, 150
+w_max       = [3] # 3, 50, 150
+rho         = [0] #[0, 1, 3, 5]: 
+alpha_ln    = 13.3 # ln_spike_h  = 0.4
+nsi_str     = 0.3        
+n_lines     = np.size(peaks)
+fld_analysis = 'NSI_analysis/lazar_sim/'
+
+martelli_fig= 1
+orn_al_fig  = 0
+olsen_fig   = 0
+
+fig_martelli_name   = stim_type_tmp
+fig_orn_al_name = ''
+fig_olsen_fit_name = ''
+
+fig_save    = 0
 
 
 
@@ -315,15 +315,15 @@ def olsen2010_data(all_data_tmp, params2an):
 #ln_spike_h  = 0.6
 #nsi_str     = 0.3        
 #n_lines     = np.size(peaks)
-#fld_analysis = '../Olsen2010_Martelli2013/data'
-#fig_orn_al_name   = '/../images/' +'ORN-PN_Olsen2010_timecourse_dur_%d'%stim_dur
-#fig_olsen_fit_name   = '/../images/' +'ORN-PN_Olsen2010_dur_%d'%stim_dur
+#fld_analysis        = 'Olsen2010_Martelli2013/data'
+#fig_orn_al_name     = '/../images/' +'ORN-PN_Olsen2010_timecourse_dur_%d'%stim_dur
+#fig_olsen_fit_name  = '/../images/' +'ORN-PN_Olsen2010_dur_%d'%stim_dur
 #fig_martelli_name   = '/../images/' +'ORN-Martelli2013_dur_%d'%stim_dur
 #orn_al_fig      = 1
-#olsen_fig   = 1
-#martelli_fig = 1
-#fig_save    = 0
-#data_save   = 0#True
+#olsen_fig       = 1
+#martelli_fig    = 1
+#fig_save        = 0
+#data_save       = 0
 
 
 

@@ -33,7 +33,7 @@ magenta = 'xkcd:magenta'
 # *****************************************************************
 
 
-fld_home = '../NSI_analysis/analysis_ratio/'
+fld_home = 'NSI_analysis/analysis_ratio/'
 
 ##*****************************************************
 ## # Fig.ResumeDelayedStimuli: ratio analysis with delayes
@@ -58,8 +58,8 @@ fld_home = '../NSI_analysis/analysis_ratio/'
 #n_loops     = 10
 #fld_analysis = fld_home+'ratio_batch_spln0.3/'
 #n_ratios    = 5
-#fld_analysis = fld_home+'ratio_batch_spln0.25/'
-fld_analysis = fld_home+'ratio_batch_spln0.4/' # Fig.ResumeEncodeRatio
+fld_analysis = fld_home+'ratio_batch_spln0.25/'
+#fld_analysis = fld_home+'ratio_batch_spln0.4/' # Fig.ResumeEncodeRatio
 #fld_analysis = fld_home+'ratio_batch_spln0.4_bis/' # Fig.ResumeEncodeRatio
 #fld_analysis = fld_home+'ratio_batch_spln0.6/'
 #fld_analysis = fld_home+'ratio_batch_spln0.5/'
@@ -69,9 +69,9 @@ n_ratios    = 10
 
 n_loops     = 50
 
-durs        =  [10, 20, 50, 100, 200,]#200,]
+durs        =  [10, 20, 50, 100, 200,]
 delays2an   = [0,] 
-peak_fig    = 0 # Fig.RatioPeak
+peak_fig    = 1 # Fig.RatioPeak
 resumen_fig = 0 # Fig.ResumeEncodeRatio
 resumen_bar = 1 # Fig.ResumeEncodeRatioBar
 avg_fig     = 0
@@ -233,14 +233,22 @@ for id_dur in range(n_durs):
                 ratio2_peak_err_ln[:,pk, id_dur] = np.std(ln_tmp, axis=1)  
                 
         if resumen_fig | resumen_bar | peak_fig:
-            for pk in [1, 2,3]:#range(4): #4
-                noin_tmp = (conc_ratio_mat/pn_ratio_peak_noin[:,pk,:]-1)**2
-                ln_tmp = (conc_ratio_mat/pn_ratio_peak_ln[:,pk,:]-1)**2
-                nsi_tmp = (conc_ratio_mat/pn_ratio_peak_nsi[:,pk,:]-1)**2
+            for pk in range(4):                 
                 
-                noin_tmp = noin_tmp+(pn_ratio_peak_noin[:,pk,:]/conc_ratio_mat-1)**2
-                ln_tmp = ln_tmp+(pn_ratio_peak_ln[:,pk,:]/conc_ratio_mat-1)**2
-                nsi_tmp = nsi_tmp+(pn_ratio_peak_nsi[:,pk,:]/conc_ratio_mat-1)**2
+                noin_tmp = ((conc_ratio_mat-pn_ratio_peak_noin[:,pk,:])/
+                            (conc_ratio_mat+pn_ratio_peak_noin[:,pk,:]))**2
+                ln_tmp = ((conc_ratio_mat-pn_ratio_peak_ln[:,pk,:])/
+                            (conc_ratio_mat+pn_ratio_peak_ln[:,pk,:]))**2
+                nsi_tmp = ((conc_ratio_mat-pn_ratio_peak_nsi[:,pk,:])/
+                            (conc_ratio_mat+pn_ratio_peak_nsi[:,pk,:]))**2
+                
+#                noin_tmp = (conc_ratio_mat/pn_ratio_peak_noin[:,pk,:]-1)**2
+#                ln_tmp = (conc_ratio_mat/pn_ratio_peak_ln[:,pk,:]-1)**2
+#                nsi_tmp = (conc_ratio_mat/pn_ratio_peak_nsi[:,pk,:]-1)**2
+#                
+#                noin_tmp = noin_tmp+(pn_ratio_peak_noin[:,pk,:]/conc_ratio_mat-1)**2
+#                ln_tmp = ln_tmp+(pn_ratio_peak_ln[:,pk,:]/conc_ratio_mat-1)**2
+#                nsi_tmp = nsi_tmp+(pn_ratio_peak_nsi[:,pk,:]/conc_ratio_mat-1)**2
                 
                 ratio2dist_peak_noin[:,pk, id_dur] = np.mean(noin_tmp, axis=1)
                 ratio2dist_peak_nsi[:,pk, id_dur] = np.mean(nsi_tmp, axis=1)
@@ -340,8 +348,8 @@ if peak_fig:
                 if cc == 0:
                     axs[rr,cc].set_yticklabels(['0','5','10', '15', '20'], fontsize=fs)
                 
-#                if rr == 2:
-#                    axs[rr,cc].set_xticklabels(['0','5','10', '15', '20'], fontsize=fs)
+                if rr == 1:
+                    axs[rr,cc].set_xticklabels(['0','5','10', '15', '20'], fontsize=fs)
 #                    axs[rr,cc].set_ylim((0, 15.5))
                 
                 # change plot position:
@@ -399,14 +407,14 @@ if resumen_bar:
     # FIGURE SETTINGS
     axs.spines['right'].set_color('none')   
     axs.spines['top'].set_color('none')                
-    axs.set_ylim((.8, 300))
+#    axs.set_ylim((.8, 300))
     axs.legend(fontsize=label_fs,loc='upper left', frameon=False)
     axs.set_ylabel('coding error (au)', fontsize=label_fs)
     axs.set_xlabel('stimulus duration (ms)', fontsize=label_fs)        
     axs.tick_params(axis='both', which='major', labelsize=label_fs-3)
     axs.set_xticks(ptns)
     axs.set_xticklabels(durs, fontsize=fs)
-    axs.set_yscale('log')    
+#    axs.set_yscale('log')    
     axs.text(-.15, 1.0, 'j.', transform=axs.transAxes, color= blue,
              fontsize=panel_fs, fontweight='bold', va='top', ha='right')
     

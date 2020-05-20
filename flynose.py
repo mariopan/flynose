@@ -727,12 +727,10 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
             fig_orn.savefig(fld_analysis + fig_name_orn)
     # ******************************************************************
  
-    
     # *****************************************************************
     # AL SIMULATION 
     # *****************************************************************
       
-                                
     # *****************************************************************
     # PN and LN PARAMETERS and OUTPUT VECTORS
 
@@ -898,8 +896,6 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
         
         # SAVE SDF OF conc, ORN, PN and LN FIRING RATE
         if data_save:
-            pn_spike_matrix
-            
             name_data = ['/ORNALrate' +
                         '_stim_' + params2an[7] +
                         '_nsi_%.1f'%(params2an[0]) +

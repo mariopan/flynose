@@ -26,7 +26,7 @@ for stim_seed in [0]:
     
 #    #***********************************************
 #    # Trials and errors
-#    fld_analysis    = '../NSI_analysis/trialserrors'
+#    fld_analysis    = 'NSI_analysis/trialserrors'
 #    inh_conds       = ['nsi', ] #'ln', 'noin'
 #    stim_type       = 'ss' # 'ts'  # 'ts' # 'ss'
 #    stim_dur        = 100
@@ -43,7 +43,7 @@ for stim_seed in [0]:
 
 #    #***********************************************
 #    # FIG. ORN_response
-#    fld_analysis = '../NSI_analysis/ORN_dynamics' #/sdf_test
+#    fld_analysis = 'NSI_analysis/ORN_dynamics' #/sdf_test
 #    inh_conds   = ['noin'] #
 #    stim_type   = 'ss' # 'ts' # 'ss' # 'rp'# '
 #    alpha_ln        = 13.3  ##    ln_spike_h  = 0.4
@@ -60,11 +60,11 @@ for stim_seed in [0]:
         
 #    #***********************************************
 #    # Lazar and Kim data reproduction
-#    fld_analysis    = '../NSI_analysis/lazar_sim/'
+#    fld_analysis    = 'NSI_analysis/lazar_sim/'
 #    inh_conds       = ['nsi', ] #'ln', 'noin'
 #    ext_stimulus    = True
 #    stim_type       = 'ramp_3' # 'step_3' 'parabola_3' 'ramp_3'
-#    stim_data_fld   = '../lazar_data_hr/'
+#    stim_data_fld   = 'lazar_data_hr/'
 #    stim_dur        = 1000
 #    alpha_ln        = 13.3  ##    ln_spike_h      = 0.4
 #    nsi_str         = 0.3
@@ -79,7 +79,7 @@ for stim_seed in [0]:
 
 #    #***********************************************
 #    # Olsen-Wilson 2010 figure
-#    fld_analysis = '../Olsen2010_Martelli2013/data'
+#    fld_analysis = 'Olsen2010_Martelli2013/data'
 #    alpha_ln        = 13.3  #ln_spike_h  = 0.4
 #    nsi_str     = 0.3
 #    inh_conds   = ['noin'] #['nsi', 'ln', 'noin'] #
@@ -96,7 +96,7 @@ for stim_seed in [0]:
     
 #    #***********************************************
 #    # Fig.ImpulseResponse
-#    fld_analysis = '../NSI_analysis/triangle_stim/ImpulseResponse'
+#    fld_analysis = 'NSI_analysis/triangle_stim/ImpulseResponse'
 #    inh_conds   = ['nsi', 'ln', 'noin'] #
 #    stim_type   = 'ts'  # 'ts'
 #    stim_dur    = 50
@@ -113,7 +113,7 @@ for stim_seed in [0]:
     
 #    #***********************************************        
 #    # FIG. DelayResponse
-#    fld_analysis = '../NSI_analysis/triangle_stim/triangles_delay' #
+#    fld_analysis = 'NSI_analysis/triangle_stim/triangles_delay' #
 #    inh_conds = ['nsi', 'ln', 'noin'] 
 #    stim_type   = 'ts' 
 #    alpha_ln    = 13.3  ##    ln_spike_h  = 0.4
@@ -130,7 +130,7 @@ for stim_seed in [0]:
         
     #***********************************************
     # Real plumes, example figure
-    fld_analysis = '../NSI_analysis/analysis_real_plumes/example'
+    fld_analysis = 'NSI_analysis/analysis_real_plumes/example'
     inh_conds   = ['nsi', ] #'ln', 'noin'
     stim_type   = 'pl'  # 'ts' # 'ss'
     stim_dur    = 20000
