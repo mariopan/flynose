@@ -1,0 +1,11 @@
+#!/bin/bash
+# Basic while loop
+
+
+do 
+cd real_plumes_$i
+for file in *.pickle
+	do 
+	mv $file ${file//lnspH/ln}
+done
+
