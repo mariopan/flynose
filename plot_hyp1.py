@@ -40,7 +40,7 @@ def olsen_orn_pn(nu_orn, sigma, nu_max):
         + np.power(sigma,1.5))
     return nu_pn
 
-fig_save = 1
+fig_save = 0
 fld_analysis = '../hypotheses/'
 fig_hyp1_name = 'hypothesis1'
 
