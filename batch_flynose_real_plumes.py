@@ -85,7 +85,7 @@ for stim_seed in np.arange(stim_seed_start, stim_seed_start+n_seeds):
                         
 #                    plt.ioff()      # ion() # to avoid showing the plot every time     
                     tic = timeit.default_timer()
-                    [orn_stim, pn_stim,] = flynose.main(params2an, fig_opts, 
+                    [_, _, _, orn_stim, pn_stim,] = flynose.main(params2an, fig_opts, 
                                 verbose = False, fld_analysis = fld_analysis_tmp, 
                                 stim_seed=stim_seed)
 

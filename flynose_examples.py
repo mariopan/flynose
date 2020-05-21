@@ -21,6 +21,8 @@ from shutil import copyfile
 
 import flynose
 
+
+
 stim_data_fld = ''
 for stim_seed in [0]:
     
@@ -74,7 +76,7 @@ for stim_seed in [0]:
 #    orn_fig         = 1
 #    al_fig          = 0
 #    fig_ui          = 1        
-#    fig_save        = 1
+#    fig_save        = 0
 #    data_save       = 1    
 
 #    #***********************************************
@@ -94,46 +96,46 @@ for stim_seed in [0]:
 #    fig_save    = 0
 #    data_save   = 0    
     
-#    #***********************************************
-#    # Fig.ImpulseResponse
-#    fld_analysis = 'NSI_analysis/triangle_stim/ImpulseResponse'
-#    inh_conds   = ['nsi', 'ln', 'noin'] #
-#    stim_type   = 'ts'  # 'ts'
-#    stim_dur    = 50
-#    alpha_ln    = 13.3  #ln_spike_h  = 0.6
+    #***********************************************
+    # Fig.ImpulseResponse
+    fld_analysis = 'NSI_analysis/triangle_stim/ImpulseResponse'
+    inh_conds   = ['nsi', 'ln', 'noin'] #
+    stim_type   = 'ts'  # 'ts'
+    stim_dur    = 50
+    alpha_ln    = 13.3  #ln_spike_h  = 0.6
+    nsi_str     = 0.3
+    delays2an   = 0
+    peak_ratio  = 1
+    peaks       = [1.4,] 
+    orn_fig     = 0
+    al_fig      = 1
+    fig_ui      = 1
+    fig_save    = 0
+    data_save   = 0    
+    
+#    #***********************************************        
+#    # FIG. DelayResponse
+#    fld_analysis = 'NSI_analysis/triangle_stim/triangles_delay' #
+#    inh_conds = ['nsi', 'ln', 'noin'] 
+#    stim_type   = 'ts' 
+#    alpha_ln    = 13.3  ##    ln_spike_h  = 0.4
 #    nsi_str     = 0.3
-#    delays2an   = 0
+#    stim_dur    = 50  # 10 20 50 100 200 
+#    delays2an   = 100 
+#    peaks       = [1.8]
 #    peak_ratio  = 1
-#    peaks       = [1.4,] 
 #    orn_fig     = 0
 #    al_fig      = 1
 #    fig_ui      = 1
 #    fig_save    = 0
 #    data_save   = 0    
-    
-    #***********************************************        
-    # FIG. DelayResponse
-    fld_analysis = 'NSI_analysis/triangle_stim/triangles_delay' #
-    inh_conds = ['nsi', 'ln', 'noin'] 
-    stim_type   = 'ts' 
-    alpha_ln    = 13.3  ##    ln_spike_h  = 0.4
-    nsi_str     = 0.3
-    stim_dur    = 50  # 10 20 50 100 200 
-    delays2an   = 100 
-    peaks       = [1.8]
-    peak_ratio  = 1
-    orn_fig     = 0
-    al_fig      = 1
-    fig_ui      = 1
-    fig_save    = 1
-    data_save   = 0    
         
 #    #***********************************************
 #    # Real plumes, example figure
 #    fld_analysis = 'NSI_analysis/analysis_real_plumes/example'
 #    inh_conds   = ['nsi', ] #'ln', 'noin'
 #    stim_type   = 'pl'  # 'ts' # 'ss'
-#    stim_dur    = 20000
+#    stim_dur    = 4000
 #    alpha_ln    = 13.3  #    ln_spike_h  = 0.4
 #    nsi_str     = 0.3
 #    delays2an   = 0
@@ -182,7 +184,7 @@ for stim_seed in [0]:
                         #    params2an = [nsi_value, ln_spike_height, dur2an, delays2an, peak, peak_ratio]
                         plt.ion()      # ion() # to avoid showing the plot every time     
                         for id_loop in range(n_loops):
-                            [orn_stim, pn_stim,] = flynose.main(params2an, fig_opts, 
+                            [_, _, _, orn_stim, pn_stim,] = flynose.main(params2an, fig_opts, 
                                 verbose = False, fld_analysis = fld_analysis, 
                                 stim_seed=stim_seed)
                             pn_avg_dif[id_loop] = (pn_stim[0]-pn_stim[1])

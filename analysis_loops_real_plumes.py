@@ -256,33 +256,7 @@ for stim_seed in seeds:
                 
     
 name_data_all = pars2name_all(params2an,rhos, w_maxs, b_maxs, )
-if data_save:
-    
-    # save the newest version of this script:
-    copyfile('analysis_loops_real_plumes2.py', fld_analysis+'analysis_loops_real_plumes2.py') 
-    
-    output_names = ['cor_stim', 'overlap_stim', 'cor_whiff', 
-                     'interm_th', 'interm_est_1', 'interm_est_2', 'od_avg1', 
-                     'od_avg2', 'orn_avg1', 'orn_avg2', 'pn_avg1', 'pn_avg2', 
-                     'pn_m50_1', 'pn_m100_1', 'pn_m150_1', 'pn_m50_2', 
-                     'pn_m100_2', 'pn_m150_2', 'seeds', 'w_maxs', 'b_maxs', 'rhos', ]
-        
-    params2an_names = ['nsi_value', 'ln_spike_height', 'dur2an', 'delay2an', 
-                       'peak', 'peak_ratio', 'rho', 'stim_type', 'w_max', 'b_max']
-    
-    # save the data from all the simulations in a single pickle file
-    with open(fld_analysis+name_data_all + '.pickle', 'wb') as f:
-        pickle.dump([params2an, cor_stim, overlap_stim, cor_whiff, 
-                     interm_th, interm_est_1, interm_est_2, od_avg1, od_avg2, 
-                     orn_avg1, orn_avg2, pn_avg1, pn_avg2, 
-                     pn_m50_1, pn_m100_1, pn_m150_1, 
-                     pn_m50_2, pn_m100_2, pn_m150_2, 
-                     seeds, w_maxs, b_maxs, rhos, 
-                     params2an_names, output_names], f)
-    print('All the data are now save in the folder:')
-    print(fld_analysis)
-    print('in the file:')
-    print(name_data_all)
+
 
 fig_name = ['_stim_' + params2an[7] +
             '_dur2an_%d'%(params2an[2]) +

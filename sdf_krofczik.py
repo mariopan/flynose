@@ -87,7 +87,9 @@ def main(spike_mat, tau_sdf = 100, dt_sdf = 20, ):
     t_max = np.max(spike_mat[:, 0])  # max time (ms)
     n_neu  = int(1+np.max(spike_mat[:, 1]))  # number of neurons
     
-    sdf_size = int(t_max/dt_sdf)
+    sdf_size = int(1.01*t_max/dt_sdf)
+    
+    
     # inizialize sdf variable
     sdf_matrix = np.zeros((sdf_size, n_neu))
     
@@ -122,9 +124,9 @@ if __name__ == '__main__':
     # PARAMETERS
     n_neurons   = 2
     n_spikes    = 1000
-    rate        = 200 # Hz
-    tau_sdf     = 20 # ms
-    dt_sdf      = 5  # ms    
+    rate        = 10 # Hz
+    tau_sdf     = 20 # 20 # ms
+    dt_sdf      = 5  # 5 # ms    
     stimulus    = 'poi' # 'poi' or 'det'
     
     print('tau sdf: %d ms'%tau_sdf)
@@ -165,7 +167,7 @@ if __name__ == '__main__':
         rs = 2
         cs = 1
         
-        fig, axs = plt.subplots(rs, cs, figsize=[8, 8])
+        fig, axs = plt.subplots(rs, cs, figsize=[8, 5])
         axs[0].plot(time_sdf/1e3, sdf_norm*1e3, '.', label='sdf')
     #    axs[0].plot(t_spikes/1e3, np.ones_like(t_spikes), 'r.', label='spikes')
         axs[0].plot(time_sdf/1e3, np.ones_like(time_sdf)*rate, 'r.', label='th. rate')

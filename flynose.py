@@ -857,17 +857,22 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
             # ******************************************************************
             
         # *****************************************************************
-        # Calculate the SDF of the PNs and LNs
+        # Calculate the spike matrix of PNs and LNs
         pn_spike_matrix = np.asarray(np.where(num_spike_pn))
         pn_spike_matrix[0,:] = pn_spike_matrix[0,:]/pts_ms
         pn_spike_matrix = np.transpose(pn_spike_matrix)
+        
+        ln_spike_matrix = np.asarray(np.where(num_spike_ln))
+        ln_spike_matrix[0,:] = ln_spike_matrix[0,:]/pts_ms
+        ln_spike_matrix = np.transpose(ln_spike_matrix)
+        
+        
+        # *****************************************************************
+        # Calculate the SDF for PNs and LNs
         pn_sdf_norm, pn_sdf_time = sdf_krofczik.main(spike_mat = 
                             pn_spike_matrix, tau_sdf=tau_sdf, dt_sdf=dt_sdf)  # (Hz, ms)
         pn_sdf_norm = pn_sdf_norm*1e3
     
-        ln_spike_matrix = np.asarray(np.where(num_spike_ln))
-        ln_spike_matrix[0,:] = ln_spike_matrix[0,:]/pts_ms
-        ln_spike_matrix = np.transpose(ln_spike_matrix)
         ln_sdf_norm, ln_sdf_time = sdf_krofczik.main(spike_mat = 
                             ln_spike_matrix, tau_sdf=tau_sdf, dt_sdf=dt_sdf)  # (Hz, ms)
         ln_sdf_norm = ln_sdf_norm*1e3
@@ -922,48 +927,44 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
                              ln_sdf_norm, ln_sdf_time, 
                              params2an_names, output_names], f)
             
-                
+            # SAVE SPIKES OF PNs AND LNs   
             name_data = ['/ALspike' +
                         '_stim_' + params2an[7] +
                         '_nsi_%.1f'%(params2an[0]) +
                         '_ln_%.2f'%(params2an[1]) +
                         '_dur2an_%d'%(params2an[2]) +
-                        '_delays2an_%d'%(params2an[3]) +
-                        '_peak_%.2f'%(params2an[4]) +
+                        '_delays2an_%d'%(params2an[3]) + 
+                        '_peak_%.2f'%(params2an[4])]
+            
+            if stimulus == 'pl':
+                name_data = [name_data[0] +
+                        '_rho_%d'%(params2an[6]) +
+                        '_wmax_%.2g'%(params2an[8]) +
+                        '_bmax_%.2g'%(params2an[9]) +
+                        '.pickle']
+            else:
+                name_data = [name_data[0] +
                         '_peakratio_%.1f'%(params2an[5]) + # 
                         '.pickle'] 
                                 
             output_names = ['pn_spike_matrix', 'ln_spike_matrix',] 
                             
             with open(fld_analysis+name_data[0], 'wb') as f:
-                pickle.dump([params2an, pn_spike_matrix, ln_spike_matrix, 
+                pickle.dump([params2an, orn_spike_matrix, pn_spike_matrix, ln_spike_matrix, 
                          params2an_names, output_names], f)
                 
+            
             if stimulus == 'pl':
                 name_data = ['/ORNPNLN' +
-                        '_stim_' + params2an[7] +
-                        '_nsi_%.1f'%(params2an[0]) +
-                        '_ln_%.2f'%(params2an[1]) +
-                        '_dur2an_%d'%(params2an[2]) +
-                        '_peak_%.1f'%(params2an[4]) +
-                        '_rho_%d'%(params2an[6])]  
-        
-                if params2an[8]<10:
-                    name_data = [name_data[0] +
-                                 '_wmax_%.1g'%(params2an[8])]
-                else:
-                    name_data = [name_data[0] +
-                                 '_wmax_%.2g'%(params2an[8])]
-        
-                if params2an[9]>10:
-                    name_data = [name_data[0] +
-                            '_bmax_%.2g'%(params2an[9]) +
-                            '.pickle']
-                else:
-                    name_data = [name_data[0] +
-                            '_bmax_%.1g'%(params2an[9]) +
-                            '.pickle']
-                    
+                    '_stim_' + params2an[7] +
+                    '_nsi_%.1f'%(params2an[0]) +
+                    '_ln_%.2f'%(params2an[1]) +
+                    '_dur2an_%d'%(params2an[2]) +
+                    '_peak_%.1f'%(params2an[4]) +
+                    '_rho_%d'%(params2an[6]) +
+                    '_wmax_%.2g'%(params2an[8]) +
+                    '_bmax_%.2g'%(params2an[9]) +
+                    '.pickle']
                 
                 output_names = ['cor_stim', 'overlap_stim', 'cor_whiff', 
                                  'interm_th', 'interm_est_1', 'interm_est_2', 'od_avg1', 
@@ -986,9 +987,7 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
     # %******************************************
     # FIGURE ORN, PN, LN
     if al_dyn & al_fig:
-        # ******************************************
-        # FIGURE ORN, PN, LN
-
+        
         t2plot = -100, 300#t2simulate 
         rs = 4 # number of rows
         cs = 1 # number of cols
@@ -1142,10 +1141,8 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
         pn_stim = [pn_avg1, pn_avg2, pn_peak1, pn_peak2,]
     else:
         pn_stim = np.zeros(4)
-#    print('PN peak1:%.4f'%pn_peak1)
-#    print('PN peak2:%.4f'%pn_peak2)
 
-    return  [orn_stim, pn_stim, ]
+    return  [orn_spike_matrix, pn_spike_matrix, ln_spike_matrix, orn_stim, pn_stim, ]
 
 
 if __name__ == '__main__':
@@ -1163,7 +1160,7 @@ if __name__ == '__main__':
     delays2an       = 0
     peak            = 1.
     peak_ratio      = 10
-     
+    
 #    params2an = [.0, .0, 20, 0, 1.6, 1]
 #    params2an = [nsi_value, ln_spike_height, dur2an, delay2an, peak, peak_ratio]
     # real plumes params
@@ -1196,7 +1193,7 @@ if __name__ == '__main__':
     pn_peak_ratio    = np.zeros(n_loops)
 
     params2an = [nsi_str, alpha_ln, stim_dur, delays2an, peak, 
-                 peak_ratio, rho, stim_type,w_max,b_max]
+                 peak_ratio, rho, stim_type,w_max,b_max, ]
     if len(stim_type)>2:
         params2an.append(stim_data_fld)
     tic = timeit.default_timer()
