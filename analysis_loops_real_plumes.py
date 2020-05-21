@@ -88,19 +88,20 @@ cmap    = plt.get_cmap('rainbow')
 
 fld_home = 'NSI_analysis/analysis_real_plumes/'
 
-# *******************************************************************
+# *****************************************************************
 # Fig.PeakPN_wmax and Fig.PeakPN_resumen
-fld_analysis = fld_home+'stim_200secs/'     # last longest simulation 200secs 
+#fld_analysis = fld_home+'stim_200secs/'     # last longest simulation 200secs 
 #fld_analysis = fld_home+'200secs/'     # last longest simulation 200secs 
+fld_analysis = fld_home+'real_200s_ln13.3_NSI0.3/'     # last longest simulation 200secs 
 stim_dur    =  201000
 w_maxs      = [.01,.03,.3, 3, 25, 50, ]# max value in the whiff distribution
 seeds       = np.arange(1, 30)
 data_save   = 0
 fig_save    = 0
 
-peak_fig    = 0     # Fig.PeakPNActivity
+peak_fig    = 1     # Fig.PeakPNActivity
 avg_fig     = 1     # Fig.AverPNActivity
-resumen_fig = 0     # Fig.PeakPN_resumen
+resumen_fig = 1     # Fig.PeakPN_resumen
 thrwmax_fig = 0     # Fig.PeakPN_wmax
 thr         = 150   # [50, 100, 150]
 # *******************************************************************
@@ -223,7 +224,7 @@ for stim_seed in seeds:
                     elif inh_cond == 'nsi':
                         nsi_value, ln_sp_hgt, id_inh = [0.3, 0.00, 1]
                     elif inh_cond == 'ln':
-                        nsi_value, ln_sp_hgt, id_inh = [0.0, 0.15, 2]
+                        nsi_value, ln_sp_hgt, id_inh = [0.0, 13.3, 2] #0.15, 2]
                     
                     params2an = [nsi_value, ln_sp_hgt, stim_dur, 0, peak, 
                                  1, rho, stim_type,w_max,b_max]

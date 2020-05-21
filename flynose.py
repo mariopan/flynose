@@ -727,10 +727,12 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
             fig_orn.savefig(fld_analysis + fig_name_orn)
     # ******************************************************************
  
+    
     # *****************************************************************
     # AL SIMULATION 
     # *****************************************************************
       
+                                
     # *****************************************************************
     # PN and LN PARAMETERS and OUTPUT VECTORS
 
@@ -987,7 +989,7 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
         # ******************************************
         # FIGURE ORN, PN, LN
 
-        t2plot = -100, t2simulate #000-t_on, t2simulate
+        t2plot = -100, 300#t2simulate 
         rs = 4 # number of rows
         cs = 1 # number of cols
         fig_size = [7, 8] 
@@ -1037,9 +1039,9 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
         ax_pn.set_xlim(t2plot)
         ax_ln.set_xlim(t2plot)
         
-        ax_orn.set_ylim((0, 130))
-        ax_pn.set_ylim((0, 150))
-        ax_ln.set_ylim((0, 200))
+        ax_orn.set_ylim((0, 150))
+        ax_pn.set_ylim((0, 180))
+        ax_ln.set_ylim((0, 230))
 
         ax_conc.tick_params(axis='both', labelsize=label_fs)
         ax_orn.tick_params(axis='both', labelsize=label_fs)
@@ -1073,7 +1075,16 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
             ax_ln.text(-.15, 1.15, 'd.', transform=ax_ln.transAxes,
                 color=blue, fontsize=panel_fs, fontweight='bold', va='top', ha='right')
 
-            
+        # tmp
+        if not(stimulus == 'pl'):
+            title_fs = 30
+            if (params2an[1] ==0) & (params2an[1] ==0):
+                ax_conc.set_title('a. Independent', fontsize=title_fs)
+            elif (params2an[1] >0):
+                ax_conc.set_title('b. LN inhib.', fontsize=title_fs)
+            else:
+                 ax_conc.set_title('c. NSI', fontsize=title_fs)   
+             
         ax_conc.spines['right'].set_color('none')
         ax_conc.spines['top'].set_color('none')
         ax_orn.spines['right'].set_color('none')

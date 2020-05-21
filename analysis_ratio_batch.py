@@ -35,50 +35,50 @@ magenta = 'xkcd:magenta'
 
 fld_home = 'NSI_analysis/analysis_ratio/'
 
-##*****************************************************
-## # Fig.ResumeDelayedStimuli: ratio analysis with delayes
-#fld_analysis    = fld_home+'ratio1_delay_analysis/'
-#n_loops         = 70
-#durs            = [20, 50, 100,200,]
-#id_peak2plot    = 2
-#delays2an       = [0,10, 20, 50, 100, 200,500,] 
-#peak_fig        = 0
-#avg_fig         = 0 # Fig.RatioPeak
-#delay_fig       = 1 # Fig.ResumeDelayedStimuli
-#resumen_bar     = 0 # Fig.ResumeEncodeRatioBar
-#n_ratios        = 1
-#resumen_fig     = 0
-#fig_save        = 1
-##*****************************************************
-
-
-##*****************************************************
-## # Fig.ResumeEncodeRatio: ratio analysis with delayes
-#fld_analysis = fld_home+'ratio_short_stimuli/'
-#n_loops     = 10
-#fld_analysis = fld_home+'ratio_batch_spln0.3/'
-#n_ratios    = 5
-fld_analysis = fld_home+'ratio_batch_spln0.25/'
-#fld_analysis = fld_home+'ratio_batch_spln0.4/' # Fig.ResumeEncodeRatio
-#fld_analysis = fld_home+'ratio_batch_spln0.4_bis/' # Fig.ResumeEncodeRatio
-#fld_analysis = fld_home+'ratio_batch_spln0.6/'
-#fld_analysis = fld_home+'ratio_batch_spln0.5/'
-fld_analysis = fld_home+'ratio_batch_ln13.3/'
-
-n_ratios    = 10
-
-n_loops     = 50
-
-durs        =  [10, 20, 50, 100, 200,]
-delays2an   = [0,] 
-peak_fig    = 1 # Fig.RatioPeak
-resumen_fig = 0 # Fig.ResumeEncodeRatio
-resumen_bar = 1 # Fig.ResumeEncodeRatioBar
-avg_fig     = 0
-delay_fig   = 0
-fig_save    = 1 
-
 #*****************************************************
+# # Fig.ResumeDelayedStimuli: ratio analysis with delayes
+fld_analysis    = fld_home+'ratio1_delay_analysis/'
+n_loops         = 70
+durs            = [20, 50, 100,200,]
+id_peak2plot    = 2
+delays2an       = [0,10, 20, 50, 100, 200,500,] 
+peak_fig        = 0 # Fig.RatioPeak
+avg_fig         = 0 
+delay_fig       = 1 # Fig.ResumeDelayedStimuli
+resumen_bar     = 0 # Fig.ResumeEncodeRatioBar
+n_ratios        = 1
+resumen_fig     = 0
+fig_save        = 0
+#*****************************************************
+
+
+###*****************************************************
+### # Fig.ResumeEncodeRatio: ratio analysis with delayes
+##fld_analysis = fld_home+'ratio_short_stimuli/'
+##n_loops     = 10
+##fld_analysis = fld_home+'ratio_batch_spln0.3/'
+##n_ratios    = 5
+#fld_analysis = fld_home+'ratio_batch_spln0.25/'
+##fld_analysis = fld_home+'ratio_batch_spln0.4/' # Fig.ResumeEncodeRatio
+##fld_analysis = fld_home+'ratio_batch_spln0.4_bis/' # Fig.ResumeEncodeRatio
+##fld_analysis = fld_home+'ratio_batch_spln0.6/'
+##fld_analysis = fld_home+'ratio_batch_spln0.5/'
+#fld_analysis = fld_home+'ratio_batch_ln13.3/'
+#
+#n_ratios    = 10
+#
+#n_loops     = 50
+#
+#durs        =  [10, 20, 50, 100, 200,]
+#delays2an   = [0,] 
+#peak_fig    = 1 # Fig.RatioPeak
+#resumen_fig = 0 # Fig.ResumeEncodeRatio
+#resumen_bar = 1 # Fig.ResumeEncodeRatioBar
+#avg_fig     = 0
+#delay_fig   = 0
+#fig_save    = 1 
+#
+##*****************************************************
 
 n_durs      = np.size(durs)
 n_delays    = np.size(delays2an)
@@ -467,7 +467,7 @@ if resumen_fig:
 ## **********************************************************
 
 if delay_fig:
-    fig, axs = plt.subplots(1, n_durs, figsize=(10, 3.5), ) 
+    fig, axs = plt.subplots(1, n_durs, figsize=(9, 3.5), ) 
 #    fig.tight_layout(pad=.6)
     for id_dur in range(n_durs):
         duration = durs[id_dur]
@@ -491,7 +491,7 @@ if delay_fig:
         axs[id_dur].set_xlabel('Delay (ms)', fontsize=fs)
         axs[id_dur].set_title(' %d ms'%(duration), fontsize=fs)
     
-        axs[id_dur].set_ylim((.4, 1.1))
+        axs[id_dur].set_ylim((.55, 1.1))
         axs[id_dur].spines['right'].set_color('none')   
         axs[id_dur].spines['top'].set_color('none')     
         axs[id_dur].tick_params(axis='both', which='major', labelsize=label_fs-3)
@@ -499,19 +499,19 @@ if delay_fig:
         
         # original plot position:
         ll, bb, ww, hh = axs[id_dur].get_position().bounds
-        axs[id_dur].set_position([ll,bb+.1,ww,hh-.15]) 
+        axs[id_dur].set_position([ll-.03+.025*id_dur, bb+.1, ww+.025, hh-.15]) 
         
         axs[id_dur].set_xticks([0, 250, 500])
         axs[id_dur].set_xticklabels(['0','250','500'], fontsize=label_fs-3)
     
     axs[0].set_yticks([.6, .8, 1., 1.2])
     axs[0].set_yticklabels(['0.6', '0.8', '1.0', '1.2'], fontsize=label_fs-3)
-    axs[0].set_title('Duration: %d ms'%(durs[0]), fontsize=fs)
+    #axs[0].set_title('%d ms'%(durs[0]), fontsize=fs)
     
     conc2plot = np.squeeze(conc_1_r[0,id_peak2plot,0])
-    axs[0].set_ylabel(r'$R^{PN}=\nu_b^{PN}/\nu_a^{PN}$', fontsize=fs)
+    axs[0].set_ylabel(r'$R^{PN} $ (unitless)', fontsize=fs)
 #    axs[0].set_title('Duration: %d ms, \nconc: %.2g'%(durs[0], conc2plot), fontsize=fs)    
-    axs[0].legend(bbox_to_anchor=(1, .45), frameon=False, fontsize=label_fs-5)
+#    axs[0].legend(bbox_to_anchor=(1, .45), frameon=False, fontsize=label_fs-5)
     
     if fig_save:
         fig.savefig(fld_analysis+  '/ratio1_delays0-500_dur20-200_conc%.2g'%conc2plot +'.png')

@@ -65,8 +65,7 @@ def kernel_prep(eps_KRNL,tau_sdf, dt_sdf):
     
     sum_tmp     = 0.0
     krnl_tmp    = 0.0
-    i           = 0
-    
+    i           = 0    
     
     while ((i < krnl_bins) or (krnl_tmp > eps_KRNL)): 
         t           = i*dt_sdf
