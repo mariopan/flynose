@@ -1,0 +1,563 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Jul 11 13:49:09 2019
+
+@author: mp525
+analysis_ratio_batch2.py
+"""
+
+import numpy as np
+import matplotlib.pyplot as plt
+import pickle        
+
+# *****************************************************************
+# STANDARD FIGURE PARAMS
+fs = 20
+lw = 2
+plt.rc('text', usetex=True)  # laTex in the polot
+#plt.rc('font', family='serif')
+fig_size = [10, 6]
+fig_position = 1300,10
+title_fs = 20 # font size of ticks
+label_fs = 20 # font size of labels
+panel_fs = 30 # font size of panel letters
+black   = 'xkcd:black'
+blue    = 'xkcd:blue'
+red     = 'xkcd:red'
+green   = 'xkcd:green'
+purple  = 'xkcd:purple'
+orange  = 'xkcd:orange'
+magenta = 'xkcd:magenta'
+# *****************************************************************
+
+# *******************************************************************
+# Figure of the average activity for weak and strong input
+def fig_activity():
+    noin_s = np.squeeze(np.median(pn_peak_s_noin, axis=3))
+#    ln_s = np.squeeze(np.median(pn_peak_s_ln, axis=3))
+#    nsi_s = np.squeeze(np.median(pn_peak_s_nsi, axis=3))
+    
+    noin_w = np.squeeze(np.median(pn_peak_w_noin, axis=3))
+#    ln_w = np.squeeze(np.median(pn_peak_w_ln, axis=3))
+#    nsi_w = np.squeeze(np.median(pn_peak_w_nsi, axis=3))
+    
+    rs = 1
+    cs = 3
+    fig, axs = plt.subplots(rs, cs, figsize=(9, 3), ) 
+    
+    im0 = axs[0].imshow(noin_s, cmap='viridis')
+    fig.colorbar(im0, ax=axs[0])
+    
+    axs[0].set_title('strong, delay=%d'%delay)
+    axs[1].set_title('weak')
+    axs[2].set_title('ratio')
+    
+    im1 = axs[1].imshow(noin_w, cmap='viridis')
+    fig.colorbar(im1, ax=axs[1])
+    
+    im2=axs[2].imshow(noin_w/noin_s, cmap='viridis')
+    fig.colorbar(im2, ax=axs[2])
+
+# *****************************************************************
+# LOAD EXPERIMENT PARAMETERS
+id_peak2plot    = 3
+avg_measure     = 0
+
+delay_fig       = 1 # Fig.ResumeDelayedStimuli
+if delay_fig:
+    fld_analysis    = 'NSI_analysis/ratio/delays_data'
+    fld_output      = 'NSI_analysis/ratio/delays_images'
+else:
+    fld_analysis    = 'NSI_analysis/ratio/ratio_trials_data'
+    fld_output      = 'NSI_analysis/ratio/ratio_trials_images'
+    delays2an       = [0,]
+
+batch_params    = pickle.load(open(fld_analysis+'/batch_params.pickle', "rb" ))
+[n_loops, conc_ratios, concs2an, nsi_ln_par, dur2an, delays2an,] = batch_params
+
+n_durs          = np.size(dur2an)
+n_delays        = np.size(delays2an)
+n_ratios        = np.size(conc_ratios)
+n_concs         = np.size(concs2an)
+# select a subsample of the params to analyse
+nsi_ln_par = nsi_ln_par[:3] # [[0,0],[0.3,0],[0,13.3]]
+
+# *****************************************************************
+# FIGURE PARAMS
+
+
+# analysis for zero delay:
+peak_fig        = 0 # Fig.RatioPeak
+avg_fig         = 0 #1-peak_fig # Fig.RatioAvg
+resumen_bar     = 0 # Fig.ResumeEncodeRatioBar
+
+    
+fig_save        = 1
+# *****************************************************************
+
+
+# *****************************************************************
+
+# IMPLEMENT OUTPUT VARIABLES
+if delay_fig:
+
+    ratio_avg_noin = np.ones((n_delays,n_durs))
+    ratio_peak_noin = np.ones((n_delays,n_durs))
+    ratio_avg_noin_err = np.ones((n_delays,n_durs))
+    ratio_peak_noin_err = np.ones((n_delays,n_durs))
+    
+    ratio_avg_ln = np.ones((n_delays,n_durs))
+    ratio_avg_nsi = np.ones((n_delays,n_durs))
+    ratio_peak_ln = np.ones((n_delays,n_durs))
+    ratio_peak_nsi = np.ones((n_delays,n_durs))
+    
+    ratio_avg_ln_err = np.ones((n_delays,n_durs))
+    ratio_avg_nsi_err = np.ones((n_delays,n_durs))
+    ratio_peak_ln_err = np.ones((n_delays,n_durs))
+    ratio_peak_nsi_err = np.ones((n_delays,n_durs))
+    
+#*****************************************************
+# LOAD DATA AND CALCULATE RATIOS
+for delay_id, delay in enumerate(delays2an):
+    for [inh_id, [nsi_str, alpha_ln]] in enumerate(nsi_ln_par):
+        data_name = 'ratio_nsi_%.2f_ln_%.1f_delay_%d'%(nsi_str, alpha_ln, delay)
+#       from the batch_file:
+#        pickle.dump([params2an, sdf_params, concs2an, conc_ratios, dur2an,
+#                         avg_ornw, avg_orns, avg_pnw, avg_pns, 
+#                         peak_ornw, peak_orns, peak_pnw, peak_pns, saved_pars], f)
+        
+        all_data    = pickle.load(open(fld_analysis+'/' +data_name+'.pickle',  "rb" ) )
+        [params2an, sdf_params, _, _, _] = all_data[0:5]
+        
+        
+        if (alpha_ln==0) & (nsi_str==0):
+            orn_avg_w_noin   = all_data[5]
+            orn_avg_s_noin   = all_data[6]
+            pn_avg_w_noin    = all_data[7]
+            pn_avg_s_noin    = all_data[8]
+            
+            orn_peak_w_noin   = all_data[9]
+            orn_peak_s_noin   = all_data[10]
+            pn_peak_w_noin    = all_data[11]  # minimum value 10Hz
+            pn_peak_s_noin    = all_data[12] 
+        
+        elif (alpha_ln>0) & (nsi_str==0):
+            orn_avg_w_ln   = all_data[5]
+            orn_avg_s_ln   = all_data[6]
+            pn_avg_w_ln    = all_data[7]
+            pn_avg_s_ln    = all_data[8]
+            
+            orn_peak_w_ln = all_data[9]
+            orn_peak_s_ln   = all_data[10]
+            pn_peak_w_ln    = all_data[11]
+            pn_peak_s_ln    = all_data[12]
+            
+        elif (alpha_ln==0) & (nsi_str>0):
+            orn_avg_w_nsi   = all_data[5]
+            orn_avg_s_nsi   = all_data[6]
+            pn_avg_w_nsi    = all_data[7]
+            pn_avg_s_nsi    = all_data[8] #(n_ratios, n_concs,n_durs, n_loops)
+            
+            orn_peak_w_nsi   = all_data[9]
+            orn_peak_s_nsi   = all_data[10]
+            pn_peak_w_nsi    = all_data[11]
+            pn_peak_s_nsi    = all_data[12]
+            
+        elif (alpha_ln>0) & (nsi_str>0):
+            print(params2an[0:2])
+#    fig_activity()    
+    
+    #(n_ratios, n_concs,n_durs, n_loops)
+    orn_ratio_avg_nsi   = np.ma.masked_invalid(orn_avg_s_nsi/orn_avg_w_nsi)
+    orn_ratio_avg_ln    = np.ma.masked_invalid(orn_avg_s_ln/orn_avg_w_ln)
+    orn_ratio_avg_noin  = np.ma.masked_invalid(orn_avg_s_noin/orn_avg_w_noin)
+    
+    pn_ratio_avg_nsi    = np.ma.masked_invalid(pn_avg_s_nsi/pn_avg_w_nsi)
+    pn_ratio_avg_ln     = np.ma.masked_invalid(pn_avg_s_ln/pn_avg_w_ln)
+    pn_ratio_avg_noin   = np.ma.masked_invalid(pn_avg_s_noin/pn_avg_w_noin)
+    
+    orn_ratio_peak_nsi   = np.ma.masked_invalid(orn_peak_s_nsi/orn_peak_w_nsi)
+    orn_ratio_peak_ln    = np.ma.masked_invalid(orn_peak_s_ln/orn_peak_w_ln)
+    orn_ratio_peak_noin  = np.ma.masked_invalid(orn_peak_s_noin/orn_peak_w_noin)
+    
+    pn_ratio_peak_nsi    = np.ma.masked_invalid(pn_peak_s_nsi/pn_peak_w_nsi)
+    pn_ratio_peak_ln     = np.ma.masked_invalid(pn_peak_s_ln/pn_peak_w_ln)
+    pn_ratio_peak_noin   = np.ma.masked_invalid(pn_peak_s_noin/pn_peak_w_noin)
+    
+    if delay_fig:#(n_ratios, n_concs,n_durs, n_loops)
+        # average over the run with identical params
+        ratio_avg_noin[delay_id, :] = np.median(pn_ratio_avg_noin[0,id_peak2plot ,:,:], axis=1)
+        ratio_avg_ln[delay_id, :] = np.median(pn_ratio_avg_ln[0,id_peak2plot ,:,:], axis=1)
+        ratio_avg_nsi[delay_id, :] =np.median(pn_ratio_avg_nsi[0,id_peak2plot,:,:], axis=1)
+        
+        ratio_avg_noin_err[delay_id, :] =np.std(pn_ratio_avg_noin[0,id_peak2plot,:,:], axis=1)
+        ratio_avg_ln_err[delay_id, :] = np.std(pn_ratio_avg_ln[0,id_peak2plot ,:,:], axis=1)
+        ratio_avg_nsi_err[delay_id, :] =np.std(pn_ratio_avg_nsi[0,id_peak2plot,:,:], axis=1)
+        
+        ratio_peak_noin[delay_id, :] = np.median(pn_ratio_peak_noin[0,id_peak2plot,:,:], axis=1)
+        ratio_peak_ln[delay_id, :] = np.median(pn_ratio_peak_ln[0,id_peak2plot,:,:], axis=1)
+        ratio_peak_nsi[delay_id, :] =np.median(pn_ratio_peak_nsi[0,id_peak2plot,:,:], axis=1)
+        
+        ratio_peak_noin_err[delay_id, :] =np.std(pn_ratio_peak_noin[0,id_peak2plot,:,:], axis=1)
+        ratio_peak_ln_err[delay_id, :] = np.std(pn_ratio_peak_ln[0,id_peak2plot,:,:], axis=1)
+        ratio_peak_nsi_err[delay_id, :] =np.std(pn_ratio_peak_nsi[0,id_peak2plot,:,:], axis=1)
+        
+
+    if peak_fig & (delay==0):
+        # average over the run with identical params
+        ratio2_peak_noin = np.median(pn_ratio_peak_noin, axis=3)
+        ratio2_peak_nsi  = np.median(pn_ratio_peak_nsi, axis=3)
+        ratio2_peak_ln   = np.median(pn_ratio_peak_ln, axis=3)
+        
+        ratio2_peak_err_noin = np.std(pn_ratio_peak_noin, axis=3)
+        ratio2_peak_err_nsi = np.std(pn_ratio_peak_nsi, axis=3)
+        ratio2_peak_err_ln = np.std(pn_ratio_peak_ln, axis=3)  
+            
+    if avg_fig & (delay==0):
+        # average over the run with identical params
+        ratio2_avg_noin = np.median(pn_ratio_avg_noin, axis=3)
+        ratio2_avg_nsi  = np.median(pn_ratio_avg_nsi, axis=3)
+        ratio2_avg_ln   = np.median(pn_ratio_avg_ln, axis=3)
+        
+        ratio2_avg_err_noin = np.std(pn_ratio_avg_noin, axis=3)
+        ratio2_avg_err_nsi = np.std(pn_ratio_avg_nsi, axis=3)
+        ratio2_avg_err_ln = np.std(pn_ratio_avg_ln, axis=3)  
+        
+    if (resumen_bar) & (delay==0):
+        if peak_fig:
+            noin_tmp = ((conc_ratios-pn_ratio_peak_noin.T)/
+                        (pn_ratio_peak_noin.T + conc_ratios))**2
+            ln_tmp = ((conc_ratios - pn_ratio_peak_ln.T)/
+                        (pn_ratio_peak_ln.T + conc_ratios))**2
+            nsi_tmp = ((conc_ratios - pn_ratio_peak_nsi.T)/
+                        (pn_ratio_peak_nsi.T + conc_ratios))**2
+        elif avg_fig:                        
+            noin_tmp = ((conc_ratios-pn_ratio_avg_noin.T)/
+                        (pn_ratio_avg_noin.T + conc_ratios))**2
+            ln_tmp = ((conc_ratios - pn_ratio_avg_ln.T)/
+                        (pn_ratio_avg_ln.T + conc_ratios))**2
+            nsi_tmp = ((conc_ratios - pn_ratio_avg_nsi.T)/
+                        (pn_ratio_avg_nsi.T + conc_ratios))**2
+        
+        # average and std over runs with identical params
+        ratio2dist_noin = np.mean(noin_tmp, axis=0).T
+        ratio2dist_nsi = np.mean(nsi_tmp, axis=0).T
+        ratio2dist_ln = np.mean(ln_tmp, axis=0).T
+        
+        ratio2dist_err_noin = np.ma.std(noin_tmp, axis=0).T
+        ratio2dist_err_nsi = np.ma.std(nsi_tmp, axis=0).T
+        ratio2dist_err_ln = np.ma.std(ln_tmp, axis=0).T
+        
+        
+    
+#%%***********************************************************
+## FIGURE ResumeDelayedStimuli
+## **********************************************************
+if delay_fig:
+    y_ticks = np.linspace(0, 2, 5)
+    fig, axs = plt.subplots(1, n_durs, figsize=(9, 3.5), ) 
+    for dur_id in range(n_durs):
+        duration = dur2an[dur_id]
+        
+        if avg_measure:
+            axs[dur_id].errorbar(delays2an, ratio_avg_noin[:, dur_id], 
+               yerr=ratio_avg_noin_err[:, dur_id]/n_loops**.5, color='magenta', lw = lw, label= 'Indep.')
+            axs[dur_id].errorbar(delays2an, ratio_avg_ln[:, dur_id], 
+               yerr=ratio_avg_ln_err[:, dur_id]/n_loops**.5, color='orange', lw = lw, label= 'LN inhib.')
+            axs[dur_id].errorbar(delays2an, ratio_avg_nsi[:, dur_id], 
+               yerr=ratio_avg_nsi_err[:, dur_id]/n_loops**.5, color='blue', lw = lw, label= 'NSI')    
+        else:        
+            axs[dur_id].errorbar(delays2an, ratio_peak_noin[:, dur_id], 
+               yerr=ratio_peak_noin_err[:, dur_id]/n_loops**.5, color='magenta', lw = lw, label= 'Indep.')
+            axs[dur_id].errorbar(delays2an, ratio_peak_ln[:, dur_id], 
+               yerr=ratio_peak_ln_err[:, dur_id]/n_loops**.5, color='orange', lw = lw, label= 'LN inhib.')
+            axs[dur_id].errorbar(delays2an, ratio_peak_nsi[:, dur_id],
+               yerr=ratio_peak_nsi_err[:, dur_id]/n_loops**.5, color='blue', lw = lw, label= 'NSI')    
+        
+        # FIGURE SETTINGS
+        axs[dur_id].set_xlabel('Delay (ms)', fontsize=fs)
+        axs[dur_id].set_title(' %d ms'%(duration), fontsize=fs)
+    
+        axs[dur_id].spines['right'].set_color('none')   
+        axs[dur_id].spines['top'].set_color('none')     
+        axs[dur_id].tick_params(axis='both', which='major', labelsize=label_fs-3)
+        axs[dur_id].set_yticks(y_ticks)
+        if dur_id>0:
+            axs[dur_id].set_yticklabels('')
+        axs[dur_id].set_ylim((.0, 1.6))
+        
+        # original plot position:
+        ll, bb, ww, hh = axs[dur_id].get_position().bounds
+        axs[dur_id].set_position([ll-.03+.025*dur_id, bb+.1, ww+.025, hh-.15]) 
+        
+        axs[dur_id].set_xticks([0, 250, 500])
+        axs[dur_id].set_xticklabels(['0','250','500'], fontsize=label_fs-3)
+    
+    #axs[0].set_title('%d ms'%(dur2an[0]), fontsize=fs)
+    
+    conc2plot = np.squeeze(concs2an[id_peak2plot]) #  conc_1_r[0,id_peak2plot,0])
+    axs[0].set_ylabel(r'$R^{PN} $ (unitless)', fontsize=fs)
+
+    if not(avg_measure):
+        axs[0].text(-.2, 1.2, 'b.', transform=axs[0].transAxes,
+           fontsize=panel_fs, color=blue, weight='bold', va='top', ha='right')
+            
+    if fig_save:
+        if avg_measure:
+            fig.savefig(fld_output+  '/ratio_avg_delays0-500_dur20-200_conc%.2g'%conc2plot +'.png')
+        else:
+            fig.savefig(fld_output+  '/ratio_peak_delays0-500_dur20-200_conc%.2g'%conc2plot +'.png')
+   
+#%% *********************************************************
+## FIGURE peak
+## **********************************************************
+if peak_fig: 
+    lw = 3
+    rs = 2
+    cs = 3
+    colors = plt.cm.winter_r
+    clr_fct = 30        # color factor
+    
+    panels_id   = ['a.', 'b.', 'c.', 'd.', 'e.', 'f.', 'g.', 'h.', 'i.', ]
+    for dur_id, duration in enumerate(dur2an):
+        fig, axs = plt.subplots(rs, cs, figsize=(10,7), ) 
+        axs[0,0].set_title(['dur: %d ms'%duration])
+        
+        dx = .1
+        for conc_id, conc_v in enumerate(concs2an): 
+            axs[0,0].errorbar(conc_ratios+dx*conc_id, 
+               np.mean(orn_ratio_peak_noin[:,conc_id,dur_id,:], axis=1),
+               yerr= np.std(orn_ratio_peak_noin[:,conc_id,dur_id,:], axis=1)/np.sqrt(n_loops), marker='o', 
+               label=r'conc1: '+'%.1f'%(conc_v), color=colors(conc_id*clr_fct) )
+            
+            axs[0,1].errorbar(conc_ratios+dx*conc_id, 
+               np.mean(orn_ratio_peak_ln[:,conc_id,dur_id,:], axis=1),
+               yerr= np.std(orn_ratio_peak_ln[:,conc_id,dur_id,:], axis=1)/np.sqrt(n_loops),  marker='o', 
+               label=r'conc1: '+'%.1f'%(conc_v), color=colors(conc_id*clr_fct) )
+            
+            axs[0,2].errorbar(conc_ratios+dx*conc_id, 
+               np.mean(orn_ratio_peak_nsi[:,conc_id,dur_id,:], axis=1),
+               yerr= np.std(orn_ratio_peak_nsi[:,conc_id,dur_id,:], axis=1)/np.sqrt(n_loops), marker='o', 
+               label=r'conc1: '+'%.1f'%(conc_v), color=colors(conc_id*clr_fct) )
+            
+            axs[1,0].errorbar(conc_ratios+dx*conc_id, ratio2_peak_noin[:,conc_id, dur_id],
+               yerr= ratio2_peak_err_noin[:,conc_id, dur_id]/np.sqrt(n_loops), marker='o', 
+               label=r'conc1: '+'%.1f'%(conc_v), 
+               color=colors(conc_id*clr_fct) )
+            
+            axs[1,1].errorbar(conc_ratios+dx*conc_id, ratio2_peak_ln[:,conc_id, dur_id],
+               yerr= ratio2_peak_err_ln[:,conc_id, dur_id]/np.sqrt(n_loops), marker='o', 
+               label=r'conc1: '+'%.1f'%(conc_v), 
+               color=colors(conc_id*clr_fct) )
+            
+            axs[1,2].errorbar(conc_ratios+dx*conc_id, ratio2_peak_nsi[:,conc_id, dur_id],
+               yerr= ratio2_peak_err_nsi[:,conc_id, dur_id]/np.sqrt(n_loops),
+                marker='o', label=r'conc1: '+'%.1f'%(conc_v), 
+               color=colors(conc_id*clr_fct) )
+            
+        
+        # FIGURE settings
+        axs[0,0].set_ylabel('ratio\nORN response', fontsize=fs)
+        axs[1,0].set_ylabel('ratio\nPN response', fontsize=fs)        
+
+        for cc in range(cs):
+            axs[1, cc].set_xlabel('conc ratio', fontsize=fs)
+                
+            axs[0, cc].plot(conc_ratios, conc_ratios, '--', lw=lw, color='black', label='expec.')
+            axs[1, cc].plot(conc_ratios, conc_ratios, '--', lw=lw, color='black', label='expec.')
+            for rr in range(rs):
+                axs[rr, cc].tick_params(axis='both', which='major', labelsize=label_fs-3)
+                
+                axs[rr,cc].set_xticklabels('')
+                axs[rr,cc].set_yticklabels('')
+                axs[rr,cc].spines['right'].set_color('none')
+                axs[rr,cc].spines['top'].set_color('none')
+                
+                axs[rr,cc].set_xlim((0, 20.5))
+                axs[rr,cc].set_ylim((0, 20.5))
+                
+                axs[rr,cc].set_yticks([0, 5, 10, 15, 20])
+                axs[rr,cc].set_xticks([0, 5, 10, 15, 20])
+                
+                if cc == 0:
+                    axs[rr,cc].set_yticklabels(['0','5','10', '15', '20'], fontsize=fs)
+                
+                if rr == 1:
+                    axs[rr,cc].set_xticklabels(['0','5','10', '15', '20'], fontsize=fs)
+                
+                # change plot position:
+                ll, bb, ww, hh = axs[rr,cc].get_position().bounds
+                axs[rr,cc].set_position([ll+cc*.03, bb+(2-rr)*.03,ww,hh])        
+
+        axs[0,0].set_title('Independent ', fontsize=fs)
+        axs[0,1].set_title('AL lateral Inhib.', fontsize=fs)
+        axs[0,2].set_title('NSI mechanism', fontsize=fs)
+        
+
+        for cc in [1,2]:
+            for rr in range(2):
+                axs[rr,cc].text(-.2, 1.2, panels_id[cc*rs+rr], transform=axs[rr,cc].transAxes,
+                               fontsize=panel_fs, color=blue, weight='bold', va='top', ha='right')
+        cc = 0
+        for rr in range(2):
+            axs[rr,cc].text(-.35, 1.2, panels_id[cc*rs+rr], transform=axs[rr,cc].transAxes,
+                           fontsize=panel_fs, color=blue, weight='bold', va='top', ha='right')
+        
+        if fig_save:
+            fig.savefig(fld_output+  '/ratio_stim_peak_dur%d'%duration+'_delay%d'%delay+'.png')
+
+#%% **********************************************************
+## FIGURE average activity
+## **********************************************************
+
+if avg_fig: 
+    lw = 3
+    rs = 2
+    cs = 3
+    colors = plt.cm.winter_r
+    clr_fct = 30        # color factor
+    
+    panels_id   = ['a.', 'b.', 'c.', 'd.', 'e.', 'f.', 'g.', 'h.', 'i.', ]
+    for dur_id, duration in enumerate(dur2an):
+        fig, axs = plt.subplots(rs, cs, figsize=(10,7), ) 
+        axs[0,0].set_title(['dur: %d ms'%duration])
+        
+        dx = .1
+        for conc_id, conc_v in enumerate(concs2an): 
+            axs[0,0].errorbar(conc_ratios+dx*conc_id, 
+               np.mean(orn_ratio_avg_noin[:,conc_id,dur_id,:], axis=1),
+               yerr= np.std(orn_ratio_avg_noin[:,conc_id,dur_id,:], axis=1)/np.sqrt(n_loops), marker='o', 
+               label=r'conc1: '+'%.1f'%(conc_v), color=colors(conc_id*clr_fct) )
+            
+            axs[0,1].errorbar(conc_ratios+dx*conc_id, 
+               np.mean(orn_ratio_avg_ln[:,conc_id,dur_id,:], axis=1),
+               yerr= np.std(orn_ratio_avg_ln[:,conc_id,dur_id,:], axis=1)/np.sqrt(n_loops),  marker='o', 
+               label=r'conc1: '+'%.1f'%(conc_v), color=colors(conc_id*clr_fct) )
+            
+            axs[0,2].errorbar(conc_ratios+dx*conc_id, 
+               np.mean(orn_ratio_avg_nsi[:,conc_id,dur_id,:], axis=1),
+               yerr= np.std(orn_ratio_avg_nsi[:,conc_id,dur_id,:], axis=1)/np.sqrt(n_loops), marker='o', 
+               label=r'conc1: '+'%.1f'%(conc_v), color=colors(conc_id*clr_fct) )
+            
+            axs[1,0].errorbar(conc_ratios+dx*conc_id, ratio2_avg_noin[:,conc_id, dur_id],
+               yerr= ratio2_avg_err_noin[:,conc_id, dur_id]/np.sqrt(n_loops), marker='o', 
+               label=r'conc1: '+'%.1f'%(conc_v), 
+               color=colors(conc_id*clr_fct) )
+                        
+            axs[1,1].errorbar(conc_ratios+dx*conc_id, ratio2_avg_ln[:,conc_id, dur_id],
+               yerr= ratio2_avg_err_ln[:,conc_id, dur_id]/np.sqrt(n_loops), marker='o', 
+               label=r'conc1: '+'%.1f'%(conc_v), 
+               color=colors(conc_id*clr_fct) )
+            
+            axs[1,2].errorbar(conc_ratios+dx*conc_id, ratio2_avg_nsi[:,conc_id, dur_id],
+               yerr= ratio2_avg_err_nsi[:,conc_id, dur_id]/np.sqrt(n_loops),
+                marker='o', label=r'conc1: '+'%.1f'%(conc_v), 
+               color=colors(conc_id*clr_fct) )
+            
+        
+        # FIGURE settings
+        axs[0,0].set_ylabel('ratio\nORN response', fontsize=fs)
+        axs[1,0].set_ylabel('ratio\nPN response', fontsize=fs)        
+
+        for cc in range(cs):
+            axs[1, cc].set_xlabel('conc ratio', fontsize=fs)
+                
+            axs[0, cc].plot(conc_ratios, conc_ratios, '--', lw=lw, color='black', label='expec.')
+            axs[1, cc].plot(conc_ratios, conc_ratios, '--', lw=lw, color='black', label='expec.')
+            for rr in range(rs):
+                axs[rr, cc].tick_params(axis='both', which='major', labelsize=label_fs-3)
+                
+                axs[rr,cc].set_xticklabels('')
+                axs[rr,cc].set_yticklabels('')
+                axs[rr,cc].spines['right'].set_color('none')
+                axs[rr,cc].spines['top'].set_color('none')
+                
+                axs[rr,cc].set_xlim((0, 20.5))
+                axs[rr,cc].set_ylim((0, 20.5))
+                
+                axs[rr,cc].set_yticks([0, 5, 10, 15, 20])
+                axs[rr,cc].set_xticks([0, 5, 10, 15, 20])
+                
+                if cc == 0:
+                    axs[rr,cc].set_yticklabels(['0','5','10', '15', '20'], fontsize=fs)
+                
+                if rr == 1:
+                    axs[rr,cc].set_xticklabels(['0','5','10', '15', '20'], fontsize=fs)
+                
+                # change plot position:
+                ll, bb, ww, hh = axs[rr,cc].get_position().bounds
+                axs[rr,cc].set_position([ll+cc*.03, bb+(2-rr)*.03,ww,hh])        
+
+        axs[0,0].set_title('Independent ', fontsize=fs)
+        axs[0,1].set_title('AL lateral Inhib.', fontsize=fs)
+        axs[0,2].set_title('NSI mechanism', fontsize=fs)
+        
+
+        for cc in [1,2]:
+            for rr in range(2):
+                axs[rr,cc].text(-.2, 1.2, panels_id[cc*rs+rr], transform=axs[rr,cc].transAxes,
+                               fontsize=panel_fs, color=blue, weight='bold', va='top', ha='right')
+        cc = 0
+        for rr in range(2):
+            axs[rr,cc].text(-.35, 1.2, panels_id[cc*rs+rr], transform=axs[rr,cc].transAxes,
+                           fontsize=panel_fs, color=blue, weight='bold', va='top', ha='right')
+        
+        if fig_save:
+            fig.savefig(fld_output+ 
+                        '/ratio_stim_avg_dur%d'%duration+'_delay%d'%delay+'.png')        
+      
+     
+#%% ************************************************************************
+# RESUME BAR FIGURE
+if resumen_bar:
+    # average over conc.ratio and concentrations
+    avg_ratio_peak_nsi = np.mean(ratio2dist_nsi, axis=(0,1))
+    avg_ratio_peak_ln = np.mean(ratio2dist_ln, axis=(0,1))
+    avg_ratio_peak_noin = np.mean(ratio2dist_noin, axis=(0,1))
+    avg_ratio_peak_nsi_std = np.std(ratio2dist_nsi, axis=(0,1))
+    avg_ratio_peak_ln_std = np.std(ratio2dist_ln, axis=(0,1))
+    avg_ratio_peak_noin_std = np.std(ratio2dist_noin, axis=(0,1))
+    
+    width = 0.3
+    y_ticks = [0.27, .33,.39]
+    rs = 1
+    cs = 1
+    fig, axs = plt.subplots(rs, cs, figsize=(9,4), ) 
+
+    ptns = np.arange(5)
+    axs.bar(ptns-width, avg_ratio_peak_noin, width=width, color='magenta', 
+            yerr=avg_ratio_peak_noin_std/np.sqrt(n_ratios*n_concs), 
+            label='Indep.', )
+    axs.bar(ptns, avg_ratio_peak_ln, width=width, color='orange', 
+            yerr=avg_ratio_peak_ln_std/np.sqrt(n_ratios*n_concs), 
+            label='AL inh.', )
+    axs.bar(ptns+width, avg_ratio_peak_nsi, width=width, color='blue', 
+            yerr=avg_ratio_peak_nsi_std/np.sqrt(n_ratios*n_concs), 
+            label='NSI', )
+
+    # FIGURE SETTINGS
+    axs.spines['right'].set_color('none')   
+    axs.spines['top'].set_color('none')                
+
+#    axs.legend(fontsize=label_fs,loc='upper left', frameon=False)
+    axs.set_ylabel('coding error (au)', fontsize=label_fs)
+    axs.set_xlabel('stimulus duration (ms)', fontsize=label_fs)        
+    axs.tick_params(axis='both', which='major', labelsize=label_fs-3)
+    axs.set_xticks(ptns)
+    axs.set_xticklabels(dur2an, fontsize=fs)
+
+    axs.text(-.15, 1.0, 'g.', transform=axs.transAxes, color= blue,
+             fontsize=panel_fs, fontweight='bold', va='top', ha='right')
+    axs.text(.3, y_ticks[2], 'Indep.', color=purple, fontsize=label_fs)
+    axs.text(.3, y_ticks[1], 'NSI', color=blue, fontsize=label_fs)
+    axs.text(.3, y_ticks[0], 'LN', color=orange, fontsize=label_fs)
+    # original plot position:
+    ll, bb, ww, hh = axs.get_position().bounds
+    axs.set_position([ll+.05,bb+.07,ww,hh])        
+    
+    if fig_save:
+        if peak_fig:
+            fig.savefig(fld_output + '/ratio_stim_peak_resumebar_durs_delay%d'%delay+'.png')
+        elif avg_fig:    
+            fig.savefig(fld_output + '/ratio_stim_avg_resumebar_durs_delay%d'%delay+'.png')
