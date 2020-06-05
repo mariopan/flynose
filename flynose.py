@@ -20,12 +20,10 @@ import timeit
 import pickle        
 from os import path
 from os import mkdir
-from shutil import copyfile
 
 import sys
-sys.path.insert(0, '/flynose/')
+sys.path.insert(0, '/flynose_branch/')
 
-import corr_steps
 import corr_plumes
 import sdf_krofczik
 import stats_for_plumes as stats
@@ -167,76 +165,63 @@ purple  = 'xkcd:purple'
 orange  = 'xkcd:orange'
 cmap    = plt.get_cmap('rainbow')
 
+id_colors2u     = [1, 5]
+col_glo         = np.zeros((2,4))
+col_glo[0,:]    = cmap(int(255/(id_colors2u[0]+1.3)))
+col_glo[1,:]    = cmap(int(255/(id_colors2u[1]+1.3)))
+    
 # *****************************************************************
 
 
-def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
+def main(params2an, fig_opts):
     
-    orn_fig     = fig_opts[0]
-    al_dyn      = 1
-    al_fig      = fig_opts[1]
-    stimulus    = params2an[7] # 'ss'   # 'rs'   #  'pl'  # 'ts'
-    fig_save    = fig_opts[3]
-    data_save   = fig_opts[4]
+    [orn_fig, al_fig, fig_ui, fig_save, data_save, al_dyn, 
+                verbose, fld_analysis] = fig_opts
+    
+    omega_nsi   = params2an[0] # 0.3
+    alpha_ln    = params2an[1] # 10 ORN input coeff for adaptation variable y_ln
+
     
     # *****************************************************************
-    # STIMULUS GENERATION
+    # STIMULUS GENERATION    
+    stim_params = params2an[2]
+    stim_type = stim_params[0]
+    if len(stim_type)==2:
+        ext_stimulus = False # flag indicating an external stimulus is provided        
+        [stim_type, pts_ms, t_tot, [t_on, t_on2], [t_off, t_off2], 
+         [peak1, peak2], plume_params] = stim_params
     
-    omega_nsi       = params2an[0] # 0.3     #.2 0.1 0.05 0.00
-    alpha_ln        = params2an[1] # 10 ORN input coeff for adaptation variable y_ln
+    else:
+        ext_stimulus = False # flag indicating an external stimulus is provided        
+        [stim_type, pts_ms, t_tot, [t_on, t_on2], [t_off, t_off2], 
+         [peak1, peak2], plume_params, fld_stim] = stim_params
+        stim_data_name = fld_stim+stim_type+'.dat'
     
-    # Stimuli params 
-    dur2an          = params2an[2] # 250
-    delays2an        = params2an[3] # 0
-    if verbose:
-        print('Stimulus: ' + stimulus)
-        print('Stimuli duration:      ' + '%.0f'%dur2an + ' ms')
-        print('Delay between stimuli:    ' + '%.0f'%delays2an + ' ms')
-     
-    id_colors2u     = [1, 5]
-    col_glo         = np.zeros((2,4))
-    col_glo[0,:]    = cmap(int(255/(id_colors2u[0]+1.3)))
-    col_glo[1,:]    = cmap(int(255/(id_colors2u[1]+1.3)))
+    tau_sdf = 20
+    dt_sdf = 5
+    sdf_size = int(t_tot/dt_sdf)
     
-    
-    # average sdf parameters
-    tau_sdf         = 20
-    dt_sdf          = 5   
-    
-    # Sims params
-    t_on            = 300      # [ms]
-    t2simulate      = np.maximum(t_on+dur2an, 1200) # [ms]
-    pts_ms          = 5             # simulated points per ms
-    n2sim           = pts_ms*t2simulate + 1      # number of time points
-    t               = np.linspace(0, t2simulate, n2sim) # time points
+    n2sim           = pts_ms*t_tot + 1      # number of time points
+    t               = np.linspace(0, t_tot, n2sim) # time points
     
     # Stimulus params
-    stim_on         = t_on*pts_ms 
-    t_off           = t_on + dur2an     # [ms]
+    stim_on         = t_on*pts_ms   # [num. of samples]
     stim_off        = t_off*pts_ms    
-    t_on2           = t_on+delays2an     # [ms]
     stim_on2        = t_on2*pts_ms
-    t_off2          = t_on2 + dur2an    # [ms]
     stim_off2       = t_off2*pts_ms
-
-    cov_hom         = 0.4 # Covariance value homotypic ORNs
-    nu_pn_noise     = 200 # Hz  - PNs Noise into each PNs
-    nu_ln_noise     = 0 # Hz    - LNs Noise into each PNs
     
-        
+    stim_dur          = t_off-t_on
+    delay           = t_on2-t_on
+
     # initialize output vectors
     num_glo         = 2     # number of glomeruli
     u_od            = np.zeros((n2sim, num_glo))
-    cor_stim        = np.nan
-    overlap_stim    = np.nan
-    cor_whiff       = np.nan
+#    cor_stim        = np.nan
+#    overlap_stim    = np.nan
+#    cor_whiff       = np.nan
     
-    ext_stimulus = False # flag indicating an external stimulus is provided        
-    if stimulus == 'ss':
+    if stim_type == 'ss':
         # Single Step Stimuli
-        
-        peak1           = np.array([params2an[4]]) #[.25, .5, 1, 2, 4] # np.concatenate((np.linspace(0.25,.9, 5),))
-        peak2           = np.array([params2an[4]*params2an[5]]) #[.25, .5, 1, 2, 4] # np.concatenate((np.linspace(0.25,.9, 5),))
         
         tau_on          = 50
         t_tmp           = np.linspace(0, t_off-t_on, stim_off-stim_on)    
@@ -245,29 +230,20 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
         u_od[stim_on:stim_off, 0] = peak1*(1-np.exp(-t_tmp/tau_on))
         u_od[stim_on2:stim_off2, 1] = peak2*(1-np.exp(-t_tmp2/tau_on))
         
-        t_tmp           = np.linspace(0, t2simulate-t_off, 1+t2simulate*pts_ms-stim_off)    
-        t_tmp2          = np.linspace(0, t2simulate-t_off2, 1+t2simulate*pts_ms-stim_off2)               
+        t_tmp           = np.linspace(0, t_tot-t_off, 1+t_tot*pts_ms-stim_off)    
+        t_tmp2          = np.linspace(0, t_tot-t_off2, 1+t_tot*pts_ms-stim_off2)               
         
         u_od[stim_off:, 0] = u_od[stim_off-1, 0]*np.exp(-t_tmp/tau_on)
         u_od[stim_off2:, 1] = u_od[stim_off2-1, 1]*np.exp(-t_tmp2/tau_on)
         
         
-    elif stimulus == 'ts':
+    elif stim_type == 'ts':
         # Single Step Stimuli
-        dur2an          = params2an[2] # 250
-        delays2an        = params2an[3] # 0
-        if verbose:
-            print('Stimulus: Triangle Step')
-            print('Stimuli duration:      ' + '%.0f'%dur2an + ' ms')
-            print('Delay between stimuli:    ' + '%.0f'%delays2an + ' ms')
         
-        peak1           = np.array([params2an[4]]) #[.25, .5, 1, 2, 4] # np.concatenate((np.linspace(0.25,.9, 5),))
-        peak2           = np.array([params2an[4]*params2an[5]]) #[.25, .5, 1, 2, 4] # np.concatenate((np.linspace(0.25,.9, 5),))
-        t_peak          = t_on + dur2an/2     # [ms]
+        t_peak          = t_on + stim_dur/2     # [ms]
         stim_peak       = int(t_peak*pts_ms)
         
-        
-        t_peak2         = t_on2 + dur2an/2     # [ms]
+        t_peak2         = t_on2 + stim_dur/2     # [ms]
         stim_peak2      = int(t_peak2*pts_ms)
         
         t_tmp           = np.linspace(0, t_off-t_on, stim_off-stim_on)    
@@ -279,40 +255,25 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
         u_od[stim_on2:stim_peak2, 1] = np.linspace(0, peak2, stim_peak2-stim_on2)
         u_od[stim_peak2:stim_off2, 1] = np.linspace(peak2, 0, stim_off2-stim_peak2)
         
-    elif stimulus == 'rs':
+
+    elif stim_type == 'pl':
         
-        # Random pulses stimuli 
-        mmm,ppp = corr_steps.main(t2sim=(t2simulate-t_on),pts_ms=pts_ms,seed_num=stim_seed)
-        if np.size(mmm)<(n2sim-stim_on):
-            print('oh oh %d'%(np.size(mmm)))
-            print('oh oh %d'%(n2sim-stim_on))
-            mmm,ppp = corr_steps.main(t2sim=(t2simulate-t_on),pts_ms=pts_ms,seed_num=stim_seed)
-        cor_stim = np.corrcoef(mmm, ppp)[1,0]
-        if verbose:
-            print('Stimulus: Random Steps')
-            print('corr. input y and w: ' + '%f'%(cor_stim) + ', seed: %g'%(stim_seed))
-        u_od[stim_on:, 0] = mmm
-        u_od[stim_on:, 1] = ppp
-    elif stimulus == 'pl':
-        if verbose:
-            print('Stimulus: Plumes')
-        
+        plume_params    = stim_params[6]
         # *******************************************************************
         # PARAMS FOR GENERATION OF PLUMES
         quenched        = True          # if True Tbl and Twh are chosen to compensate the distance between stimuli
-        t2sim_s         = (t2simulate-t_on)/1000  # [s]
+        t2sim_s         = (t_tot-t_on)/1000  # [s]
         sample_rate     = 1000*pts_ms   # [Hz] num of samples per each sec
         n_sample2       = 5             # [ms] num of samples with constant concentration
-        # tot_n_samples   = int(t2simulate*sample_rate) # [] duration of whole simulated stimulus in number of samples
         
         # *******************************************************************
         #  PARAMS FOR WHIFF AND BLANK DISTRIOBUTIONS
         g               = -1/2# 1    # -1/2 for a power law of -3/2, 1 for uniform distribution
         whiff_min       = 3e-3      # [s]
-        whiff_max       = params2an[8]        # [s] 3, 50,150
+        whiff_max       = plume_params[1]        # [s] 3, 50,150
         
         blank_min       = 3e-3      # [s]
-        blank_max       = params2an[9]       # [s]  25, 35
+        blank_max       = plume_params[2]       # [s]  25, 35
         
         # *******************************************************************
         # PARAMS FOR CONCENTRATION DISTRIBUTIONS
@@ -321,72 +282,58 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
         a_conc          = -0.3*b_conc - np.log10(1-.5)
         
         rho_c           = 1      # correlation between normal distribution to generate whiffs and blanks
-        rho_t_exp       = params2an[6]     # correlation between normal distribution to generate concentration        
+        rho_t_exp       = plume_params[0]     # correlation between normal distribution to generate concentration        
         rho_t           = 1-10**-rho_t_exp
         
-        # CALCULATE THE THEORETICAL MEAN WHIFF, MEAN BLANK DURATIONS AND INTERMITTENCY
-        pdf_wh, logbins, wh_mean = stats.whiffs_blanks_pdf(whiff_min, whiff_max, g)
-        pdf_bl, logbins, bl_mean = stats.whiffs_blanks_pdf(blank_min, blank_max, g)
-        
-        interm_th = wh_mean/(wh_mean+bl_mean)
-        if verbose:
-            print('Theoretical Intermittency: %.2g'%interm_th)
+        stim_seed       = plume_params[3]
         
         # ******************************************************************* 
         # arguments for the generation of stimuli function
         #np.random.seed()
-        stim_params = [t2sim_s, sample_rate, n_sample2, g, whiff_min, whiff_max, 
+        corr_plumes_in = [t2sim_s, sample_rate, n_sample2, g, whiff_min, whiff_max, 
                blank_min, blank_max, a_conc, b_conc,rho_c, rho_t, quenched, stim_seed]
-        print(stim_params)
         
         # *******************************************************************
         # PLUME GENERATION
-        out_y, out_w, _, _= corr_plumes.main(*stim_params)
-        u_od[stim_on:, 0] = out_y*params2an[4]
-        u_od[stim_on:, 1] = out_w*params2an[4]*params2an[5]
+        out_y, out_w, _, _= corr_plumes.main(*corr_plumes_in)
+        u_od[stim_on:, 0] = out_y*peak1 # params2an[4]
+        u_od[stim_on:, 1] = out_w*peak2 # params2an[4]*params2an[5]
                
-        cor_stim        = -2
-        overlap_stim    = -2
-        cor_whiff       = -2
-        
-        interm_est_1 = np.sum(out_y>0)/(t2sim_s*sample_rate)
-        interm_est_2 = np.sum(out_w>0)/(t2sim_s*sample_rate)
-
-        if (np.sum(out_y)!=0) & (np.sum(out_w)!=0):
-            cor_stim        = np.corrcoef(out_y, out_w)[1,0]
-            overlap_stim    = stats.overlap(out_y, out_w)
-            nonzero_concs1  = out_y[(out_y>0) & (out_w>0)]
-            nonzero_concs2  = out_w[(out_y>0) & (out_w>0)]
-            cor_whiff       = np.corrcoef(nonzero_concs1, nonzero_concs2)[0, 1] # np.corrcoef(concs1, concs2)[0, 1]
+#        cor_stim        = -2
+#        overlap_stim    = -2
+#        cor_whiff       = -2
+#        
+#        interm_est_1 = np.sum(out_y>0)/(t2sim_s*sample_rate)
+#        interm_est_2 = np.sum(out_w>0)/(t2sim_s*sample_rate)
+#
+#        if (np.sum(out_y)!=0) & (np.sum(out_w)!=0):
+#            cor_stim        = np.corrcoef(out_y, out_w)[1,0]
+#            overlap_stim    = stats.overlap(out_y, out_w)
+#            nonzero_concs1  = out_y[(out_y>0) & (out_w>0)]
+#            nonzero_concs2  = out_w[(out_y>0) & (out_w>0)]
+#            cor_whiff       = np.corrcoef(nonzero_concs1, nonzero_concs2)[0, 1] # np.corrcoef(concs1, concs2)[0, 1]
     else:
-        ext_stimulus = True # flag indicating an external stimulus is provided
-        stim_data_name = params2an[10]+params2an[7]+'.dat'
         ex_stim = np.loadtxt(stim_data_name)
      
         # Sims params
-        t2simulate      = ex_stim[-1,0]*1e3 # [ms] t2simulate depends on data
+        t_tot      = ex_stim[-1,0]*1e3 # [ms] t_tot depends on data
         pts_ms          = 5             # simulated points per ms
-        n2sim           = np.size(ex_stim, axis=0)#pts_ms*t2simulate + 1      # number of time points
-        t               = np.linspace(0, t2simulate, n2sim) # time points
-        # t = ex_stim[:,0]*1e3         
+        n2sim           = np.size(ex_stim, axis=0)#pts_ms*t_tot + 1      # number of time points
+        t               = np.linspace(0, t_tot, n2sim) # time points
         
         # Stimulus params
         t_on            = 0      # [ms]
         stim_on         = t_on*pts_ms 
-        t_off           = t_on + dur2an     # [ms]
+        t_off           = t_on + stim_dur     # [ms]
         stim_off        = t_off*pts_ms    
-        t_on2           = t_on+delays2an     # [ms]
+        t_on2           = t_on+delay     # [ms]
         stim_on2        = t_on2*pts_ms
-        t_off2          = t_on2 + dur2an    # [ms]
+        t_off2          = t_on2 + stim_dur    # [ms]
         stim_off2       = t_off2*pts_ms
         
         u_od            = np.zeros((n2sim, num_glo))
         u_od[:, 0]      = .01*ex_stim[:,1]
         u_od[:, 1]      = .01*(ex_stim[0,1]+ex_stim[-1,1])/2
-    
-        
-    od_avg1 = np.mean(u_od[stim_on:, 0])
-    od_avg2 = np.mean(u_od[stim_on:, 1])    
     
     # *****************************************************************
     # CONNECTIVITY PARAMETERS
@@ -403,6 +350,11 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
     
     # *****************************************************************
     # ORN PARAMETERS 
+    
+    cov_hom         = 0.4 # Covariance value homotypic ORNs
+    nu_pn_noise     = 200 # Hz  - PNs Noise into each PNs
+    nu_ln_noise     = 0 # Hz    - LNs Noise into each PNs
+
     # rectification params
     c_rect              = 1
     a_rect              = 3.3 
@@ -467,11 +419,11 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
    
     for pp in range(num_pns_tot):
         rnd_ids         = np.random.permutation(num_orns_glo) 
-        tmp_ids = rnd_ids[:num_orns_pn] + num_orns_glo*ids_pn_glo[pp]
+        tmp_ids         = rnd_ids[:num_orns_pn] + num_orns_glo*ids_pn_glo[pp]
         ids_orn_pn[pp,:] = tmp_ids
         orn_pn_mat[tmp_ids, pp] = orn_spike_height
     
-    # Connectivity matrices between ORNs and PNs and LNs
+    # Connectivity matrices between PNs and LNs
     tmp_ones            = np.ones((num_pns_glo, num_lns_glo))
     pn_ln_mat           = np.zeros((num_pns_tot, num_lns_tot))
     pn_ln_mat[num_pns_glo:, num_lns_glo:] = tmp_ones*pn_spike_height
@@ -516,12 +468,6 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
            
             nu_orn[tt,gg] = rect_func(B0, y_orn[tt,gg])
     
-    orn_avg1 = np.mean(nu_orn[stim_on:stim_off, 0])
-    orn_avg2 = np.mean(nu_orn[stim_on2:stim_off2, 1])
-    orn_peak1 = np.max(nu_orn[stim_on:stim_off, 0])
-    orn_peak2 = np.max(nu_orn[stim_on2:stim_off2, 1])
-
-          
     # *****************************************************************
     # Transform the average nu_orn into a spiking 
     # matrix n2sim by num_orns_tot of correlated spikes:
@@ -556,8 +502,7 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
     pn_spike_all = None
     ln_spike_all = None
     orn_spike_all = None
-    t_zeros = None
-    
+    t_zeros = None 
 
 
     #******************************************************************
@@ -565,52 +510,30 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
     orn_spike_matrix = np.asarray(np.where(num_spike_orn))
     orn_spike_matrix[0,:] = orn_spike_matrix[0,:]/pts_ms
     orn_spike_matrix = np.transpose(orn_spike_matrix)
-    orn_sdf_norm, orn_sdf_time = sdf_krofczik.main(spike_mat = orn_spike_matrix, 
-                                               tau_sdf=tau_sdf, dt_sdf=dt_sdf)  # (Hz, ms)
-    orn_sdf_norm = orn_sdf_norm*1e3
+
+   
     
-    # SAVE SDF OF ORN FIRING RATE
-    if data_save & (al_dyn==0):
-        name_data = ['/ORNrate' +
-                    '_stim_' + params2an[7] +
-                    '_nsi_%.1f'%(params2an[0]) +
-                    '_ln_%.2f'%(params2an[1]) +
-                    '_dur2an_%d'%(params2an[2]) +
-                    '_delays2an_%d'%(params2an[3]) +
-                    '_peak_%.2f'%(params2an[4]) +
-                    '_peakratio_%.1f'%(params2an[5]) + 
-                    '.pickle'] 
-        if ext_stimulus:
-            name_data = ['/ORNrate' +
-                    '_stim_' + params2an[7] +
-                    '_nsi_%.1f'%(params2an[0]) +
-                    '_ln_%.2f'%(params2an[1]) +
-                    '.pickle']
-            
-        output_names = ['t', 'u_od', 'orn_sdf_norm', 'orn_sdf_time', ]        
-        
-        params2an_names = ['omega_nsi', 'alpha_ln', 'dur2an', 'delays2an', 
-                           'peak', 'peak_ratio', 'rho', 'stim_type', ]
+    if orn_fig | al_fig:
+        orn_sdf, orn_sdf_time = sdf_krofczik.main(orn_spike_matrix, sdf_size,
+                                                   tau_sdf, dt_sdf)  # (Hz, ms)
+        orn_sdf = orn_sdf*1e3
 
-        with open(fld_analysis+name_data[0], 'wb') as f:
-            pickle.dump([params2an, t, u_od, orn_sdf_norm, orn_sdf_time, 
-                         params2an_names, output_names], f)
-
+    
     # *****************************************************************
-    # FIGURE ORN 
+    # FIGURE ORN dynamics
 
     if orn_fig:  
-        t2plot = -200, 1000 #t2simulate #-t_on, t2simulate-t_on
+        t2plot = -200, 1000 #t_tot #-t_on, t_tot-t_on
         rs = 4 # number of rows
         cs = 1 # number of cols
 
-        if stimulus == 'pl':
+        if stim_type == 'pl':
             t2plot = 0, 1000#2000, 4000
             rs = 2 # number of rows
             cs = 2 # number of cols
             
         if ext_stimulus:
-            t2plot = 0, t2simulate
+            t2plot = 0, t_tot
             
         panels_id = ['a.', 'b.', 'c.', 'd.']
         fig_orn = plt.figure(figsize=[8.5, 8])
@@ -641,9 +564,9 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
                      label=r'Od, glom : %d'%(0))
 #        ax_orn4.plot(t-t_on, y_orn[:,1], '--',color=col_glo[1,:]/2, linewidth=lw, 
 #                     label=r'Od, glom : %d'%(1))
-        ax_orn_fr.plot(orn_sdf_time-t_on, np.mean(orn_sdf_norm[:,:num_orns_glo], axis=1), 
+        ax_orn_fr.plot(orn_sdf_time-t_on, np.mean(orn_sdf[:,:num_orns_glo], axis=1), 
                      color=green,  linewidth=lw+1,label='sdf glo 1')
-        ax_orn_fr.plot(orn_sdf_time-t_on, np.mean(orn_sdf_norm[:,num_orns_glo:], axis=1), 
+        ax_orn_fr.plot(orn_sdf_time-t_on, np.mean(orn_sdf[:,num_orns_glo:], axis=1), 
                      color=purple, linewidth=lw,label='sdf glo 2')
         spikes_orn_0 = np.argwhere(num_spike_orn[:,:num_orns_glo])
         spikes_orn_1 = np.argwhere(num_spike_orn[:,num_orns_glo:])
@@ -716,17 +639,34 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
         
         if fig_save:
             if ext_stimulus:
-                fig_name_orn = '/ORN_' + params2an[7] + '.png'
+                orn_fig_name = '/ORN_' + params2an[7] + '.png'
             else:
-                fig_name_orn = ['/ORN_t1_' + '%d'%(t_on-t_on) + '-' + '%d'%(t_off-t_on) + 
-                            '_t2_' + '%d'%(t_on2-t_on) + '-' + '%d'%(t_off2-t_on) + 
-                            '_peak1_'  + '%0.2f'%(peak1) +
-                            '_peak2_'  + '%0.2f'%(peak2) +
-                            '.png']
-            
-            fig_orn.savefig(fld_analysis + fig_name_orn)
+                #%%
+                if stim_type == 'ts':
+                    orn_fig_name = '/ORNdyn' + \
+                            '_stim_' + stim_type +\
+                            '_nsi_%.1f'%(params2an[0]) +\
+                            '_lnspH_%.2f'%(params2an[1]) +\
+                            '_dur2an_%d'%(t_off-t_on) +\
+                            '_delay2an_%d'%(t_on2-t_on) +\
+                            '_peak_%.1f'%(peak1) +\
+                            '_peakratio_%.1f'%(peak1/peak2) +\
+                            '.png'
+                elif stim_type == 'pl':
+                    orn_fig_name = '/ORNdyn' + \
+                                '_stim_' + stim_type +\
+                                '_nsi_%.1f'%(params2an[0]) +\
+                                '_lnspH_%.2f'%(params2an[1]) +\
+                                '_dur2an_%d'%(t_off-t_on) +\
+                                '_delay2an_%d'%(t_on2-t_on) +\
+                                '_peak_%.1f'%(peak1) +\
+                                '_peakratio_%.1f'%(peak1/peak2) +\
+                                '_rho_%d'%(plume_params[0]) +\
+                                '_wmax_%.1g'%(plume_params[1]) +\
+                                '_bmax_%.1g'%(plume_params[2]) +\
+                                '.png'
+            fig_orn.savefig(fld_analysis + orn_fig_name)
     # ******************************************************************
- 
     
     # *****************************************************************
     # AL SIMULATION 
@@ -867,133 +807,30 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
         ln_spike_matrix = np.transpose(ln_spike_matrix)
         
         
-        # *****************************************************************
-        # Calculate the SDF for PNs and LNs
-        pn_sdf_norm, pn_sdf_time = sdf_krofczik.main(spike_mat = 
-                            pn_spike_matrix, tau_sdf=tau_sdf, dt_sdf=dt_sdf)  # (Hz, ms)
-        pn_sdf_norm = pn_sdf_norm*1e3
-    
-        ln_sdf_norm, ln_sdf_time = sdf_krofczik.main(spike_mat = 
-                            ln_spike_matrix, tau_sdf=tau_sdf, dt_sdf=dt_sdf)  # (Hz, ms)
-        ln_sdf_norm = ln_sdf_norm*1e3
-    
-        
-  
-        # *************************************************************************
-        # COLLECT AND SAVE DATA
-        id_stim = np.flatnonzero((pn_sdf_time>t_on) & (pn_sdf_time<t_off))
-        id_stim2 = np.flatnonzero((pn_sdf_time>t_on2) & (pn_sdf_time<t_off2))
-        pn_sdf_dt = pn_sdf_time[1]-pn_sdf_time[0]
-        
-        pn_avg1  = np.mean(pn_sdf_norm[id_stim, :num_pns_glo])
-        pn_m50_1 = np.sum(np.mean(pn_sdf_norm[id_stim, :num_pns_glo], axis=1)>50)*pn_sdf_dt
-        pn_m100_1 = np.sum(np.mean(pn_sdf_norm[id_stim, :num_pns_glo], axis=1)>100)*pn_sdf_dt
-        pn_m150_1 = np.sum(np.mean(pn_sdf_norm[id_stim, :num_pns_glo], axis=1)>150)*pn_sdf_dt
-        
-        pn_avg2  = np.mean(pn_sdf_norm[id_stim, num_pns_glo:])
-        pn_m50_2 = np.sum(np.mean(pn_sdf_norm[id_stim2, num_pns_glo:], axis=1)>100)*pn_sdf_dt
-        pn_m100_2 = np.sum(np.mean(pn_sdf_norm[id_stim2, num_pns_glo:], axis=1)>100)*pn_sdf_dt
-        pn_m150_2 = np.sum(np.mean(pn_sdf_norm[id_stim2, num_pns_glo:], axis=1)>100)*pn_sdf_dt
-            
-        id_post_stim = np.flatnonzero((pn_sdf_time>t_on) & (pn_sdf_time<t_on+100))
-        id_post_stim2 = np.flatnonzero((pn_sdf_time>t_on2) & (pn_sdf_time<t_on2+100))
-        pn_peak1  = np.max(np.mean(pn_sdf_norm[id_post_stim, :num_pns_glo], axis=1)) # using average PN
-        pn_peak2  = np.max(np.mean(pn_sdf_norm[id_post_stim2, num_pns_glo:], axis=1)) # using average PN
-        
-        
-        # SAVE SDF OF conc, ORN, PN and LN FIRING RATE
-        if data_save:
-            name_data = ['/ORNALrate' +
-                        '_stim_' + params2an[7] +
-                        '_nsi_%.1f'%(params2an[0]) +
-                        '_ln_%.2f'%(params2an[1]) +
-                        '_dur2an_%d'%(params2an[2]) +
-                        '_delays2an_%d'%(params2an[3]) +
-                        '_peak_%.2f'%(params2an[4]) +
-                        '_peakratio_%.1f'%(params2an[5]) + # 
-                        '.pickle'] 
-                                
-            output_names = ['t', 'u_od', 'orn_sdf_norm', 'orn_sdf_time', 
-                            'pn_sdf_norm', 'pn_sdf_time', 
-                            'ln_sdf_norm', 'ln_sdf_time', ]
-            
-            params2an_names = ['omega_nsi', 'alpha_ln', 'dur2an', 'delays2an', 
-                               'peak', 'peak_ratio', 'rho', 'stim_type', ]
-    
-            if not(stimulus == 'pl'):
-                with open(fld_analysis+name_data[0], 'wb') as f:
-                    pickle.dump([params2an, t, u_od, orn_sdf_norm, orn_sdf_time, 
-                             pn_sdf_norm, pn_sdf_time, 
-                             ln_sdf_norm, ln_sdf_time, 
-                             params2an_names, output_names], f)
-            
-            # SAVE SPIKES OF PNs AND LNs   
-            name_data = ['/ALspike' +
-                        '_stim_' + params2an[7] +
-                        '_nsi_%.1f'%(params2an[0]) +
-                        '_ln_%.2f'%(params2an[1]) +
-                        '_dur2an_%d'%(params2an[2]) +
-                        '_delays2an_%d'%(params2an[3]) + 
-                        '_peak_%.2f'%(params2an[4])]
-            
-            if stimulus == 'pl':
-                name_data = [name_data[0] +
-                        '_rho_%d'%(params2an[6]) +
-                        '_wmax_%.2g'%(params2an[8]) +
-                        '_bmax_%.2g'%(params2an[9]) +
-                        '.pickle']
-            else:
-                name_data = [name_data[0] +
-                        '_peakratio_%.1f'%(params2an[5]) + # 
-                        '.pickle'] 
-                                
-            output_names = ['pn_spike_matrix', 'ln_spike_matrix',] 
-                            
-            with open(fld_analysis+name_data[0], 'wb') as f:
-                pickle.dump([params2an, orn_spike_matrix, pn_spike_matrix, ln_spike_matrix, 
-                         params2an_names, output_names], f)
-                
-            
-            if stimulus == 'pl':
-                name_data = ['/ORNPNLN' +
-                    '_stim_' + params2an[7] +
-                    '_nsi_%.1f'%(params2an[0]) +
-                    '_ln_%.2f'%(params2an[1]) +
-                    '_dur2an_%d'%(params2an[2]) +
-                    '_peak_%.1f'%(params2an[4]) +
-                    '_rho_%d'%(params2an[6]) +
-                    '_wmax_%.2g'%(params2an[8]) +
-                    '_bmax_%.2g'%(params2an[9]) +
-                    '.pickle']
-                
-                output_names = ['cor_stim', 'overlap_stim', 'cor_whiff', 
-                                 'interm_th', 'interm_est_1', 'interm_est_2', 'od_avg1', 
-                                 'od_avg2', 'orn_avg1', 'orn_avg2', 'pn_avg1', 'pn_avg2', 
-                                 'pn_m50_1', 'pn_m100_1', 'pn_m150_1', 
-                                 'pn_m50_2', 'pn_m100_2', 'pn_m150_2', ]
-            
-            
-                params2an_names = ['omega_nsi', 'alpha_ln', 'dur2an', 'delays2an', 
-                                   'peak', 'peak_ratio', 'rho', 'stim_type', 'w_max', 'b_max']
-            
-                with open(fld_analysis+name_data[0], 'wb') as f:
-                    pickle.dump([params2an, cor_stim, overlap_stim, cor_whiff, 
-                                 interm_th, interm_est_1, interm_est_2, od_avg1, od_avg2, orn_avg1, 
-                                 orn_avg2, pn_avg1, pn_avg2, pn_m50_1, pn_m100_1, 
-                                 pn_m150_1, pn_m50_2, pn_m100_2, pn_m150_2, 
-                                 params2an_names, output_names], f)
 
+    else:
+        [pn_spike_matrix, ln_spike_matrix, ] = [np.nan, np.nan]
+    
 
     # %******************************************
     # FIGURE ORN, PN, LN
     if al_dyn & al_fig:
+        # *****************************************************************
+        # Calculate the SDF for PNs and LNs
+        pn_sdf, pn_sdf_time = sdf_krofczik.main(pn_spike_matrix, sdf_size,
+                                                     tau_sdf, dt_sdf)  # (Hz, ms)
+        pn_sdf= pn_sdf*1e3
+    
+        ln_sdf, ln_sdf_time = sdf_krofczik.main(ln_spike_matrix, sdf_size,
+                                                     tau_sdf, dt_sdf)  # (Hz, ms)
+        ln_sdf= ln_sdf*1e3
         
-        t2plot = -100, 300#t2simulate 
+        t2plot = -100, 300#t_tot 
         rs = 4 # number of rows
         cs = 1 # number of cols
         fig_size = [7, 8] 
         
-        if stimulus == 'pl':
+        if stim_type == 'pl':
             #lw = 1.1
             t2plot = 0, 4000
             rs = 2 # number of rows
@@ -1013,25 +850,25 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
         ax_conc.plot(t-t_on, 100*u_od[:,1], '--',color=purple, linewidth=lw+1, 
                       label='glom : '+'%d'%(2))
          
-        ax_orn.plot(orn_sdf_time-t_on, np.mean(orn_sdf_norm[:,:num_orns_glo], axis=1), 
+        ax_orn.plot(orn_sdf_time-t_on, np.mean(orn_sdf[:,:num_orns_glo], axis=1), 
                      color=green, linewidth=lw+1,label='sdf glo 1')
-        ax_orn.plot(orn_sdf_time-t_on, np.mean(orn_sdf_norm[:,num_orns_glo:], axis=1), 
+        ax_orn.plot(orn_sdf_time-t_on, np.mean(orn_sdf[:,num_orns_glo:], axis=1), 
                      '--',color=purple, linewidth=lw,label='sdf glo 2')
         
         for pp in range(num_pns_tot):
             if pp >= num_pns_glo:
-                ax_pn.plot(pn_sdf_time-t_on, pn_sdf_norm[:,pp], '--',color=purple, 
+                ax_pn.plot(pn_sdf_time-t_on, pn_sdf[:,pp], '--',color=purple, 
                               linewidth=lw, label='PN : '+'%d'%(pp))
             else:
-                ax_pn.plot(pn_sdf_time-t_on, pn_sdf_norm[:,pp], color=green, 
+                ax_pn.plot(pn_sdf_time-t_on, pn_sdf[:,pp], color=green, 
                               linewidth=lw+1, label='PN : '+'%d'%(pp))
         
         for ll in range(num_lns_tot):
             if ll >= num_lns_glo:
-                ax_ln.plot(ln_sdf_time-t_on, ln_sdf_norm[:,ll], '--',color=purple, 
+                ax_ln.plot(ln_sdf_time-t_on, ln_sdf[:,ll], '--',color=purple, 
                               linewidth=lw, label='LN : '+'%d'%(ll))
             else:
-                ax_ln.plot(ln_sdf_time-t_on, ln_sdf_norm[:,ll], color=green,
+                ax_ln.plot(ln_sdf_time-t_on, ln_sdf[:,ll], color=green,
                               linewidth=lw+1, label='LN : '+'%d'%(ll))      
         ax_conc.set_xlim(t2plot)
         ax_orn.set_xlim(t2plot)
@@ -1056,7 +893,7 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
         ax_pn.set_ylabel(r' PN  (Hz)', fontsize=label_fs)
         ax_ln.set_ylabel(r' LN  (Hz)', fontsize=label_fs)
         ax_ln.set_xlabel('Time  (ms)', fontsize=label_fs)
-        if stimulus == 'pl':
+        if stim_type == 'pl':
             ax_orn.set_ylim((0, 150))
             ax_pn.set_ylim((0, 180))
             ax_ln.set_ylim((0, 250))
@@ -1075,7 +912,7 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
                 color=blue, fontsize=panel_fs, fontweight='bold', va='top', ha='right')
 
         # tmp
-        if not(stimulus == 'pl'):
+        if not(stim_type == 'pl'):
             title_fs = 30
             if (params2an[1] ==0) & (params2an[1] ==0):
                 ax_conc.set_title('a. Independent', fontsize=title_fs)
@@ -1093,7 +930,7 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
         ax_ln.spines['right'].set_color('none')
         ax_ln.spines['top'].set_color('none')
         
-        if (stimulus == 'pl'):
+        if (stim_type == 'pl'):
             dx = 0
         else:
             dx = 0.05
@@ -1109,74 +946,109 @@ def main(params2an, fig_opts, verbose=False, fld_analysis='', stim_seed=0):
         ax_ln.set_position([ll+.05, bb+dy, ww, hh])
     
         if fig_save:
-            if stimulus == 'ts':
+            if stim_type == 'ts':
                 fig_pn.savefig(fld_analysis+  '/ORNPNLN' +
-                            '_stim_' + params2an[7] +
+                            '_stim_' + stim_params[0] +
                             '_nsi_%.1f'%(params2an[0]) +
-                            '_lnspH_' + '%.2f'%(params2an[1]) +
-                            '_dur2an_' + '%d'%(params2an[2]) +
-                            '_delay2an_' + '%d'%(params2an[3]) +
-                            '_peak_' + '%.1f'%(params2an[4]) +
-                            '_peakratio_' + '%.1f'%(params2an[5]) +
+                            '_ln_' + '%.2f'%(params2an[1]) +
+                            '_dur2an_%d'%(stim_dur) +
+                            '_delay2an_%d'%(delay) +
+                            '_peak_%.1f'%(peak1) +
+                            '_peakratio_%.1f'%(peak2/peak1) +
                             '.png')
-            elif stimulus == 'pl':
+            elif stim_type == 'pl':
                 fig_pn.savefig(fld_analysis+  '/ORNPNLN' +
-                            '_stim_' + params2an[7] +
+                            '_stim_' + stim_params[0] +
                             '_nsi_%.1f'%(params2an[0]) +
-                            '_lnspH_' + '%.2f'%(params2an[1]) +
-                            '_dur2an_' + '%d'%(params2an[2]) +
-                            '_peak_' + '%.1f'%(params2an[4]) +
-                            '_peakratio_' + '%.1f'%(params2an[5]) +    
-                            '_rho_' + '%d'%(params2an[6]) +
-                            '_wmax_' + '%.1g'%(params2an[8]) +
-                            '_bmax_' + '%.1g'%(params2an[9]) +
+                            '_ln_' + '%.2f'%(params2an[1]) +
+                            '_dur2an_%d'%(stim_dur) +
+                            '_delay2an_%d'%(delay) +
+                            '_peak_%.1f'%(peak1) +
+                            '_rho_' + '%d'%(plume_params[0]) +
+                            '_wmax_' + '%.1g'%(plume_params[1]) +
+                            '_bmax_' + '%.1g'%(plume_params[2]) +
                             '.png')
         if fig_opts[2]==False:
             plt.close()
             
     # *************************************************************************
-    
-    orn_stim = [orn_avg1, orn_avg2, orn_peak1, orn_peak2, ]
-    if al_dyn:
-        pn_stim = [pn_avg1, pn_avg2, pn_peak1, pn_peak2,]
-    else:
-        pn_stim = np.zeros(4)
 
-    return  [orn_spike_matrix, pn_spike_matrix, ln_spike_matrix, orn_stim, pn_stim, ]
+    flynose_out = [t, u_od, orn_spike_matrix, pn_spike_matrix, ln_spike_matrix, ]
+    
+    return  flynose_out 
 
 
 if __name__ == '__main__':
     print('run directly')
     stim_data_fld = ''
-    stim_seed = 0   # if =np.nan() no traceable random
     
     #***********************************************
-    # Trials and errors
-    fld_analysis    = '../NSI_analysis/trialserrors'
-    stim_type       = 'ts' # 'ts'  # 'ts' # 'ss' # 'pl'
-    stim_dur        = 20
+    # analysis params
+    tau_sdf = 20
+    dt_sdf  = 5
+
+    # ORN NSI params
     alpha_ln        = 13.3# ln spike h=0.4
     nsi_str         = 0.3
-    delays2an       = 0
-    peak            = 1.
-    peak_ratio      = 10
     
-#    params2an = [.0, .0, 20, 0, 1.6, 1]
-#    params2an = [nsi_value, ln_spike_height, dur2an, delay2an, peak, peak_ratio]
+    # Trials and errors 
+
+    # output params 
+    fld_analysis    = 'NSI_analysis/trials'
+   
+    #***********************************************
+    # stimulus params
+    stim_dur    = 10
+    delay       = 0    
+    stim_type   = 'ts'          # 'ts'  # 'ss' # 'pl'
+    pts_ms      = 5
+    t_tot       = 420        # ms 
+    t_on        = [300, 300+delay]    # ms
+    t_off       = np.array(t_on)+stim_dur # ms
+    concs       = [1, 1]
+    sdf_size    = int(t_tot/dt_sdf)
     # real plumes params
     b_max           = np.nan # 3, 50, 150
     w_max           = np.nan #3, 50, 150
     rho             = np.nan #[0, 1, 3, 5]: 
-
-    orn_fig         = 0
-    al_fig          = 0
-    fig_ui          = 1        
-    fig_save        = 0
-    data_save       = 0    
-    fig_opts = [orn_fig, al_fig, fig_ui, fig_save, data_save]
+    stim_seed       = 0   # if =np.nan() no traceable random
     
-    print('conc: %.1f, stim_dur:%dms, spike LN: %.1f, NSI strength: %.1f'
-          %(peak, stim_dur,alpha_ln,nsi_str))
+#    #***********************************************
+#    # Real plumes, example figure
+#    stim_type   = 'pl'  # 'ts' # 'ss'
+#    dur         = 4000
+#    delay       = 0
+#    
+#    pts_ms      = 5
+#    t_tot       = 4300        # ms 
+#    t_on        = [300, 300+delay]    # ms
+#    t_off       = np.array(t_on)+dur # ms
+#    concs       = [1.5, 1.5]
+#    sdf_size    = int(t_tot/dt_sdf)
+#    
+#    # real plumes params
+#    b_max       = 25#, 50, 150
+#    w_max       = 3#np.nan #3, 50, 150
+#    rho         = 1#np.nan #[0, 1, 3, 5]: 
+#    stim_seed   = 0   # if =np.nan() no traceable random
+#    #***********************************************
+
+    plume_params = [rho, w_max, b_max, stim_seed]
+    
+    stim_params = [stim_type, pts_ms, t_tot, t_on, t_off, concs, plume_params]
+    
+    params2an = [nsi_str, alpha_ln, stim_params,]
+    
+    orn_fig     = 0
+    al_fig      = 0
+    fig_ui      = 1        
+    fig_save    = 0    
+    data_save   = 0
+    al_dyn      = 1
+    verbose     = 0    
+
+    fig_opts = [orn_fig, al_fig, fig_ui, fig_save, data_save, al_dyn, 
+                verbose, fld_analysis]
     
 
     if path.isdir(fld_analysis):
@@ -1184,39 +1056,84 @@ if __name__ == '__main__':
     else:
         print('NEW analysis fld: ' + fld_analysis)    
         mkdir(fld_analysis)
-    copyfile('flynose.py', fld_analysis+'/flynose.copy.py') 
     
     
-    n_loops = 10
-    pn_avg_dif  = np.zeros(n_loops)
-    pn_avg_ratio      = np.zeros(n_loops)
-    pn_peak_ratio    = np.zeros(n_loops)
-
-    params2an = [nsi_str, alpha_ln, stim_dur, delays2an, peak, 
-                 peak_ratio, rho, stim_type,w_max,b_max, ]
+    n_loops         = 100
+    pn_avg_dif      = np.zeros(n_loops)
+    pn_avg_ratio    = np.zeros(n_loops)
+    pn_peak_ratio   = np.zeros(n_loops)
+    pn_peak_s   = np.zeros(n_loops)
+    pn_peak_w   = np.zeros(n_loops)
+    
     if len(stim_type)>2:
         params2an.append(stim_data_fld)
     tic = timeit.default_timer()
         
-    #    params2an = [omega_nsi, alpha_ln, dur2an, delays2an, peak, peak_ratio]
     plt.ion()      # ioff() # to avoid showing the plot every time     
     
-    for ii in range(n_loops):
-        [orn_stim, pn_stim,] = main(params2an, fig_opts, verbose = False, 
-            fld_analysis = fld_analysis, stim_seed=stim_seed)
-        pn_avg_dif[ii] = (pn_stim[0]-pn_stim[1])
-        pn_avg_ratio[ii] = (pn_stim[1]/pn_stim[0])
-        pn_peak_ratio[ii]  = np.max((.1,pn_stim[3]))/pn_stim[2]
-#        print('peak ratio:%.1f, avg ratio:%.1f, avg dif:%.1f Hz'
-#          %(np.mean(pn_peak_ratio[ii]), np.mean(pn_avg_ratio[ii]), np.mean(pn_avg_dif[ii])))
-        print('peak ratio:%.1f, peak 1:%.1f Hz, peak 2:%.1f Hz'
-          %(pn_peak_ratio[ii], pn_stim[2], pn_stim[3]))
+    for id_loop in range(n_loops):
+        flynose_out = main(params2an, fig_opts)
+        [t, u_od, orn_spike_matrix, pn_spike_matrix, 
+         ln_spike_matrix, ] = flynose_out
+        
+        # *************************************************************************
+        # COLLECT AND SAVE DATA
+        
+        # Calculate the SDF for PNs and LNs
+        pn_sdf, pn_sdf_time = sdf_krofczik.main(pn_spike_matrix, sdf_size,
+                                                     tau_sdf, dt_sdf)  # (Hz, ms)
+        pn_sdf = pn_sdf*1e3
+    
+        ln_sdf, ln_sdf_time = sdf_krofczik.main(ln_spike_matrix, sdf_size,
+                                                     tau_sdf, dt_sdf)  # (Hz, ms)
+        ln_sdf = ln_sdf*1e3
+         
+        num_pns_glo         = 5     # number of PNs per each glomerulus
+        id_stim_w = np.flatnonzero((pn_sdf_time>t_on[0]) & (pn_sdf_time<t_on[0]+100))
+        id_stim_s = np.flatnonzero((pn_sdf_time>t_on[1]) & (pn_sdf_time<t_on[1]+100))
+        pn_peak_w[id_loop]  = np.max(np.mean(pn_sdf[id_stim_w, :num_pns_glo], axis=1)) # using average PN
+        pn_peak_s[id_loop]  = np.max(np.mean(pn_sdf[id_stim_s, num_pns_glo:], axis=1)) # using average PN
+        pn_avg_w  = np.mean(pn_sdf[id_stim_w, :num_pns_glo])
+        pn_avg_s  = np.mean(pn_sdf[id_stim_s, num_pns_glo:])
+        
+        # Calculate the ratio for PN responses
+        pn_avg_dif[id_loop] = pn_avg_w-pn_avg_s
+        pn_avg_ratio[id_loop] = pn_avg_s/pn_avg_w
+        pn_peak_ratio[id_loop]  = pn_peak_s[id_loop]/pn_peak_w[id_loop]
+        
+        if stim_type == 'pl':
+            #%% Calculate the mean and the peak for PN responses
+            pn_sdf_dt = pn_sdf_time[1]-pn_sdf_time[0]
+            pn_tmp = np.zeros((np.size(id_stim_w),2))
+            
+            pn_tmp[:,0] = np.mean(pn_sdf[id_stim_w, :num_pns_glo], axis=1)
+            pn_tmp[:,1] = np.mean(pn_sdf[id_stim_w, num_pns_glo:], axis=1)
+            perf_time = np.zeros((2, 3))
+            perf_avg = np.zeros((2, 3))
+            
+            for id_glo in range(2):
+                for thr_id, thr in enumerate([50, 100, 150]):
+                    perf_time[id_glo, thr_id, ] = np.sum(pn_tmp[:, id_glo]>thr)*pn_sdf_dt
+                    if perf_time[id_glo, thr_id, ]>0:
+                        perf_avg[id_glo, thr_id, ] = np.average(pn_tmp[:, id_glo], 
+                            weights=(pn_tmp[:, id_glo]>thr))
+             
+            print('mean time weak')
+            print(perf_time[0,:])
+            
+            print('mean time strong')
+            print(perf_time[1,:])
+        #%%
+#        print('peak ratio:%.1f, conc weak:%.1f Hz, conc strong:%.1f Hz'
+#          %(pn_peak_ratio[id_loop], pn_peak_w, pn_peak_s))
+    print('peak strong:%.1f Hz, peak weak:%.1f Hz'
+          %(np.mean(pn_peak_s), np.mean(pn_peak_w)))
     print('peak ratio:%.1f, avg ratio:%.1f, avg dif:%.1f Hz'
           %(np.mean(np.ma.masked_invalid(pn_peak_ratio)), 
             np.mean(np.ma.masked_invalid(pn_avg_ratio)), np.mean(pn_avg_dif)))
     
     toc = timeit.default_timer()
-    print('time to do %d sims: %.0f'%(n_loops, toc-tic))
+    print('time to do %d sims: %.1f'%(n_loops, toc-tic))
     print('')
                         
 else:
