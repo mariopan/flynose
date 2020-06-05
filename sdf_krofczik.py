@@ -80,14 +80,14 @@ def kernel_prep(eps_KRNL,tau_sdf, dt_sdf):
 
 # **************************************************************
 
-def main(spike_mat, tau_sdf = 100, dt_sdf = 20, ):
+def main(spike_mat, sdf_size, tau_sdf = 100, dt_sdf = 20, ):
 
     eps_KRNL = 0.01
     
-    t_max = np.max(spike_mat[:, 0])  # max time (ms)
     n_neu  = int(1+np.max(spike_mat[:, 1]))  # number of neurons
     
-    sdf_size = int(1.01*t_max/dt_sdf)
+    #t_max = np.max(spike_mat[:, 0])  # max time (ms)
+    #sdf_size = int(2*t_max/dt_sdf)
     
     
     # inizialize sdf variable
