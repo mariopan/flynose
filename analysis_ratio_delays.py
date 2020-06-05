@@ -60,7 +60,8 @@ def fig_activity():
     fig.colorbar(im2, ax=axs[2])
 
 # *****************************************************************
-# LOAD EXPERIMENT PARAMETERS
+fig_save        = 1
+
 id_peak2plot    = 3
 avg_measure     = 0
 
@@ -73,6 +74,7 @@ else:
     fld_output      = 'NSI_analysis/ratio/ratio_trials_images'
     delays2an       = [0,]
 
+# LOAD EXPERIMENT PARAMETERS
 batch_params    = pickle.load(open(fld_analysis+'/batch_params.pickle', "rb" ))
 [n_loops, conc_ratios, concs2an, nsi_ln_par, dur2an, delays2an,] = batch_params
 
@@ -84,19 +86,13 @@ n_concs         = np.size(concs2an)
 nsi_ln_par = nsi_ln_par[:3] # [[0,0],[0.3,0],[0,13.3]]
 
 # *****************************************************************
-# FIGURE PARAMS
-
-
 # analysis for zero delay:
 peak_fig        = 0 # Fig.RatioPeak
 avg_fig         = 0 #1-peak_fig # Fig.RatioAvg
 resumen_bar     = 0 # Fig.ResumeEncodeRatioBar
-
-    
-fig_save        = 1
 # *****************************************************************
 
-
+    
 # *****************************************************************
 
 # IMPLEMENT OUTPUT VARIABLES
@@ -191,17 +187,17 @@ for delay_id, delay in enumerate(delays2an):
         ratio_avg_ln[delay_id, :] = np.median(pn_ratio_avg_ln[0,id_peak2plot ,:,:], axis=1)
         ratio_avg_nsi[delay_id, :] =np.median(pn_ratio_avg_nsi[0,id_peak2plot,:,:], axis=1)
         
-        ratio_avg_noin_err[delay_id, :] =np.std(pn_ratio_avg_noin[0,id_peak2plot,:,:], axis=1)
-        ratio_avg_ln_err[delay_id, :] = np.std(pn_ratio_avg_ln[0,id_peak2plot ,:,:], axis=1)
-        ratio_avg_nsi_err[delay_id, :] =np.std(pn_ratio_avg_nsi[0,id_peak2plot,:,:], axis=1)
+        ratio_avg_noin_err[delay_id, :] = np.diff(np.percentile(pn_ratio_avg_noin[0,id_peak2plot,:,:], [25,50])) #np.std(pn_ratio_avg_noin[0,id_peak2plot,:,:], axis=1)
+        ratio_avg_ln_err[delay_id, :] = np.diff(np.percentile(pn_ratio_avg_ln[0,id_peak2plot,:,:], [25,50])) #np.std(pn_ratio_avg_ln[0,id_peak2plot ,:,:], axis=1)
+        ratio_avg_nsi_err[delay_id, :] =np.diff(np.percentile(pn_ratio_avg_nsi[0,id_peak2plot,:,:], [25,50])) #np.std(pn_ratio_avg_nsi[0,id_peak2plot,:,:], axis=1)
         
         ratio_peak_noin[delay_id, :] = np.median(pn_ratio_peak_noin[0,id_peak2plot,:,:], axis=1)
         ratio_peak_ln[delay_id, :] = np.median(pn_ratio_peak_ln[0,id_peak2plot,:,:], axis=1)
         ratio_peak_nsi[delay_id, :] =np.median(pn_ratio_peak_nsi[0,id_peak2plot,:,:], axis=1)
         
-        ratio_peak_noin_err[delay_id, :] =np.std(pn_ratio_peak_noin[0,id_peak2plot,:,:], axis=1)
-        ratio_peak_ln_err[delay_id, :] = np.std(pn_ratio_peak_ln[0,id_peak2plot,:,:], axis=1)
-        ratio_peak_nsi_err[delay_id, :] =np.std(pn_ratio_peak_nsi[0,id_peak2plot,:,:], axis=1)
+        ratio_peak_noin_err[delay_id, :] = np.diff(np.percentile(pn_ratio_peak_noin[0,id_peak2plot,:,:], [25,50])) #np.std(pn_ratio_peak_noin[0,id_peak2plot,:,:], axis=1)
+        ratio_peak_ln_err[delay_id, :] = np.diff(np.percentile(pn_ratio_peak_ln[0,id_peak2plot,:,:], [25,50])) # np.std(pn_ratio_peak_ln[0,id_peak2plot,:,:], axis=1)
+        ratio_peak_nsi_err[delay_id, :] = np.diff(np.percentile(pn_ratio_peak_nsi[0,id_peak2plot,:,:], [25,50])) # np.std(pn_ratio_peak_nsi[0,id_peak2plot,:,:], axis=1)
         
 
     if peak_fig & (delay==0):
@@ -249,8 +245,6 @@ for delay_id, delay in enumerate(delays2an):
         ratio2dist_err_nsi = np.ma.std(nsi_tmp, axis=0).T
         ratio2dist_err_ln = np.ma.std(ln_tmp, axis=0).T
         
-        
-    
 #%%***********************************************************
 ## FIGURE ResumeDelayedStimuli
 ## **********************************************************
@@ -262,18 +256,18 @@ if delay_fig:
         
         if avg_measure:
             axs[dur_id].errorbar(delays2an, ratio_avg_noin[:, dur_id], 
-               yerr=ratio_avg_noin_err[:, dur_id]/n_loops**.5, color='magenta', lw = lw, label= 'Indep.')
+               yerr=ratio_avg_noin_err[:, dur_id], color='magenta', lw = lw, label= 'Indep.')
             axs[dur_id].errorbar(delays2an, ratio_avg_ln[:, dur_id], 
-               yerr=ratio_avg_ln_err[:, dur_id]/n_loops**.5, color='orange', lw = lw, label= 'LN inhib.')
+               yerr=ratio_avg_ln_err[:, dur_id], color='orange', lw = lw, label= 'LN inhib.')
             axs[dur_id].errorbar(delays2an, ratio_avg_nsi[:, dur_id], 
-               yerr=ratio_avg_nsi_err[:, dur_id]/n_loops**.5, color='blue', lw = lw, label= 'NSI')    
+               yerr=ratio_avg_nsi_err[:, dur_id], color='blue', lw = lw, label= 'NSI')    
         else:        
             axs[dur_id].errorbar(delays2an, ratio_peak_noin[:, dur_id], 
-               yerr=ratio_peak_noin_err[:, dur_id]/n_loops**.5, color='magenta', lw = lw, label= 'Indep.')
+               yerr=ratio_peak_noin_err[:, dur_id], color='magenta', lw = lw, label= 'Indep.')
             axs[dur_id].errorbar(delays2an, ratio_peak_ln[:, dur_id], 
-               yerr=ratio_peak_ln_err[:, dur_id]/n_loops**.5, color='orange', lw = lw, label= 'LN inhib.')
+               yerr=ratio_peak_ln_err[:, dur_id], color='orange', lw = lw, label= 'LN inhib.')
             axs[dur_id].errorbar(delays2an, ratio_peak_nsi[:, dur_id],
-               yerr=ratio_peak_nsi_err[:, dur_id]/n_loops**.5, color='blue', lw = lw, label= 'NSI')    
+               yerr=ratio_peak_nsi_err[:, dur_id], color='blue', lw = lw, label= 'NSI')    
         
         # FIGURE SETTINGS
         axs[dur_id].set_xlabel('Delay (ms)', fontsize=fs)
