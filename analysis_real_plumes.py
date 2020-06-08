@@ -38,7 +38,7 @@ fld_output = 'NSI_analysis/real_plumes/sim_200s_images/'
 stim_dur    =  201000
 
 # ORN NSI params
-nsi_ln_par = [[0,0],[.2,0],[0,10],] # [[0,0],[.3,0],[0,13.3],]
+nsi_ln_par = [[0,0],[.3,0],[0,16.6],] # [[0,0],[.3,0],[0,13.3],]
  
 w_maxs  = [.01,.03,.3, 3, 25, 50, ] # max value in the whiff distribution
 b_maxs  = [25]                      # max value in the blank distribution
@@ -47,10 +47,9 @@ rhos    = [0, 1, 3, 5]
 
 seeds       = np.arange(1, 31)
 
-peak_fig    = 1     # Fig.PeakPNActivity
-avg_fig     = 1     # Fig.AverPNActivity
-avgplume_fig = 1    # FigSupp.AverCorr
-resumen_fig = 1     # Fig.PeakPN_resumen
+avg_fig     = 0     # Fig.AverPNActivity
+avgplume_fig = 0    # FigSupp.AverCorr (Supp materials)
+resumen_fig = 0     # Fig.PeakPN_resumen
 thrwmax_fig = 1     # Fig.PeakPN_wmax
 thrs        = [50, 100, 150] # thr
 fig_save    = 1
@@ -197,102 +196,6 @@ for seed_id, stim_seed in enumerate(seeds):
                 
 
 #%% *********************************************************
-## FIGURE Fig.PeakPNActivity
-## **********************************************************
-
-if peak_fig:
-        
-    fig = plt.figure(figsize=(12, 4), ) 
-    rs = 1
-    cs = 3
-    
-    ax_m50 = plt.subplot(rs,cs,1)
-    ax_m100 = plt.subplot(rs,cs,2)
-    ax_m150 = plt.subplot(rs,cs,3)
-    corr_obs = np.mean(np.squeeze(cor_stim[:, :,3]), axis=1)
-      
-    ax_m50.errorbar(corr_obs, np.squeeze(np.mean(pn_m50_1[:, 0, :,3,], axis=1)),
-                  yerr=np.squeeze(np.std(pn_m50_1[:, 0, :,3,], axis=1))/
-                  (np.size(pn_m50_1[:, 0, :,3,],axis=1))**.5, 
-                  lw=lw, color='magenta',label='Indep.')
-    ax_m50.errorbar(corr_obs, np.squeeze(np.mean(pn_m50_1[:, 2, :,3,], axis=1)),
-                  yerr=np.squeeze(np.std(pn_m50_1[:, 2, :,3,], axis=1))/
-                  (np.size(pn_m50_1[:, 2, :,3,],axis=1))**.5,
-                  lw=lw, color='orange',label='LN ')
-    ax_m50.errorbar(corr_obs, np.squeeze(np.mean(pn_m50_1[:, 1, :,3,], axis=1)),
-                  yerr=np.squeeze(np.std(pn_m50_1[:, 1, :,3,], axis=1))/
-                  (np.size(pn_m50_1[:, 1, :,3,],axis=1))**.5,
-                  lw=lw, color='blue',label='NSI ')
-
-    ax_m100.errorbar(corr_obs, np.squeeze(np.mean(pn_m100_1[:, 0, :,3,], axis=1)),
-                  yerr=np.squeeze(np.std(pn_m100_1[:, 0, :,3,], axis=1))/
-                  (np.size(pn_m100_1[:, 0, :,3,],axis=1))**.5, 
-                  lw=lw, color='magenta',label='Indep.')
-    ax_m100.errorbar(corr_obs, np.squeeze(np.mean(pn_m100_1[:, 2, :,3,], axis=1)),
-                  yerr=np.squeeze(np.std(pn_m100_1[:, 2, :,3,], axis=1))/
-                  (np.size(pn_m100_1[:, 2, :,3,],axis=1))**.5,
-                  lw=lw, color='orange',label='LN ')
-    ax_m100.errorbar(corr_obs, np.squeeze(np.mean(pn_m100_1[:, 1, :,3,], axis=1)),
-                  yerr=np.squeeze(np.std(pn_m100_1[:, 1, :,3,], axis=1))/
-                  (np.size(pn_m100_1[:, 1, :,3,],axis=1))**.5,
-                  lw=lw, color='blue',label='NSI ')
-
-    ax_m150.errorbar(corr_obs, np.squeeze(np.mean(pn_m150_1[:, 0, :,3,], axis=1)),
-                  yerr=np.squeeze(np.std(pn_m150_1[:, 0, :,3,], axis=1))/
-                  (np.size(pn_m150_1[:, 0, :,3,],axis=1))**.5, 
-                  lw=lw, color='magenta',label='Indep.')
-    ax_m150.errorbar(corr_obs, np.squeeze(np.mean(pn_m150_1[:, 2, :,3,], axis=1)),
-                  yerr=np.squeeze(np.std(pn_m150_1[:, 2, :,3,], axis=1))/
-                  (np.size(pn_m150_1[:, 2, :,3,],axis=1))**.5,
-                  lw=lw, color='orange',label='LN ')
-    ax_m150.errorbar(corr_obs, np.squeeze(np.mean(pn_m150_1[:, 1, :,3,], axis=1)),
-                  yerr=np.squeeze(np.std(pn_m150_1[:, 1, :,3,], axis=1))/
-                  (np.size(pn_m150_1[:, 1, :,3,],axis=1))**.5,
-                  lw=lw, color='blue',label='NSI ')
-    
-    ax_m50.tick_params(axis='both', which='major', labelsize=label_fs-3)
-    ax_m100.tick_params(axis='both', which='major', labelsize=label_fs-3)
-    ax_m150.tick_params(axis='both', which='major', labelsize=label_fs-3)
-    
-    
-    ax_m50.set_ylabel('PN activity (ms)', fontsize=label_fs)
-    
-    ax_m50.set_xlabel('Obs. correlation', fontsize=label_fs)
-    ax_m100.set_xlabel('Obs. correlation', fontsize=label_fs)
-    ax_m150.set_xlabel('Obs. correlation',fontsize=label_fs)
-    
-    ax_m50.legend(fontsize=label_fs-3, frameon=False)
-    
-    ax_m50.set_title('$>50Hz$', fontsize=fs)
-    ax_m100.set_title('$>100Hz$', fontsize=fs)
-    ax_m150.set_title('$>150Hz$', fontsize=fs)
-    
-    # original plot position:
-    ll, bb, ww, hh = ax_m50.get_position().bounds
-    ax_m50.set_position([ll,bb+.04,ww,hh])        
-    ll, bb, ww, hh = ax_m100.get_position().bounds
-    ax_m100.set_position([ll+.04,bb+.04,ww,hh])        
-    ll, bb, ww, hh = ax_m150.get_position().bounds
-    ax_m150.set_position([ll+.08,bb+.04,ww,hh])        
-    
-    ax_m50.text(-.25, 1.1, 'a.', transform=ax_m50.transAxes, color = blue,
-              fontsize=panel_fs, fontweight='bold', va='top', ha='right')
-    ax_m100.text(-.25, 1.1, 'b.', transform=ax_m100.transAxes, color = blue,
-              fontsize=panel_fs, fontweight='bold', va='top', ha='right')
-    ax_m150.text(-.25, 1.1, 'c.', transform=ax_m150.transAxes, color = blue,
-              fontsize=panel_fs, fontweight='bold', va='top', ha='right')
-    
-    ax_m50.spines['right'].set_color('none')
-    ax_m50.spines['top'].set_color('none')
-    ax_m100.spines['right'].set_color('none')
-    ax_m100.spines['top'].set_color('none')
-    ax_m150.spines['right'].set_color('none')
-    ax_m150.spines['top'].set_color('none')
-    
-    if fig_save:
-        fig.savefig(fld_output+  '/NSI_HighConc_'+fig_name+'.png')
-        
-#%% *********************************************************
 ## FIGURE Fig.AverPNActivity
 ## **********************************************************
 if avg_fig:
@@ -337,8 +240,8 @@ if avg_fig:
     ax_orn.set_ylabel('ORN avg (Hz)', fontsize=label_fs)
     ax_pn.set_ylabel('PN avg (Hz)', fontsize=label_fs)
     
-    ax_orn.set_xlabel('Obs. correlation', fontsize=label_fs)
-    ax_pn.set_xlabel('Obs. correlation', fontsize=label_fs,)
+    ax_orn.set_xlabel('Observed correlation (unitless)', fontsize=label_fs)
+    ax_pn.set_xlabel('Observed correlation (unitless)', fontsize=label_fs,)
     
     ax_orn.spines['right'].set_color('none')
     ax_orn.spines['top'].set_color('none')
@@ -349,9 +252,9 @@ if avg_fig:
     ax_pn.text(.3, 14, 'NSI', color=blue, fontsize=label_fs)
     ax_pn.text(.3, 12, 'LN', color=orange, fontsize=label_fs)
     
-    ax_orn.text(-.15, 1.15, 'b.', transform=ax_orn.transAxes,color= blue,
+    ax_orn.text(-.15, 1.15, 'b', transform=ax_orn.transAxes,color= black,
               fontsize=panel_fs, fontweight='bold', va='top', ha='right')
-    ax_pn.text(-.15, 1.15, 'c.', transform=ax_pn.transAxes,color= blue,
+    ax_pn.text(-.15, 1.15, 'c', transform=ax_pn.transAxes,color= black,
               fontsize=panel_fs, fontweight='bold', va='top', ha='right')
     # change panels positions and sizes:
     ll, bb, ww, hh = ax_orn.get_position().bounds
@@ -410,7 +313,7 @@ if avgplume_fig:
     
     ax_corr.legend(fontsize=label_fs-7, frameon=False)
     
-    ax_conc.set_xlabel('Obs. correlation', fontsize=label_fs)
+    ax_conc.set_xlabel('Observed correlation', fontsize=label_fs)
     ax_corr.set_ylabel('Observed values (au)', fontsize=label_fs)
     ax_corr.set_xlabel('Theor. correlation', fontsize=label_fs)
     
@@ -419,9 +322,9 @@ if avgplume_fig:
     ax_conc.spines['right'].set_color('none')
     ax_conc.spines['top'].set_color('none')
     
-    ax_conc.text(-.15, 1.15, 'a.', transform=ax_conc.transAxes, color= blue,
+    ax_conc.text(-.15, 1.15, 'a', transform=ax_conc.transAxes,
               fontsize=panel_fs, fontweight='bold', va='top', ha='right')
-    ax_corr.text(-.15, 1.15, 'b.', transform=ax_corr.transAxes,color= blue,
+    ax_corr.text(-.15, 1.15, 'b', transform=ax_corr.transAxes,
               fontsize=panel_fs, fontweight='bold', va='top', ha='right')
     
     # change panels positions and sizes:
@@ -475,12 +378,15 @@ if resumen_fig:
         axs[1].plot(w_maxs, delta_nsi10, '.-', color=blue, label=r'$x$=NSI, $\rho=$1')
         
         # SETTINGS        
-        axs[0].set_title(r'$\Theta$:%d Hz'%thr, fontsize=fs)
+#        axs[0].set_title(r'$\Theta$:%d Hz'%thr, fontsize=fs)
         
-        axs[0].text(-.2, 1.1, 'b.', transform=axs[0].transAxes,
-              color= blue, fontsize=panel_fs, fontweight='bold', va='top', ha='right')       
-        axs[1].text(-.2, 1.1, 'c.', transform=axs[1].transAxes,
-              color= blue, fontsize=panel_fs, fontweight='bold', va='top', ha='right')
+        axs[0].tick_params(axis='both', which='major', labelsize=label_fs-5)
+        axs[1].tick_params(axis='both', which='major', labelsize=label_fs-5)
+        
+        axs[0].text(-.2, 1.1, 'b', transform=axs[0].transAxes,
+              color= black, fontsize=panel_fs, fontweight='bold', va='top', ha='right')       
+        axs[1].text(-.2, 1.1, 'c', transform=axs[1].transAxes,
+              color= black, fontsize=panel_fs, fontweight='bold', va='top', ha='right')
         
         # CHANGE plot position:
         ll, bb, ww, hh = axs[0].get_position().bounds
@@ -494,18 +400,19 @@ if resumen_fig:
             axs[id_col].set_xlabel('$w_{max}$ (s)', fontsize=label_fs)
             axs[id_col].set_xscale('log')
             axs[id_col].set_yticks(y_ticks)
+            axs[id_col].set_yticklabels(y_ticks, fontsize=label_fs-5)
             axs[id_col].set_ylim(0, y_ticks[-1]*1.05)                    
             axs[id_col].set_xticks([.03, .3, 3, 30])
-            axs[id_col].set_xticklabels([.03, .3, 3, 30])
+            axs[id_col].set_xticklabels([.03, .3, 3, 30], fontsize=label_fs-5)
             # make bigger ticks labels 
-            axs[id_col].tick_params(axis='both', which='major', labelsize=label_fs)
+#            axs[id_col].tick_params(axis='both', which='major', labelsize=label_fs)
             
         axs[0].set_ylabel(r'$p_{ind}^0 - p_x^0$' + '  (unitless)', fontsize=label_fs)
         axs[0].text(.03, y_ticks[2]*1.1, 'x=NSI', color=blue, fontsize=label_fs)
         axs[0].text(.03, y_ticks[1]*1.4, 'x=LN', color=orange, fontsize=label_fs)
         
         axs[1].set_ylabel(r'$p_x^0 - p_x^1$'+ '  (unitless)', fontsize=label_fs)
-        axs[1].set_yticklabels('')
+        axs[1].set_yticklabels('', fontsize=label_fs-5)
          
         if fig_save:
             fig.savefig(fld_output+ '/NSI_Perf_log'+ fig_name + '_%d'%thr+ 'Hz.png')    
@@ -523,24 +430,21 @@ if thrwmax_fig:
 #    wh_tot  = 5*stim_dur*np.squeeze(interm_th[:, 0,:,]) # rho_id, seed_id,w_max_id,]
     corr_tmp = np.array(rhos)
     for thr in thrs:
-        fig, axs = plt.subplots(rs, cs, figsize=(13,2.5), ) 
+        fig, axs = plt.subplots(rs, cs, figsize=(9,2.5), ) 
         
         for w_max_id, w_max in enumerate(w_maxs):
             
             if thr == 50:
                 pn_tmp = .5*(pn_m50_2+pn_m50_1)           
-    #            axs[w_max_id].set_ylim((0,90500)) # 250)) # 
-                panel_id = 'c%d'%w_max_id+'.'
+                panel_id = 'c'#%d'%w_max_id
                 y_ticks = [500, 1000, 1500, 2000]
             elif thr == 100:
                 pn_tmp = .5*(pn_m100_2+pn_m100_1)
-    #            axs[w_max_id].set_ylim((0,32500))#60)) # 
                 y_ticks = [300, 600, 900, 1200]
-                panel_id = 'b%d'%w_max_id+'.'
+                panel_id = 'b'#%d'%w_max_id
             elif thr == 150:
                 pn_tmp = .5*(pn_m150_2+pn_m150_1)
-    #            axs[w_max_id,].set_ylim((0,6500))#10)) # 
-                panel_id = 'a%d'%w_max_id+'.'
+                panel_id = 'a'#%d'%w_max_id
                 y_ticks = [75, 150, 225, 300]
                 
             y2plot_ln = np.squeeze(pn_tmp[:, 2, :, w_max_id, ])
@@ -558,47 +462,46 @@ if thrwmax_fig:
                linewidth=lw, color='blue',label='NSI')
                     
             # SETTINGS
-            axs[w_max_id].tick_params(axis='x', which='major', labelsize=label_fs-5)
+            #ax_orn.tick_params(axis='both', which='major', labelsize=label_fs-3)
+            axs[w_max_id].set_title('%.2g'%w_max+'ms', fontsize=title_fs)
+            axs[w_max_id].tick_params(axis='both', which='major', labelsize=label_fs-5)
             axs[w_max_id].set_xticks(corr_tmp[[0, 1, 2]])
             axs[w_max_id].set_xticklabels([0, 0.9, 0.999]) # np.array(1-np.power(.10, corr_tmp[[0,1,2]])))
                            
             axs[w_max_id].spines['right'].set_color('none')
             axs[w_max_id].spines['top'].set_color('none')
         
-            if w_max_id==0:
-                letter_pos = [-.25, 1.3]
-            else:
-                letter_pos = [-.1, 1.3]
-                
-            axs[w_max_id].text(letter_pos[0], letter_pos[1], panel_id, transform=axs[w_max_id].transAxes,color= blue,
-                  fontsize=panel_fs-10, fontweight='bold', va='top', ha='right')
+#            if w_max_id==0:
+#                letter_pos = [-.25, 1.25]
+#            else:
+#                letter_pos = [-.1, 1.25]
+        
+#            axs[w_max_id].text(letter_pos[0], letter_pos[1], panel_id, 
+#               transform=axs[w_max_id].transAxes,color= black,
+#                  fontsize=panel_fs-10, fontweight='bold', va='top', ha='right')
                    
+            # panels positions
             ll, bb, ww, hh = axs[w_max_id].get_position().bounds
-            axs[w_max_id].set_position([ll+.015*w_max_id, bb+.095, ww, hh-.15])   
+            axs[w_max_id].set_position([ll+.01+.015*w_max_id, bb+.1, ww, hh-.15])   
             
-            axs[w_max_id].set_yticklabels('')            
+            axs[w_max_id].set_yticklabels('', fontsize=label_fs-5)            
             axs[w_max_id].set_yticks(y_ticks)
-            axs[w_max_id].set_ylim(0,y_ticks[-1]*1.02)
-                            
+            axs[w_max_id].set_ylim(0,y_ticks[-1]*1.02)                            
             
-        axs[0].set_yticklabels(y_ticks)
-        axs[0].set_ylabel('PN activity \n (unitless)\n' + r'$\Theta$=%d Hz'%thr, fontsize=label_fs)
+        letter_pos = [-.5, 1.25]
+        axs[0].text(letter_pos[0], letter_pos[1], panel_id, 
+               transform=axs[0].transAxes,color= black,
+                  fontsize=panel_fs, fontweight='bold', va='top', ha='right')
+        axs[0].set_yticklabels(y_ticks, fontsize=label_fs-5)
+        axs[0].set_ylabel('PN activity \n (unitless)' , fontsize=label_fs)
         
-            
-        axs[0].set_xlabel('Obs. correlation', fontsize=label_fs)
-        axs[0].xaxis.set_label_coords(1.1, -.15)
-        axs[2].set_xlabel('Obs. correlation', fontsize=label_fs)
+        axs[2].set_xlabel('Observed correlation (unitless)', fontsize=label_fs)
         axs[2].xaxis.set_label_coords(1.1, -.15)
-        axs[4].set_xlabel('Obs. correlation', fontsize=label_fs)
-        axs[4].xaxis.set_label_coords(1.1, -.15)
                              
-        axs[0].text(.3, y_ticks[2], 'Indep.', color='magenta', fontsize=label_fs)
-        axs[0].text(.3, y_ticks[1], 'NSI', color=blue, fontsize=label_fs)
-        axs[0].text(.3, y_ticks[0], 'LN', color=orange, fontsize=label_fs)
-        
+#        axs[0].text(.3, y_ticks[2], 'Indep.', color='magenta', fontsize=label_fs)
+#        axs[0].text(.3, y_ticks[1], 'NSI', color=blue, fontsize=label_fs)
+#        axs[0].text(.3, y_ticks[0], 'LN', color=orange, fontsize=label_fs)        
     
         if fig_save:
             fig.savefig(fld_output+ '/NSI_nuPN_wmax_%dHz'%thr+'_'+ fig_name + '.png')    
-    
-    
-    
+            
