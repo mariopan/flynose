@@ -28,6 +28,7 @@ title_fs = 20 # font size of ticks
 label_fs = 20 # font size of labels
 panel_fs = 30 # font size of panel' letters
 legend_fs = 12
+ticks_fs = label_fs - 3
 
 black   = 'xkcd:black'
 blue    = 'xkcd:blue'
@@ -54,31 +55,31 @@ def martelli_plot(all_data_tmp, analysis_par, id_c):
     if len(st_name) == 2:
         print('normalized to the peak') 
         orn2plot = orn2plot/np.max(orn2plot)
-        panel_letters = ['e.', 'f.']
+        panel_letters = ['e', 'f']
     else:
         
         st_name = st_name[:-1]
         print(st_name)
         if st_name == 'parabola_':
-            panel_letters = ['e.', 'f.']
+            panel_letters = ['e', 'f']
         elif st_name == 'step_':
-            panel_letters = ['a.', 'b.']
+            panel_letters = ['a', 'b']
         elif st_name == 'ramp_':
-            panel_letters = ['c.', 'd.']
+            panel_letters = ['c', 'd']
     
     
     ax_conc_m.set_xlim(t2plot)
     ax_orn_m.set_xlim(t2plot)
 
     if id_c==0:
-        ax_conc_m.tick_params(axis='both', labelsize=label_fs)
-        ax_orn_m.tick_params(axis='both', labelsize=label_fs)
+        ax_conc_m.tick_params(axis='both', labelsize=ticks_fs)
+        ax_orn_m.tick_params(axis='both', labelsize=ticks_fs)
         
         ax_conc_m.set_xticklabels('')
         
         if (len(st_name) == 2) | (st_name == 'step_'):
-            ax_conc_m.set_ylabel('Input ORN ', fontsize=label_fs)
-            ax_orn_m.set_ylabel(r' ORN  (Hz)', fontsize=label_fs)
+            ax_conc_m.set_ylabel('Input (a.u.)', fontsize=label_fs)
+            ax_orn_m.set_ylabel(' Norm. firing rates \n (unitless)', fontsize=label_fs)
             
         if len(st_name) > 2:
             ax_conc_m.set_title(st_name[:-1], fontsize = title_fs+10)
@@ -86,13 +87,12 @@ def martelli_plot(all_data_tmp, analysis_par, id_c):
             ax_conc_m.set_xticks(np.linspace(0, t2simulate, 8))
             ax_conc_m.set_xticklabels('')
             ax_orn_m.set_xticks(np.linspace(0, t2simulate, 8))
-            ax_orn_m.set_xticklabels([])#['0', '', '', '1500', '', '', '3000'])
+            ax_orn_m.set_xticklabels(['0', '', '', '1500', '', '', '3000'])
             
             ax_conc_m.set_yticks(np.linspace(0,400, 5))
             ax_orn_m.set_yticks(np.linspace(0,250, 6))
-            
-            ax_conc_m.tick_params(axis='both', labelsize=label_fs)
-            ax_orn_m.tick_params(axis='both', labelsize=label_fs)
+#            ax_conc_m.tick_params(axis='both', labelsize=ticks_fs)
+#            ax_orn_m.tick_params(axis='both', labelsize=ticks_fs)
             
             ax_conc_m.set_ylim((-5, 400))
             ax_orn_m.set_ylim((0, 250))            
@@ -114,9 +114,9 @@ def martelli_plot(all_data_tmp, analysis_par, id_c):
         ll, bb, ww, hh = ax_orn_m.get_position().bounds
         ax_orn_m.set_position([ll+.075, bb, ww, hh])
     
-        ax_conc_m.text(-.15, 1.1, panel_letters[0], transform=ax_conc_m.transAxes,color=blue,
+        ax_conc_m.text(-.15, 1.1, panel_letters[0], transform=ax_conc_m.transAxes,
               fontsize=panel_fs, fontweight='bold', va='top', ha='right')
-        ax_orn_m.text(-.15, 1.1, panel_letters[1], transform=ax_orn_m.transAxes, color=blue,
+        ax_orn_m.text(-.15, 1.1, panel_letters[1], transform=ax_orn_m.transAxes, 
               fontsize=panel_fs, fontweight='bold', va='top', ha='right')
             
     # PLOT
@@ -164,13 +164,13 @@ def orn_al_settings(ax_ornal):
     ax_ornal[2].set_ylabel(r' PN  (Hz)', fontsize=label_fs)
     ax_ornal[3].set_ylabel(r' LN  (Hz)', fontsize=label_fs)
     ax_ornal[3].set_xlabel('Time  (ms)', fontsize=label_fs)
-    ax_ornal[0].text(-.2, 1.25, 'a.', transform=ax_ornal[0].transAxes, color=blue,
+    ax_ornal[0].text(-.2, 1.25, 'a', transform=ax_ornal[0].transAxes, 
                  fontsize=panel_fs, fontweight='bold', va='top', ha='right')
-    ax_ornal[1].text(-.2, 1.25, 'b.', transform=ax_ornal[1].transAxes, color=blue,
+    ax_ornal[1].text(-.2, 1.25, 'b', transform=ax_ornal[1].transAxes, 
                  fontsize=panel_fs, fontweight='bold', va='top', ha='right')
-    ax_ornal[2].text(-.2, 1.25, 'c.', transform=ax_ornal[2].transAxes, color=blue,
+    ax_ornal[2].text(-.2, 1.25, 'c', transform=ax_ornal[2].transAxes, 
                  fontsize=panel_fs, fontweight='bold', va='top', ha='right')
-    ax_ornal[3].text(-.2, 1.25, 'd.', transform=ax_ornal[3].transAxes, color=blue,
+    ax_ornal[3].text(-.2, 1.25, 'd', transform=ax_ornal[3].transAxes, 
                  fontsize=panel_fs, fontweight='bold', va='top', ha='right')
     
     ax_ornal[0].spines['right'].set_color('none')
@@ -280,10 +280,11 @@ def olsen2010_data(all_data_tmp, analysis_par):
     
 ##*****************************************************
 ## FIG.Laz
+#t_on = 0
 #peaks       = [1, 2, 3]#np.linspace(0, 7, 11)
 #stim_dur    = 1000  # 50 # 100 #500
 #inh_conds   = ['nsi'] #['nsi', 'ln', 'noin'] #
-#stim_type_tmp = 'ramp_' #'parabola_' #'step_' # 
+#stim_type_tmp = 'ramp_' #'step_' # 'parabola_' #
 #stim_type   = stim_type_tmp
 #delay2an    = 0
 #peak_ratio  = 1
@@ -310,8 +311,8 @@ def olsen2010_data(all_data_tmp, analysis_par):
 
 #*****************************************************
 # FIG: Olsen-Wilson 2010 / Martelli 2013
-peaks       = np.linspace(0, 7, 11)
-stim_dur    = 100  # 50 # 100 #500
+peaks       = np.linspace(0.7, 7, 10)
+stim_dur    = 500  # 50 # 100 #500
 t_on        = 300  #  500
 inh_conds   = ['noin'] #['nsi', 'ln', 'noin'] #
 stim_type   = 'ss' # 'ss'   # 'ts'
@@ -327,8 +328,8 @@ fld_analysis        = 'Olsen2010_Martelli2013/data'
 fig_orn_al_name     = '/../images/' +'ORN-PN_Olsen2010_timecourse_dur_%d'%stim_dur
 fig_olsen_fit_name  = '/../images/' +'ORN-PN_Olsen2010_dur_%d'%stim_dur
 fig_martelli_name   = '/../images/' +'ORN-Martelli2013_dur_%d'%stim_dur
-orn_al_fig      = 0 # PNORNactivity, time course side
-olsen_fig       = 1 # PNORNactivity, Olsen side
+orn_al_fig      = 1 # PNORNactivity, time course side
+olsen_fig       = 0 # PNORNactivity, Olsen side
 martelli_fig    = 0 # ORN_response, Martelli side
 
 fig_save        = 1
@@ -356,7 +357,7 @@ for stim_seed in [0]:
             rs = 4 # number of rows
             cs = 1 # number of cols
             
-            fig_pn, ax_ornal = plt.subplots(rs, cs, figsize=[7, 7])
+            fig_pn, ax_ornal = plt.subplots(rs, cs, figsize=[8, 8])
             orn_al_settings(ax_ornal)
             
         #******************************************************
@@ -368,7 +369,7 @@ for stim_seed in [0]:
             rs = 2 # number of rows
             cs = 1 # number of cols
             
-            fig_pn_m = plt.figure(figsize=[5, 7])
+            fig_pn_m = plt.figure(figsize=[5.71, 8])
             ax_conc_m = plt.subplot(rs, cs, 1)
             ax_orn_m = plt.subplot(rs, cs, 1+cs)
         
@@ -452,7 +453,7 @@ for stim_seed in [0]:
             
             rs = 2
             cs = 1
-            fig3, axs = plt.subplots(rs,cs, figsize=(7,8), )
+            fig3, axs = plt.subplots(rs,cs, figsize=(8,8), )
             
             plt.rc('text', usetex=True)
             
@@ -476,11 +477,11 @@ for stim_seed in [0]:
             axs[1].set_xlabel(r'concentration [au]', fontsize=label_fs)
             axs[1].legend(loc=0, fontsize=legend_fs, frameon=False)
             
-            if stim_dur == 500:
-                axs[0].text(-.2, 1.1, 'e.', transform=axs[0].transAxes, color=blue,
-                     fontsize=panel_fs, fontweight='bold', va='top', ha='right')
-                axs[1].text(-.2, 1.1, 'f.', transform=axs[1].transAxes,color=blue,
-                     fontsize=panel_fs, fontweight='bold', va='top', ha='right')
+#            if stim_dur == 500:
+            axs[0].text(-.2, 1.1, 'e', transform=axs[0].transAxes, 
+                 fontsize=panel_fs, fontweight='bold', va='top', ha='right')
+            axs[1].text(-.2, 1.1, 'f', transform=axs[1].transAxes,
+                 fontsize=panel_fs, fontweight='bold', va='top', ha='right')
         
             for j in [0,1]:
                 axs[j].tick_params(axis='both', labelsize=label_fs)
@@ -496,3 +497,4 @@ for stim_seed in [0]:
             if fig_save:
                 fig3.savefig(fld_analysis+  fig_olsen_fit_name+'_'+inh_cond+'.png')
         print('')
+

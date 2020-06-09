@@ -46,22 +46,22 @@ stim_seed   = np.nan   # if =np.nan() no traceable random
 verbose     = 0    
 
 
-##***********************************************
-## FIG. ORN_response
-#fld_analysis = 'NSI_analysis/ORN_dynamics' #/sdf_test
-#inh_conds   = ['noin'] 
-#stim_type   = 'ss' # 'ts' # 'ss' # 'rp'# '
-#stim_dur    = 500
-#delay       = 0
-#peaks       = [0.8]
-#peak_ratio  = 1
-#t_tot       = 1200        # ms 
-#orn_fig     = 1
-#al_fig      = 0
-#fig_ui      = 1
-#fig_save    = 0
-#data_save   = 1  
-#al_dyn      = 0
+#***********************************************
+# FIG. ORN_response
+fld_analysis = 'NSI_analysis/ORN_dynamics' #/sdf_test
+inh_conds   = ['noin'] 
+stim_type   = 'ss' # 'ts' # 'ss' # 'rp'# '
+stim_dur    = 500
+delay       = 0
+peaks       = [0.8]
+peak_ratio  = 1
+t_tot       = 1200        # ms 
+orn_fig     = 1
+al_fig      = 0
+fig_ui      = 1
+fig_save    = 1
+data_save   = 1  
+al_dyn      = 0
         
 ##***********************************************
 ## Lazar and Kim data reproduction
@@ -81,21 +81,21 @@ verbose     = 0
 #fig_save        = 0
 #data_save       = 1    
 
-#***********************************************
-# Olsen-Wilson 2010 figure
-fld_analysis = 'Olsen2010_Martelli2013/data'
-inh_conds   = ['noin'] #['nsi', 'ln', 'noin'] #
-stim_type   = 'ss' # 'ss'  # 'ts'
-stim_dur    = 500
-delay       = 0
-peak_ratio  = 1
-peaks       = np.linspace(0,7,11)
-al_dyn      = 1
-orn_fig     = 0
-al_fig      = 0
-fig_ui      = 0      
-fig_save    = 0
-data_save   = 1    
+##***********************************************
+## Olsen-Wilson 2010 figure
+#fld_analysis = 'Olsen2010_Martelli2013/data'
+#inh_conds   = ['noin'] #['nsi', 'ln', 'noin'] #
+#stim_type   = 'ss' # 'ss'  # 'ts'
+#stim_dur    = 500
+#delay       = 0
+#peak_ratio  = 1
+#peaks       = np.linspace(0,7,11)
+#al_dyn      = 1
+#orn_fig     = 0
+#al_fig      = 0
+#fig_ui      = 0      
+#fig_save    = 0
+#data_save   = 1    
     
 ##***********************************************
 ## Fig.ImpulseResponse

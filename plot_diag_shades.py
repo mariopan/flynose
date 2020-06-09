@@ -63,8 +63,8 @@ def orn_al_settings(axs):
         axs[id_row, 2].set_ylim((0, 200))
     
     axs[0, 0].set_title('Input ORN ', fontsize=title_fs)
-    axs[0, 1].set_title(r' ORN  (Hz)', fontsize=title_fs)
-    axs[0, 2].set_title(r' PN  (Hz)', fontsize=title_fs)
+    axs[0, 1].set_title(r' ORN  ', fontsize=title_fs)
+    axs[0, 2].set_title(r' PN  ', fontsize=title_fs)
 
     #%%
     # vertical/horizontal lines for time/Hz scale
@@ -92,8 +92,13 @@ def orn_al_settings(axs):
         axs[2, 1].text(1600, 130, '100 Hz', color=black,rotation=90, fontsize=scale_fs)
     
     if (fig_id=='ts_a') | (fig_id=='pl'):
-        axs[0, 0].text(.05, 1.4, 'a.', transform=axs[0,0].transAxes, 
+        axs[0, 0].text(.05, 1.4, 'a', transform=axs[0,0].transAxes, 
                  fontsize=panel_fs, fontweight='bold', va='top', ha='right')
+    else:
+        axs[0, 2].text(120, 75, 'ctrl', fontsize=scale_fs, fontweight='bold',)
+        axs[1, 2].text(120, 75, 'NSI', fontsize=scale_fs, fontweight='bold',)
+        axs[2, 2].text(120, 75, 'LN', fontsize=scale_fs, fontweight='bold',)
+        
     #%%
         
 def orn_al_plot(all_data_tmp, params2an, inh_cond):
@@ -169,27 +174,32 @@ alpha_ln    = 13.3
 nsi_str     = 0.3
 
 # Stimulus params 
-fig_id = 'pl' # 'ts_s' #  'ts_a' # 'pl'
+fig_id = 'ts_a' # 'ts_s' #  'ts_a' # 'pl'
 if fig_id == 'ts_s':
     stim_type   = 'ts'          # 'ts'  # 'ss' # 'pl'
     delay       = 0    
     t_tot       = 600 +delay       # ms 
     stim_dur    = 50
+    peak        = 1.8 
     # real plumes params
     b_max       = np.nan # 3, 50, 150
     w_max       = np.nan #3, 50, 150
     rho         = np.nan #[0, 1, 3, 5]: 
     stim_seed   = np.nan
+    
 elif fig_id == 'ts_a':
     stim_type   = 'ts'          # 'ts'  # 'ss' # 'pl'
     delay       = 100    
     t_tot       = 600 +delay       # ms 
     stim_dur    = 50
+    peak        = 1.8 
+
     # real plumes params
     b_max       = np.nan # 3, 50, 150
     w_max       = np.nan #3, 50, 150
     rho         = np.nan #[0, 1, 3, 5]: 
     stim_seed   = np.nan
+    
 elif fig_id == 'pl':
     fld_analysis= 'NSI_analysis/real_plumes/example'
     stim_type   = 'pl'          # 'ts'  # 'ss' # 'pl'
@@ -201,9 +211,9 @@ elif fig_id == 'pl':
     w_max       =   3 #3, 50, 150
     rho         =   0 #[0, 1, 3, 5]: 
     stim_seed   = 0
-    
+    peak        = 1.4 
 
-peak        = 1.4 
+    
 peak_ratio  = 1
 pts_ms      = 5
 

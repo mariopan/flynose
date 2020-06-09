@@ -38,7 +38,7 @@ fld_output = 'NSI_analysis/real_plumes/sim_200s_images/'
 stim_dur    =  201000
 
 # ORN NSI params
-nsi_ln_par = [[0,0],[.3,0],[0,16.6],] # [[0,0],[.3,0],[0,13.3],]
+nsi_ln_par = [[0,0],[.2,0],[0,10],] # [[0,0],[.3,0],[0,13.3],]
  
 w_maxs  = [.01,.03,.3, 3, 25, 50, ] # max value in the whiff distribution
 b_maxs  = [25]                      # max value in the blank distribution
@@ -47,10 +47,10 @@ rhos    = [0, 1, 3, 5]
 
 seeds       = np.arange(1, 31)
 
-avg_fig     = 0     # Fig.AverPNActivity
+avg_fig     = 1     # Fig.AverPNActivity
 avgplume_fig = 0    # FigSupp.AverCorr (Supp materials)
-resumen_fig = 0     # Fig.PeakPN_resumen
-thrwmax_fig = 1     # Fig.PeakPN_wmax
+resumen_fig = 1     # Fig.PeakPN_resumen
+thrwmax_fig = 0     # Fig.PeakPN_wmax
 thrs        = [50, 100, 150] # thr
 fig_save    = 1
 fig_name    = 'dur_%d'%stim_dur + \
@@ -248,7 +248,7 @@ if avg_fig:
     ax_pn.spines['right'].set_color('none')
     ax_pn.spines['top'].set_color('none')
     
-    ax_pn.text(.3, 16, 'Indep.', color='magenta', fontsize=label_fs)
+    ax_pn.text(.3, 16, 'ctrl', color='magenta', fontsize=label_fs)
     ax_pn.text(.3, 14, 'NSI', color=blue, fontsize=label_fs)
     ax_pn.text(.3, 12, 'LN', color=orange, fontsize=label_fs)
     
@@ -407,7 +407,7 @@ if resumen_fig:
             # make bigger ticks labels 
 #            axs[id_col].tick_params(axis='both', which='major', labelsize=label_fs)
             
-        axs[0].set_ylabel(r'$p_{ind}^0 - p_x^0$' + '  (unitless)', fontsize=label_fs)
+        axs[0].set_ylabel(r'$p_{ctrl}^0 - p_x^0$' + '  (unitless)', fontsize=label_fs)
         axs[0].text(.03, y_ticks[2]*1.1, 'x=NSI', color=blue, fontsize=label_fs)
         axs[0].text(.03, y_ticks[1]*1.4, 'x=LN', color=orange, fontsize=label_fs)
         
@@ -498,7 +498,7 @@ if thrwmax_fig:
         axs[2].set_xlabel('Observed correlation (unitless)', fontsize=label_fs)
         axs[2].xaxis.set_label_coords(1.1, -.15)
                              
-#        axs[0].text(.3, y_ticks[2], 'Indep.', color='magenta', fontsize=label_fs)
+#        axs[0].text(.3, y_ticks[2], 'ctrl', color='magenta', fontsize=label_fs)
 #        axs[0].text(.3, y_ticks[1], 'NSI', color=blue, fontsize=label_fs)
 #        axs[0].text(.3, y_ticks[0], 'LN', color=orange, fontsize=label_fs)        
     

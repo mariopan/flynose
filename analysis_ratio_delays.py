@@ -63,8 +63,8 @@ def fig_activity():
 fig_save        = 1
 
 id_peak2plot    = 3
-measure         = 'avg' # 'avg' # 'peak' # 
-delay_fig       = 1 # Fig.ResumeDelayedStimuli
+measure         = 'peak' # 'avg' # 'peak' # 
+delay_fig       = 0 # Fig.ResumeDelayedStimuli
 if delay_fig:
     fld_analysis    = 'NSI_analysis/ratio/delays_data'
     fld_output      = 'NSI_analysis/ratio/delays_images'
@@ -87,8 +87,8 @@ nsi_ln_par = nsi_ln_par[:3] # [[0,0],[0.3,0],[0,13.3]]
 
 # *****************************************************************
 # analysis for zero delay:
-ratio_fig        = 0 # Fig.RatioPeak
-resumen_bar     = 0 # Fig.ResumeEncodeRatioBar
+ratio_fig        = 1 # Fig.RatioPeak
+resumen_bar     = 1 # Fig.ResumeEncodeRatioBar
 # *****************************************************************
 
     
@@ -272,14 +272,14 @@ if delay_fig:
         
         if measure=='avg':
             axs[dur_id].errorbar(delays2an, ratio_avg_noin[:, dur_id], 
-               yerr=ratio_avg_noin_err[:, dur_id], color='magenta', lw = lw, label= 'Indep.')
+               yerr=ratio_avg_noin_err[:, dur_id], color='magenta', lw = lw, label= 'ctrl')
             axs[dur_id].errorbar(delays2an, ratio_avg_ln[:, dur_id], 
                yerr=ratio_avg_ln_err[:, dur_id], color=orange, lw = lw, label= 'LN inhib.')
             axs[dur_id].errorbar(delays2an, ratio_avg_nsi[:, dur_id], 
                yerr=ratio_avg_nsi_err[:, dur_id], color=blue, lw = lw, label= 'NSI')    
         elif measure=='peak':        
             axs[dur_id].errorbar(delays2an, ratio_peak_noin[:, dur_id], 
-               yerr=ratio_peak_noin_err[:, dur_id], color='magenta', lw = lw, label= 'Indep.')
+               yerr=ratio_peak_noin_err[:, dur_id], color='magenta', lw = lw, label= 'ctrl')
             axs[dur_id].errorbar(delays2an, ratio_peak_ln[:, dur_id], 
                yerr=ratio_peak_ln_err[:, dur_id], color=orange, lw = lw, label= 'LN inhib.')
             axs[dur_id].errorbar(delays2an, ratio_peak_nsi[:, dur_id],
@@ -403,9 +403,9 @@ if ratio_fig:
                 ll, bb, ww, hh = axs[rr,cc].get_position().bounds
                 axs[rr,cc].set_position([ll+cc*.03, bb+(2-rr)*.03,ww,hh])        
 
-        axs[0,0].set_title('Independent ', fontsize=label_fs)
-        axs[0,1].set_title('AL lateral Inhib.', fontsize=label_fs)
-        axs[0,2].set_title('NSI mechanism', fontsize=label_fs)
+        axs[0,0].set_title('ctrl ', fontsize=label_fs)
+        axs[0,1].set_title('LN', fontsize=label_fs)
+        axs[0,2].set_title('NSI', fontsize=label_fs)
         
 
         for cc in [1,2]:
@@ -446,10 +446,10 @@ if resumen_bar:
     ptns = np.arange(5)
     axs.bar(ptns-width, avg_ratio_peak_noin, width=width, color='magenta', 
             yerr=avg_ratio_peak_noin_std/np.sqrt(n_ratios*n_concs), 
-            label='Indep.', )
+            label='ctrl', )
     axs.bar(ptns, avg_ratio_peak_ln, width=width, color=orange, 
             yerr=avg_ratio_peak_ln_std/np.sqrt(n_ratios*n_concs), 
-            label='AL inh.', )
+            label='LN', )
     axs.bar(ptns+width, avg_ratio_peak_nsi, width=width, color=blue, 
             yerr=avg_ratio_peak_nsi_std/np.sqrt(n_ratios*n_concs), 
             label='NSI', )
@@ -459,15 +459,17 @@ if resumen_bar:
     axs.spines['top'].set_color('none')                
 
 #    axs.legend(fontsize=label_fs,loc='upper left', frameon=False)
-    axs.set_ylabel('coding error (au)', fontsize=label_fs)
+    axs.set_ylabel('coding error (a.u.)', fontsize=label_fs)
     axs.set_xlabel('stimulus duration (ms)', fontsize=label_fs)        
     axs.tick_params(axis='both', which='major', labelsize=label_fs-3)
     axs.set_xticks(ptns)
     axs.set_xticklabels(dur2an, fontsize=label_fs-3)
+    axs.set_yticks([0,.1,.2,.3,.4,.5])
+    axs.set_yticklabels([0,.1,.2,.3,.4,.5], fontsize=label_fs-3)
 
     axs.text(-.15, 1.0, 'g', transform=axs.transAxes, 
              fontsize=panel_fs, fontweight='bold', va='top', ha='right')
-    axs.text(.3, y_ticks[2], 'Indep.', color='magenta', fontsize=label_fs)
+    axs.text(.3, y_ticks[2], 'ctrl', color='magenta', fontsize=label_fs)
     axs.text(.3, y_ticks[1], 'NSI', color=blue, fontsize=label_fs)
     axs.text(.3, y_ticks[0], 'LN', color=orange, fontsize=label_fs)
     # original plot position:

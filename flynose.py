@@ -156,6 +156,7 @@ fig_size = [12, 12]
 fig_position = 1300,10
 title_fs = 20 # font size of ticks
 label_fs = 20 # font size of labels
+ticks_fs = label_fs - 3
 panel_fs = 30 # font size of panel's letter
 black   = 'xkcd:black'
 blue    = 'xkcd:blue'
@@ -535,7 +536,7 @@ def main(params2an, fig_opts):
         if ext_stimulus:
             t2plot = 0, t_tot
             
-        panels_id = ['a.', 'b.', 'c.', 'd.']
+        panels_id = ['a', 'b', 'c', 'd']
         fig_orn = plt.figure(figsize=[8.5, 8])
 #        fig_orn.canvas.manager.window.wm_geometry("+%d+%d" % fig_position )
         fig_orn.tight_layout()
@@ -576,33 +577,41 @@ def main(params2an, fig_opts):
         ax_orn_sc.scatter(spikes_orn_1[:,0]/pts_ms-t_on, 
                         num_orns_glo+spikes_orn_1[:,1], color=green, s=10)
 
-
-        ax_orn1.tick_params(axis='both', which='major', labelsize=label_fs-5)
-        ax_orn2.tick_params(axis='both', which='major', labelsize=label_fs-5)
-        ax_orn3.tick_params(axis='both', which='major', labelsize=label_fs-5)
-        ax_orn4.tick_params(axis='both', which='major', labelsize=label_fs-5)
-        ax_orn_fr.tick_params(axis='both', which='major', labelsize=label_fs-5)
-        ax_orn_sc.tick_params(axis='both', which='major', labelsize=label_fs-5)
+        # FIGURE SETTINGS
+        ax_orn1.tick_params(axis='both', which='major', labelsize=ticks_fs)
+        ax_orn2.tick_params(axis='both', which='major', labelsize=ticks_fs)
+        ax_orn3.tick_params(axis='both', which='major', labelsize=ticks_fs)
+        ax_orn4.tick_params(axis='both', which='major', labelsize=ticks_fs)
+        ax_orn_fr.tick_params(axis='both', which='major', labelsize=ticks_fs)
+        ax_orn_sc.tick_params(axis='both', which='major', labelsize=ticks_fs)
+        
+        ax_orn1.set_xticklabels('')
+        ax_orn2.set_xticklabels('')
+        ax_orn3.set_xticklabels('')
+        ax_orn4.set_xticklabels('')
+#        ax_orn_fr.set_xticklabels('')
+        ax_orn_sc.set_xticklabels('')
+        
         
         ax_orn1.yaxis.label.set_color(green)
-        ax_orn1.set_ylabel('Odor \n concentration', fontsize=label_fs)
+        ax_orn1.set_ylabel('Input (a.u.)', fontsize=label_fs)
         ax_orn2.yaxis.label.set_color(col_glo[0,:]/2)
-        ax_orn2.set_ylabel(r'r ', fontsize=label_fs)
+        ax_orn2.set_ylabel(r'r (a.u.) ', fontsize=label_fs)
         ax_orn3.yaxis.label.set_color(green)
-        ax_orn3.set_ylabel(r'y ', fontsize=label_fs)
+        ax_orn3.set_ylabel(r'y (a.u.)', fontsize=label_fs)
         ax_orn4.yaxis.label.set_color(col_glo[1,:]/2)
-        ax_orn4.set_ylabel(r'x ', fontsize=label_fs)
+        ax_orn4.set_ylabel(r'x (a.u.)', fontsize=label_fs)
         ax_orn_fr.set_ylabel('firing rates (Hz)', fontsize=label_fs)
         ax_orn_fr.set_xlabel('Time  (ms)', fontsize=label_fs) 
         ax_orn_sc.set_ylabel('Neuron id', fontsize=label_fs)
 
-        ax_orn1.text(-.15, 1.25, panels_id[0], transform=ax_orn1.transAxes, color=blue,
+        ax_orn1.text(-.15, 1.25, panels_id[0], transform=ax_orn1.transAxes, 
                           fontsize=panel_fs, fontweight='bold', va='top', ha='right')
-        ax_orn3.text(-.15, 1.25, panels_id[1], transform=ax_orn3.transAxes, color=blue,
+        ax_orn3.text(-.15, 1.25, panels_id[1], transform=ax_orn3.transAxes, 
                           fontsize=panel_fs, fontweight='bold', va='top', ha='right')
-        ax_orn_sc.text(-.15, 1.25, panels_id[2], transform=ax_orn_sc.transAxes, color=blue,
+        ax_orn_sc.text(-.15, 1.25, panels_id[2], transform=ax_orn_sc.transAxes,
                           fontsize=panel_fs, fontweight='bold', va='top', ha='right')
-        ax_orn_fr.text(-.15, 1.25, panels_id[3], transform=ax_orn_fr.transAxes, color=blue,
+        ax_orn_fr.text(-.15, 1.25, panels_id[3], transform=ax_orn_fr.transAxes, 
                           fontsize=panel_fs, fontweight='bold', va='top', ha='right')
         
         ax_orn1.spines['top'].set_color('none')
@@ -617,7 +626,7 @@ def main(params2an, fig_opts):
         ll, bb, ww, hh = ax_orn1.get_position().bounds
         ww_new = ww - 0.04
         bb_plus = 0.015
-        ll_new = ll+.05
+        ll_new = ll+.025
         ax_orn1.set_position([ll_new, bb+2*bb_plus, ww_new, hh])
         ll, bb, ww, hh = ax_orn2.get_position().bounds
         ax_orn2.set_position([ll_new, bb+2*bb_plus, ww_new, hh])
@@ -642,17 +651,7 @@ def main(params2an, fig_opts):
                 orn_fig_name = '/ORN_' + params2an[7] + '.png'
             else:
                 #%%
-                if stim_type == 'ts':
-                    orn_fig_name = '/ORNdyn' + \
-                            '_stim_' + stim_type +\
-                            '_nsi_%.1f'%(params2an[0]) +\
-                            '_lnspH_%.2f'%(params2an[1]) +\
-                            '_dur2an_%d'%(t_off-t_on) +\
-                            '_delay2an_%d'%(t_on2-t_on) +\
-                            '_peak_%.1f'%(peak1) +\
-                            '_peakratio_%.1f'%(peak1/peak2) +\
-                            '.png'
-                elif stim_type == 'pl':
+                if stim_type == 'pl':
                     orn_fig_name = '/ORNdyn' + \
                                 '_stim_' + stim_type +\
                                 '_nsi_%.1f'%(params2an[0]) +\
@@ -665,6 +664,16 @@ def main(params2an, fig_opts):
                                 '_wmax_%.1g'%(plume_params[1]) +\
                                 '_bmax_%.1g'%(plume_params[2]) +\
                                 '.png'
+                else:
+                    orn_fig_name = '/ORNdyn' + \
+                            '_stim_' + stim_type +\
+                            '_nsi_%.1f'%(params2an[0]) +\
+                            '_lnspH_%.2f'%(params2an[1]) +\
+                            '_dur2an_%d'%(t_off-t_on) +\
+                            '_delay2an_%d'%(t_on2-t_on) +\
+                            '_peak_%.1f'%(peak1) +\
+                            '_peakratio_%.1f'%(peak1/peak2) +\
+                            '.png'
             fig_orn.savefig(fld_analysis + orn_fig_name)
     # ******************************************************************
     
