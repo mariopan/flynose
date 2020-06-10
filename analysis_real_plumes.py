@@ -38,7 +38,7 @@ fld_output = 'NSI_analysis/real_plumes/sim_200s_images/'
 stim_dur    =  201000
 
 # ORN NSI params
-nsi_ln_par = [[0,0],[.2,0],[0,10],] # [[0,0],[.3,0],[0,13.3],]
+nsi_ln_par = [[0,0],[.3,0],[0,16.6],] # [[0,0],[.3,0],[0,13.3],]
  
 w_maxs  = [.01,.03,.3, 3, 25, 50, ] # max value in the whiff distribution
 b_maxs  = [25]                      # max value in the blank distribution
@@ -49,7 +49,7 @@ seeds       = np.arange(1, 31)
 
 avg_fig     = 1     # Fig.AverPNActivity
 avgplume_fig = 0    # FigSupp.AverCorr (Supp materials)
-resumen_fig = 1     # Fig.PeakPN_resumen
+resumen_fig = 0     # Fig.PeakPN_resumen
 thrwmax_fig = 0     # Fig.PeakPN_wmax
 thrs        = [50, 100, 150] # thr
 fig_save    = 1
@@ -199,7 +199,7 @@ for seed_id, stim_seed in enumerate(seeds):
 ## FIGURE Fig.AverPNActivity
 ## **********************************************************
 if avg_fig:
-    fig2 = plt.figure(figsize=(12,4), ) 
+    fig2 = plt.figure(figsize=(9,4), ) 
     rs = 1
     cs = 2
     lw = 4

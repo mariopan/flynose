@@ -63,18 +63,20 @@ def fig_activity():
 fig_save        = 1
 
 id_peak2plot    = 3
-measure         = 'peak' # 'avg' # 'peak' # 
-delay_fig       = 0 # Fig.ResumeDelayedStimuli
+measure         = 'avg' # 'avg' # 'peak' # 
+delay_fig       = 1 # Fig.ResumeDelayedStimuli
+nsi_ln_par   = [[0,0],[0.3,0],[0,16.6]]
+
 if delay_fig:
     fld_analysis    = 'NSI_analysis/ratio/delays_data'
-    fld_output      = 'NSI_analysis/ratio/delays_images'
+    fld_output      = 'NSI_analysis/ratio/delays_images_nsi0.3_ln16.6'
 else:
     fld_analysis    = 'NSI_analysis/ratio/ratio_trials_data'
-    fld_output      = 'NSI_analysis/ratio/ratio_trials_images'
+    fld_output      = 'NSI_analysis/ratio/ratio_trials_images_nsi0.3_ln10.0'
 
 # LOAD EXPERIMENT PARAMETERS
 batch_params    = pickle.load(open(fld_analysis+'/batch_params.pickle', "rb" ))
-[n_loops, conc_ratios, concs2an, nsi_ln_par, dur2an, delays2an,] = batch_params
+[n_loops, conc_ratios, concs2an, _, dur2an, delays2an,] = batch_params
 
 if delay_fig==0:
     delays2an=[0,]
@@ -83,12 +85,13 @@ n_delays        = np.size(delays2an)
 n_ratios        = np.size(conc_ratios)
 n_concs         = np.size(concs2an)
 # select a subsample of the params to analyse
-nsi_ln_par = nsi_ln_par[:3] # [[0,0],[0.3,0],[0,13.3]]
+#%%
+#nsi_ln_par = nsi_ln_par[:3] # [[0,0],[0.3,0],[0,13.3]]
 
 # *****************************************************************
 # analysis for zero delay:
-ratio_fig        = 1 # Fig.RatioPeak
-resumen_bar     = 1 # Fig.ResumeEncodeRatioBar
+ratio_fig       = 0 # Fig.RatioPeak
+resumen_bar     = 0 # Fig.ResumeEncodeRatioBar
 # *****************************************************************
 
     

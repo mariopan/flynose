@@ -25,6 +25,7 @@ title_fs = 18 # font size of title
 label_fs = 20 # font size of labels
 panel_fs = 30 # font size of panel' letters
 legend_fs = 12
+scale_fs = label_fs-5
 
 black   = 'xkcd:black'
 blue    = 'xkcd:blue'
@@ -62,13 +63,13 @@ def orn_al_settings(axs):
         axs[id_row, 1].set_ylim((0, 200))
         axs[id_row, 2].set_ylim((0, 200))
     
-    axs[0, 0].set_title('Input ORN ', fontsize=title_fs)
+    axs[0, 0].set_title('Input ', fontsize=title_fs)
     axs[0, 1].set_title(r' ORN  ', fontsize=title_fs)
     axs[0, 2].set_title(r' PN  ', fontsize=title_fs)
 
     #%%
     # vertical/horizontal lines for time/Hz scale
-    scale_fs = label_fs-5
+    
     if fig_id=='ts_s':
         # horizontal line
         axs[2, 1].plot([100, 150], [50, 50], color=black) 
@@ -94,10 +95,16 @@ def orn_al_settings(axs):
     if (fig_id=='ts_a') | (fig_id=='pl'):
         axs[0, 0].text(.05, 1.4, 'a', transform=axs[0,0].transAxes, 
                  fontsize=panel_fs, fontweight='bold', va='top', ha='right')
+    if fig_id=='ts_a':
+        x4text = 280
+    elif fig_id=='ts_s':
+        x4text = 190
     else:
-        axs[0, 2].text(120, 75, 'ctrl', fontsize=scale_fs, fontweight='bold',)
-        axs[1, 2].text(120, 75, 'NSI', fontsize=scale_fs, fontweight='bold',)
-        axs[2, 2].text(120, 75, 'LN', fontsize=scale_fs, fontweight='bold',)
+        x4text = 4000
+    #%%
+    axs[0, 2].text(x4text, 75, 'ctrl', fontsize=scale_fs, fontweight='bold',rotation=90)
+    axs[1, 2].text(x4text, 75, 'NSI', fontsize=scale_fs, fontweight='bold',rotation=90)
+    axs[2, 2].text(x4text, 75, 'LN', fontsize=scale_fs, fontweight='bold', rotation=90)
         
     #%%
         
@@ -174,7 +181,7 @@ alpha_ln    = 13.3
 nsi_str     = 0.3
 
 # Stimulus params 
-fig_id = 'ts_a' # 'ts_s' #  'ts_a' # 'pl'
+fig_id = 'pl' # 'ts_s' #  'ts_a' # 'pl'
 if fig_id == 'ts_s':
     stim_type   = 'ts'          # 'ts'  # 'ss' # 'pl'
     delay       = 0    
