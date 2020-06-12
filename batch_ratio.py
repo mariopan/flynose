@@ -18,8 +18,12 @@ import matplotlib.pyplot as plt
 import flynose
 import sdf_krofczik
 
+nsi_ln_par      =  [[0,3.3],[0,6.6],] #[[0,0],[.3,0],[0,13.3],[.4,0],[0,10],[.2,0],[0,16.6]]
+nsi_ln_id = 0#int(sys.argv[1])-1 # jobs run only starting from 1 ...
+
+
 delays2an   = [0, ]#10, 20, 50, 100, 200, 500,]
-delay_id    = 0#int(sys.argv[1])-1 # jobs run only starting from 1 ...
+delay_id    = 0 
 delay       = delays2an[delay_id]
 
 #%%
@@ -30,14 +34,13 @@ now = datetime.datetime.now()
 n_loops         =  50
 n_ratios        =  10
 n_concs         =  4
-nsi_ln_par      = [[0,0],[.3,0],[0,13.3],[.4,0],[0,10],[.2,0],[0,16.6]]
 dur2an          =  [10, 20, 50, 100, 200]
 peak2an         =  np.linspace(.2, 1.4, n_concs)
 pr2an           =  np.linspace(1, 20, n_ratios)
 
 n_durs           = np.size(dur2an)
 
-sims_to_run = len(nsi_ln_par)*n_loops*n_concs*n_ratios*n_durs
+sims_to_run = n_loops*n_concs*n_ratios*n_durs
 print('Number of Simulations to run: %d '%sims_to_run)
 
 # approximately 3 secs per run:
@@ -84,7 +87,6 @@ data_save   = 0
 fig_opts    = [orn_fig, al_fig, fig_ui, fig_save, data_save, al_dyn, 
             verbose, fld_analysis] 
 
-
 num_pns_glo         = 5     # number of PNs per each glomerulus
 num_orns_glo        = 40    # number of ORNs per each glomerulus
 
@@ -103,7 +105,7 @@ date_str = now.strftime("%Y%m%d")
 copyfile('flynose.py', 'flynose.' + date_str + '.py') 
 copyfile('batch_flynose_ratio2.py', 'batch_flynose_ratio2.' + date_str + '.py') 
 
-for nsi_str, alpha_ln in nsi_ln_par:
+for nsi_str, alpha_ln in [nsi_ln_par[nsi_ln_id]]:
     data_name = 'ratio_nsi_%.2f_ln_%.1f_delay_%d'%(nsi_str, alpha_ln, delay)
     print(data_name)
     for peak_id, peak in enumerate(peak2an):

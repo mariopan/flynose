@@ -22,6 +22,8 @@ fig_position = 1300,10
 title_fs = 20 # font size of ticks
 label_fs = 20 # font size of labels
 panel_fs = 30 # font size of panel letters
+ticks_fs = label_fs - 3
+
 black   = 'xkcd:black'
 blue    = 'xkcd:blue'
 red     = 'xkcd:red'
@@ -33,7 +35,50 @@ magenta = 'xkcd:magenta'
 
 # *******************************************************************
 # Figure of the average activity for weak and strong input
+def fig_pn_distr():
+    id_conc = 0
+    id_dur = 0
+    n_bins  = 20
+    for id_ratio in [0, 3, 9]:
+        
+        # pn_peak_s_noin: (n_ratios, n_concs,n_durs, n_loops)
+        noin_s = np.squeeze(pn_peak_s_noin[id_ratio, id_conc, id_dur,:])
+        noin_w = np.squeeze(pn_peak_w_noin[id_ratio, id_conc, id_dur,:])
+        ln_s = np.squeeze(pn_peak_s_ln[id_ratio, id_conc, id_dur,:])
+        ln_w = np.squeeze(pn_peak_w_ln[id_ratio, id_conc, id_dur,:])
+        nsi_s = np.squeeze(pn_peak_s_nsi[id_ratio, id_conc, id_dur,:])
+        nsi_w = np.squeeze(pn_peak_w_nsi[id_ratio, id_conc, id_dur,:])
+        
+        rs = 3
+        cs = 1
+        fig, axs = plt.subplots(rs, cs, figsize=[9,4.5])
+        n_tmp, _, _ = axs[0].hist(noin_s, bins=n_bins, label='ctrl s', 
+                                 color=green, alpha=.5, density=True,)  
+        n_tmp, _, _ = axs[0].hist(noin_w, bins=n_bins, label='ctrl w', 
+                                 color=purple, alpha=.5, density=True,)  
+        n_tmp, _, _ = axs[1].hist(ln_s, bins=n_bins, label='ctrl s', 
+                                 color=green, alpha=.5, density=True,)  
+        n_tmp, _, _ = axs[1].hist(ln_w, bins=n_bins, label='ctrl w', 
+                                 color=purple, alpha=.5, density=True,)  
+        n_tmp, _, _ = axs[2].hist(nsi_s, bins=n_bins, label='ctrl s', 
+                                 color=green, alpha=.5, density=True,)  
+        n_tmp, _, _ = axs[2].hist(nsi_w, bins=n_bins, label='ctrl w', 
+                                 color=purple, alpha=.5, density=True,)  
+        
+        axs[0].set_title('conc:%.1f'%concs2an[id_conc]+
+           ', ratio:%.1f'%conc_ratios[id_ratio]+', dur:%d'%dur2an[id_dur],fontsize=title_fs)
+        axs[0].set_ylabel('ctrl',fontsize=label_fs)
+        axs[1].set_ylabel('LN',fontsize=label_fs)
+        axs[2].set_ylabel('NSI',fontsize=label_fs)
+        if fig_save:
+            fig.savefig(fld_output+  '/PN_distr_delays0_conc%.1f'%concs2an[id_conc]+\
+           '_ratio%.1f'%conc_ratios[id_ratio]+'_dur:%d'%dur2an[id_dur]+'.png')
+    
+    
+# *******************************************************************
+# Figure of the average activity for weak and strong input
 def fig_activity():
+    # pn_peak_s_noin: (n_ratios, n_concs,n_durs, n_loops)
     noin_s = np.squeeze(np.median(pn_peak_s_noin, axis=3))
 #    ln_s = np.squeeze(np.median(pn_peak_s_ln, axis=3))
 #    nsi_s = np.squeeze(np.median(pn_peak_s_nsi, axis=3))
@@ -63,16 +108,22 @@ def fig_activity():
 fig_save        = 1
 
 id_peak2plot    = 3
-measure         = 'avg' # 'avg' # 'peak' # 
-delay_fig       = 1 # Fig.ResumeDelayedStimuli
-nsi_ln_par   = [[0,0],[0.3,0],[0,16.6]]
+measure         = 'peak' # 'avg' # 'peak' # 
+delay_fig       = 0 # Fig.ResumeDelayedStimuli
+# select a subsample of the params to analyse
+nsi_ln_par   = [[0,0],[0.3,0],[0,13.3]] 
+            # [[0,0],[0.3,0],[0,16.6]] 
+            # [[0,0],[0.3,0],[0,13.3]] 
+            # [[0,0],[0.3,0],[0,10]]
 
 if delay_fig:
     fld_analysis    = 'NSI_analysis/ratio/delays_data'
-    fld_output      = 'NSI_analysis/ratio/delays_images_nsi0.3_ln16.6'
+    fld_output      = 'NSI_analysis/ratio/delays_images_nsi%.1f'%nsi_ln_par[1][0]+\
+                        '_ln%.1f'%nsi_ln_par[2][1]
 else:
     fld_analysis    = 'NSI_analysis/ratio/ratio_trials_data'
-    fld_output      = 'NSI_analysis/ratio/ratio_trials_images_nsi0.3_ln10.0'
+    fld_output      = 'NSI_analysis/ratio/ratio_trials_images_nsi%.1f'%nsi_ln_par[1][0]+\
+                        '_ln%.1f'%nsi_ln_par[2][1]
 
 # LOAD EXPERIMENT PARAMETERS
 batch_params    = pickle.load(open(fld_analysis+'/batch_params.pickle', "rb" ))
@@ -84,14 +135,15 @@ n_durs          = np.size(dur2an)
 n_delays        = np.size(delays2an)
 n_ratios        = np.size(conc_ratios)
 n_concs         = np.size(concs2an)
-# select a subsample of the params to analyse
-#%%
-#nsi_ln_par = nsi_ln_par[:3] # [[0,0],[0.3,0],[0,13.3]]
+
 
 # *****************************************************************
 # analysis for zero delay:
 ratio_fig       = 0 # Fig.RatioPeak
+resumen_chess   = 0 # Fig.ResumeEncodeRatioChess
+pn_chess        = 0 # Fig.PNChess
 resumen_bar     = 0 # Fig.ResumeEncodeRatioBar
+pn_distr        = 1 # 
 # *****************************************************************
 
     
@@ -164,8 +216,10 @@ for delay_id, delay in enumerate(delays2an):
             
         elif (alpha_ln>0) & (nsi_str>0):
             print(params2an[0:2])
-#    fig_activity()    
-    
+#    if delay_fig:
+#       fig_activity()    
+    if pn_distr: 
+        fig_pn_distr()
     #(n_ratios, n_concs,n_durs, n_loops)
     orn_ratio_avg_nsi   = np.ma.masked_invalid(orn_avg_s_nsi/orn_avg_w_nsi)
     orn_ratio_avg_ln    = np.ma.masked_invalid(orn_avg_s_ln/orn_avg_w_ln)
@@ -209,7 +263,7 @@ for delay_id, delay in enumerate(delays2an):
             ratio1_nsi  = np.median(orn_ratio_avg_nsi, axis=3)
             ratio1_ln   = np.median(orn_ratio_avg_ln, axis=3)
             
-            ratio1_err_noin = np.squeeze(np.diff(np.percentile(orn_ratio_avg_noin, [25, 50],axis=3), axis=0))
+            ratio1_err_noin = np.squeeze(np.diff(np.percentile(orn_ratio_avg_noin, [25,50],axis=3), axis=0))
             ratio1_err_nsi = np.squeeze(np.diff(np.percentile(orn_ratio_avg_nsi,  [25,50],axis=3), axis=0)) 
             ratio1_err_ln = np.squeeze(np.diff(np.percentile(orn_ratio_avg_ln,  [25,50],axis=3), axis=0)) 
             
@@ -218,7 +272,7 @@ for delay_id, delay in enumerate(delays2an):
             ratio2_nsi  = np.median(pn_ratio_avg_nsi, axis=3)
             ratio2_ln   = np.median(pn_ratio_avg_ln, axis=3)
             
-            ratio2_err_noin = np.squeeze(np.diff(np.percentile(pn_ratio_avg_noin, [25, 50],axis=3), axis=0))#np.std(pn_ratio_peak_noin, axis=3)
+            ratio2_err_noin = np.squeeze(np.diff(np.percentile(pn_ratio_avg_noin, [25,50],axis=3), axis=0))#np.std(pn_ratio_peak_noin, axis=3)
             ratio2_err_nsi = np.squeeze(np.diff(np.percentile(pn_ratio_avg_nsi,  [25,50],axis=3), axis=0)) #np.std(pn_ratio_peak_nsi, axis=3)
             ratio2_err_ln = np.squeeze(np.diff(np.percentile(pn_ratio_avg_ln,  [25,50],axis=3), axis=0)) #np.std(pn_ratio_peak_ln, axis=3)  
                 
@@ -234,7 +288,7 @@ for delay_id, delay in enumerate(delays2an):
             ratio1_nsi  = np.median(orn_ratio_peak_nsi, axis=3)
             ratio1_ln   = np.median(orn_ratio_peak_ln, axis=3)
             
-            ratio1_err_noin = np.squeeze(np.diff(np.percentile(orn_ratio_peak_noin, [25, 50],axis=3), axis=0))#np.std(pn_ratio_peak_noin, axis=3)
+            ratio1_err_noin = np.squeeze(np.diff(np.percentile(orn_ratio_peak_noin, [25,50],axis=3), axis=0))#np.std(pn_ratio_peak_noin, axis=3)
             ratio1_err_nsi = np.squeeze(np.diff(np.percentile(orn_ratio_peak_nsi,  [25,50],axis=3), axis=0)) #np.std(pn_ratio_peak_nsi, axis=3)
             ratio1_err_ln = np.squeeze(np.diff(np.percentile(orn_ratio_peak_ln,  [25,50],axis=3), axis=0)) #np.std(pn_ratio_peak_ln, axis=3)  
             
@@ -243,7 +297,7 @@ for delay_id, delay in enumerate(delays2an):
             ratio2_nsi  = np.median(pn_ratio_peak_nsi, axis=3)
             ratio2_ln   = np.median(pn_ratio_peak_ln, axis=3)
             
-            ratio2_err_noin = np.squeeze(np.diff(np.percentile(pn_ratio_peak_noin, [25, 50],axis=3), axis=0))#np.std(pn_ratio_peak_noin, axis=3)
+            ratio2_err_noin = np.squeeze(np.diff(np.percentile(pn_ratio_peak_noin, [25,50],axis=3), axis=0))#np.std(pn_ratio_peak_noin, axis=3)
             ratio2_err_nsi = np.squeeze(np.diff(np.percentile(pn_ratio_peak_nsi,  [25,50],axis=3), axis=0)) #np.std(pn_ratio_peak_nsi, axis=3)
             ratio2_err_ln = np.squeeze(np.diff(np.percentile(pn_ratio_peak_ln,  [25,50],axis=3), axis=0)) #np.std(pn_ratio_peak_ln, axis=3)  
                 
@@ -264,6 +318,66 @@ for delay_id, delay in enumerate(delays2an):
         ratio2dist_err_nsi = np.ma.std(nsi_tmp, axis=0).T
         ratio2dist_err_ln = np.ma.std(ln_tmp, axis=0).T
         
+#%%***********************************************************
+# FIGURE PNChess
+# Figure of the average activity for weak and strong input
+# **********************************************************
+if pn_chess:
+    for dur_id, duration in enumerate(dur2an[:1]):
+        # *******************************************************************
+        # pn_peak_s_noin: (n_ratios, n_concs,n_durs, n_loops)
+        noin_s = np.median(pn_peak_s_noin[:,:,dur_id, :], axis=2)
+        ln_s = np.median(pn_peak_s_ln[:,:,dur_id, :], axis=2)
+        nsi_s =np.median(pn_peak_s_nsi[:,:,dur_id, :], axis=2)
+        
+        noin_w = np.median(pn_peak_w_noin[:,:,dur_id, :], axis=2)
+        ln_w = np.median(pn_peak_w_ln[:,:,dur_id, :], axis=2)
+        nsi_w = np.median(pn_peak_w_nsi[:,:,dur_id, :], axis=2)
+        
+        ratio2plot = np.round(conc_ratios[::2])
+        conc2plot = concs2an[::1]
+        
+        rs = 3
+        cs = 2
+        fig, axs = plt.subplots(rs, cs, figsize=(9, 6), ) 
+        
+        axs[0,0].set_title('PN strong, delay=%d'%delay)
+        axs[0,1].set_title('PN weak')
+
+        axs[0,0].set_ylabel('ctrl')
+        axs[1,0].set_ylabel('ln')
+        axs[2,0].set_ylabel('nsi')
+        
+        im0 = axs[0,0].imshow(noin_s.T, cmap='viridis')
+        fig.colorbar(im0, ax=axs[0,0])
+        
+        im1 = axs[0, 1].imshow(noin_w.T, cmap='viridis')
+        fig.colorbar(im1, ax=axs[0,1])
+        
+        im0 = axs[1, 0].imshow(ln_s.T, cmap='viridis')
+        fig.colorbar(im0, ax=axs[1,0])
+        
+        im1 = axs[1, 1].imshow(ln_w.T, cmap='viridis')
+        fig.colorbar(im1, ax=axs[1,1])
+        
+        im0 = axs[2, 0].imshow(nsi_s.T, cmap='viridis')
+        fig.colorbar(im0, ax=axs[2,0])
+        
+        im1 = axs[2, 1].imshow(nsi_w.T, cmap='viridis')
+        fig.colorbar(im1, ax=axs[2,1])
+        
+        for c_id in range(cs):
+            for r_id in range(rs):
+                axs[r_id,c_id].set_xticks(range(0,10,2))
+                axs[r_id,c_id].set_xticklabels(ratio2plot)
+                axs[r_id,c_id].set_yticks(range(4))
+                axs[r_id,c_id].set_yticklabels(conc2plot)
+        
+        if fig_save:
+            fig.savefig(fld_output+  '/PN_delays0_dur%d'%duration+'.png')
+
+
+
 #%%***********************************************************
 ## FIGURE ResumeDelayedStimuli
 ## **********************************************************
@@ -431,6 +545,74 @@ if ratio_fig:
 
 #%% ************************************************************************
 # RESUME BAR FIGURE
+if resumen_chess:
+    # average over conc.ratio and concentrations
+    err_code_nsi = np.mean(ratio2dist_nsi, axis=(0))
+    err_code_ln = np.mean(ratio2dist_ln, axis=(0))
+    err_code_noin = np.mean(ratio2dist_noin, axis=(0))
+    
+    rs = 1
+    cs = 3
+    vmax = 0.4
+#    colorbar params
+    frac = .1 #.04
+    pad = .04
+    
+    fig, axs = plt.subplots(rs, cs, figsize=(11, 3),) 
+
+    ptns = np.arange(5)
+    im0 = axs[0].imshow(err_code_noin, cmap='viridis', vmin=0, vmax=vmax)
+#    fig.colorbar(im0, ax=axs[0], fraction=frac, pad=pad)
+    
+    im1 = axs[1].imshow(err_code_ln, cmap='viridis', vmin=0, vmax=vmax)
+#    fig.colorbar(im0, ax=axs[1], fraction=frac, pad=pad)
+    
+    im2 = axs[2].imshow(err_code_nsi, cmap='viridis', vmin=0, vmax=vmax)
+    cbar = fig.colorbar(im0, ax=axs[2], fraction=.05,pad=pad,orientation='vertical', 
+                 ticks=[0, .2, .4])
+    cbar.set_ticklabels([0, .2, .4])
+    cbar.set_label('code error', fontsize=label_fs)
+    
+    ticklabs = cbar.ax.get_yticklabels()
+    cbar.ax.set_yticklabels(ticklabs, fontsize=ticks_fs)
+    
+    # FIGURE SETTINGS
+    axs[0].set_title('ctrl', fontsize=title_fs)
+    axs[1].set_title('LN', fontsize=title_fs)
+    axs[2].set_title('NSI', fontsize=title_fs)
+    
+    dur2plot = np.round(dur2an[::1])
+    conc2plot = concs2an[::1]
+    for c_id in range(cs):
+        axs[c_id].set_xticks(range(n_durs))
+        axs[c_id].set_xticklabels(dur2plot, fontsize= ticks_fs)
+        axs[c_id].set_yticks(range(n_concs))
+        axs[c_id].set_yticklabels('', fontsize= ticks_fs)      
+        
+        axs[c_id].set_xlabel('duration (ms)', fontsize= label_fs)
+    axs[0].set_yticklabels(conc2plot, fontsize= ticks_fs)  
+    axs[0].set_ylabel('input (a.u.)', fontsize= label_fs)
+    
+    
+#    # move plot position:
+    ll, bb, ww, hh = axs[0].get_position().bounds
+    axs[0].set_position([ll-.05, bb+.07,ww,hh])    
+    ll, bb, ww, hh = axs[1].get_position().bounds
+    axs[1].set_position([ll-.05, bb+.07,ww,hh])        
+    
+    db=.005
+    ll2, bb2, ww2, hh2 = axs[2].get_position().bounds
+    axs[2].set_position([ll+ww, bb+.07, ww+db, hh+db])
+        
+    if fig_save:
+        if measure == 'peak':
+            fig.savefig(fld_output + '/ratio_stim_peak_resumechess_durs_delay%d'%delay+'.png')
+        elif measure == 'avg':    
+            fig.savefig(fld_output + '/ratio_stim_avg_resumechess_durs_delay%d'%delay+'.png')
+            
+            
+#%% ************************************************************************
+# RESUME BAR FIGURE
 if resumen_bar:
     # average over conc.ratio and concentrations
     avg_ratio_peak_nsi = np.mean(ratio2dist_nsi, axis=(0,1))
@@ -475,7 +657,7 @@ if resumen_bar:
     axs.text(.3, y_ticks[2], 'ctrl', color='magenta', fontsize=label_fs)
     axs.text(.3, y_ticks[1], 'NSI', color=blue, fontsize=label_fs)
     axs.text(.3, y_ticks[0], 'LN', color=orange, fontsize=label_fs)
-    # original plot position:
+    # move plot position:
     ll, bb, ww, hh = axs.get_position().bounds
     axs.set_position([ll+.05,bb+.07,ww,hh])        
     
