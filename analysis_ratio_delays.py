@@ -141,14 +141,13 @@ n_concs         = np.size(concs2an)
 # analysis for zero delay:
 ratio_fig       = 0 # Fig.RatioPeak
 resumen_chess   = 0 # Fig.ResumeEncodeRatioChess
-pn_chess        = 0 # Fig.PNChess
+pn_chess        = 1 # Fig.PNChess
 resumen_bar     = 0 # Fig.ResumeEncodeRatioBar
-pn_distr        = 1 # 
+pn_distr        = 0 # Fig.PNdistribution
 # *****************************************************************
 
     
 # *****************************************************************
-
 # IMPLEMENT OUTPUT VARIABLES
 if delay_fig:
 
@@ -318,64 +317,6 @@ for delay_id, delay in enumerate(delays2an):
         ratio2dist_err_nsi = np.ma.std(nsi_tmp, axis=0).T
         ratio2dist_err_ln = np.ma.std(ln_tmp, axis=0).T
         
-#%%***********************************************************
-# FIGURE PNChess
-# Figure of the average activity for weak and strong input
-# **********************************************************
-if pn_chess:
-    for dur_id, duration in enumerate(dur2an[:1]):
-        # *******************************************************************
-        # pn_peak_s_noin: (n_ratios, n_concs,n_durs, n_loops)
-        noin_s = np.median(pn_peak_s_noin[:,:,dur_id, :], axis=2)
-        ln_s = np.median(pn_peak_s_ln[:,:,dur_id, :], axis=2)
-        nsi_s =np.median(pn_peak_s_nsi[:,:,dur_id, :], axis=2)
-        
-        noin_w = np.median(pn_peak_w_noin[:,:,dur_id, :], axis=2)
-        ln_w = np.median(pn_peak_w_ln[:,:,dur_id, :], axis=2)
-        nsi_w = np.median(pn_peak_w_nsi[:,:,dur_id, :], axis=2)
-        
-        ratio2plot = np.round(conc_ratios[::2])
-        conc2plot = concs2an[::1]
-        
-        rs = 3
-        cs = 2
-        fig, axs = plt.subplots(rs, cs, figsize=(9, 6), ) 
-        
-        axs[0,0].set_title('PN strong, delay=%d'%delay)
-        axs[0,1].set_title('PN weak')
-
-        axs[0,0].set_ylabel('ctrl')
-        axs[1,0].set_ylabel('ln')
-        axs[2,0].set_ylabel('nsi')
-        
-        im0 = axs[0,0].imshow(noin_s.T, cmap='viridis')
-        fig.colorbar(im0, ax=axs[0,0])
-        
-        im1 = axs[0, 1].imshow(noin_w.T, cmap='viridis')
-        fig.colorbar(im1, ax=axs[0,1])
-        
-        im0 = axs[1, 0].imshow(ln_s.T, cmap='viridis')
-        fig.colorbar(im0, ax=axs[1,0])
-        
-        im1 = axs[1, 1].imshow(ln_w.T, cmap='viridis')
-        fig.colorbar(im1, ax=axs[1,1])
-        
-        im0 = axs[2, 0].imshow(nsi_s.T, cmap='viridis')
-        fig.colorbar(im0, ax=axs[2,0])
-        
-        im1 = axs[2, 1].imshow(nsi_w.T, cmap='viridis')
-        fig.colorbar(im1, ax=axs[2,1])
-        
-        for c_id in range(cs):
-            for r_id in range(rs):
-                axs[r_id,c_id].set_xticks(range(0,10,2))
-                axs[r_id,c_id].set_xticklabels(ratio2plot)
-                axs[r_id,c_id].set_yticks(range(4))
-                axs[r_id,c_id].set_yticklabels(conc2plot)
-        
-        if fig_save:
-            fig.savefig(fld_output+  '/PN_delays0_dur%d'%duration+'.png')
-
 
 
 #%%***********************************************************
@@ -542,6 +483,67 @@ if ratio_fig:
                 fig.savefig(fld_output+  
                         '/ratio_stim_peak_dur%d'%duration+'_delay%d'%delay+'.png')
                     
+#%%***********************************************************
+# FIGURE PNChess
+# Figure of the average activity for weak and strong input
+# **********************************************************
+if pn_chess:
+    ratio2plot = np.round(conc_ratios[::2])
+    conc2plot = concs2an[::1]
+    
+    rs = 3
+    cs = 2
+    for dur_id, duration in enumerate(dur2an[:1]):
+        # *******************************************************************
+        # pn_peak_s_noin: (n_ratios, n_concs,n_durs, n_loops)
+        noin_s = np.median(pn_peak_s_noin[:,:,dur_id, :], axis=2)
+        ln_s = np.median(pn_peak_s_ln[:,:,dur_id, :], axis=2)
+        nsi_s =np.median(pn_peak_s_nsi[:,:,dur_id, :], axis=2)
+        
+        noin_w = np.median(pn_peak_w_noin[:,:,dur_id, :], axis=2)
+        ln_w = np.median(pn_peak_w_ln[:,:,dur_id, :], axis=2)
+        nsi_w = np.median(pn_peak_w_nsi[:,:,dur_id, :], axis=2)
+        
+        fig, axs = plt.subplots(rs, cs, figsize=(9, 6), ) 
+        
+        axs[0,0].set_title('PN strong')
+        axs[0,1].set_title('PN weak')
+
+        for id_r in range(rs):
+            axs[id_r,0].set_ylabel('input (a.u.)', fontsize= label_fs)
+        
+        axs[0,1].text(12.5, 1.5, 'ctrl', fontsize=label_fs)
+        axs[1,1].text(12.5, 1.5, 'LN', fontsize=label_fs)
+        axs[2,1].text(12.5, 1.5, 'NSI', fontsize=label_fs)
+        im0 = axs[0,0].imshow(noin_s.T, cmap='viridis')
+        fig.colorbar(im0, ax=axs[0,0])
+        
+        im1 = axs[0, 1].imshow(noin_w.T, cmap='viridis')
+        fig.colorbar(im1, ax=axs[0,1])
+        
+        im0 = axs[1, 0].imshow(ln_s.T, cmap='viridis')
+        fig.colorbar(im0, ax=axs[1,0])
+        
+        im1 = axs[1, 1].imshow(ln_w.T, cmap='viridis')
+        fig.colorbar(im1, ax=axs[1,1])
+        
+        im0 = axs[2, 0].imshow(nsi_s.T, cmap='viridis')
+        fig.colorbar(im0, ax=axs[2,0])
+        
+        im1 = axs[2, 1].imshow(nsi_w.T, cmap='viridis')
+        fig.colorbar(im1, ax=axs[2,1])
+        
+        for c_id in range(cs):
+            for r_id in range(rs):
+                axs[r_id,c_id].set_xticks(range(0,10,2))
+                axs[r_id,c_id].set_xticklabels(ratio2plot)
+                axs[r_id,c_id].set_yticks(range(4))
+                axs[r_id,c_id].set_yticklabels(conc2plot)
+                
+            axs[2, c_id].set_xlabel('ratio (unitless)', fontsize= label_fs)
+            
+        if fig_save:
+            fig.savefig(fld_output+  '/PN_delays0_dur%d'%duration+'.png')
 
 #%% ************************************************************************
 # RESUME BAR FIGURE
@@ -562,10 +564,8 @@ if resumen_chess:
 
     ptns = np.arange(5)
     im0 = axs[0].imshow(err_code_noin, cmap='viridis', vmin=0, vmax=vmax)
-#    fig.colorbar(im0, ax=axs[0], fraction=frac, pad=pad)
     
     im1 = axs[1].imshow(err_code_ln, cmap='viridis', vmin=0, vmax=vmax)
-#    fig.colorbar(im0, ax=axs[1], fraction=frac, pad=pad)
     
     im2 = axs[2].imshow(err_code_nsi, cmap='viridis', vmin=0, vmax=vmax)
     cbar = fig.colorbar(im0, ax=axs[2], fraction=.05,pad=pad,orientation='vertical', 
