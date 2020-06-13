@@ -108,10 +108,10 @@ def fig_activity():
 fig_save        = 1
 
 id_peak2plot    = 3
-measure         = 'peak' # 'avg' # 'peak' # 
+measure         = 'avg' # 'avg' # 'peak' # 
 delay_fig       = 0 # Fig.ResumeDelayedStimuli
 # select a subsample of the params to analyse
-nsi_ln_par   = [[0,0],[0.3,0],[0,16.6]] 
+nsi_ln_par   = [[0,0],[0.3,0],[0,6.6]] 
             # [[0,0],[0.3,0],[0,16.6]] 
             # [[0,0],[0.3,0],[0,13.3]] 
             # [[0,0],[0.3,0],[0,10]]
@@ -139,11 +139,11 @@ n_concs         = np.size(concs2an)
 
 # *****************************************************************
 # analysis for zero delay:
-ratio_fig       = 0 # Fig.RatioPeak
-resumen_chess   = 0 # Fig.ResumeEncodeRatioChess
+ratio_fig       = 1 # Fig.RatioPeak
+resumen_chess   = 1 # Fig.ResumeEncodeRatioChess
 pn_chess        = 1 # Fig.PNChess
 resumen_bar     = 0 # Fig.ResumeEncodeRatioBar
-pn_distr        = 0 # Fig.PNdistribution
+pn_distr        = 1 # Fig.PNdistribution
 # *****************************************************************
 
     
