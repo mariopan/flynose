@@ -111,7 +111,7 @@ id_peak2plot    = 3
 measure         = 'peak' # 'avg' # 'peak' # 
 delay_fig       = 0 # Fig.ResumeDelayedStimuli
 # select a subsample of the params to analyse
-nsi_ln_par   = [[0,0],[0.3,0],[0,13.3]] 
+nsi_ln_par   = [[0,0],[0.3,0],[0,16.6]] 
             # [[0,0],[0.3,0],[0,16.6]] 
             # [[0,0],[0.3,0],[0,13.3]] 
             # [[0,0],[0.3,0],[0,10]]
@@ -493,7 +493,7 @@ if pn_chess:
     
     rs = 3
     cs = 2
-    for dur_id, duration in enumerate(dur2an[:1]):
+    for dur_id, duration in enumerate(dur2an):
         # *******************************************************************
         # pn_peak_s_noin: (n_ratios, n_concs,n_durs, n_loops)
         noin_s = np.median(pn_peak_s_noin[:,:,dur_id, :], axis=2)

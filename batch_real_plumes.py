@@ -26,7 +26,7 @@ import datetime
 now = datetime.datetime.now()
 
 ## ORN NSI params
-nsi_ln_par = [[0,0],[.3,0],[0,13.3],[.2,0],[0,10],[.4,0],[0,16.6]]
+nsi_ln_par = [[0,6.6],[0,3.3],]#[[0,0],[.3,0],[0,13.3],[.2,0],[0,10],[.4,0],[0,16.6]]
 
 stim_dur  = 201000 # 201000[ms]
 n_seeds   = 1 # 50
@@ -59,7 +59,7 @@ with open(fld_analysis+'/batch_params.pickle', 'wb') as f:
             
 date_str = now.strftime("%Y%m%d")
 copyfile('flynose.py', fld_analysis+'/flynose.' + date_str + '.py') 
-copyfile('batch_real_plumes.py', fld_analysis+'/batch_flynose_real_plumes.' + date_str + '.py') 
+copyfile('batch_real_plumes.py', fld_analysis+'/batch_real_plumes.' + date_str + '.py') 
 
 
 # Stimulus params 
