@@ -108,10 +108,10 @@ def fig_activity():
 fig_save        = 1
 
 id_peak2plot    = 3
-measure         = 'avg' # 'avg' # 'peak' # 
+measure         = 'peak' # 'avg' # 'peak' # 
 delay_fig       = 0 # Fig.ResumeDelayedStimuli
 # select a subsample of the params to analyse
-nsi_ln_par   = [[0,0],[0.3,0],[0,6.6]] 
+nsi_ln_par   = [[0,0],[0.3,0],[0, 2.2]] 
             # [[0,0],[0.3,0],[0,16.6]] 
             # [[0,0],[0.3,0],[0,13.3]] 
             # [[0,0],[0.3,0],[0,10]]
@@ -121,9 +121,11 @@ if delay_fig:
     fld_output      = 'NSI_analysis/ratio/delays_images_nsi%.1f'%nsi_ln_par[1][0]+\
                         '_ln%.1f'%nsi_ln_par[2][1]
 else:
-    fld_analysis    = 'NSI_analysis/ratio/ratio_trials_data'
-    fld_output      = 'NSI_analysis/ratio/ratio_trials_images_nsi%.1f'%nsi_ln_par[1][0]+\
+    fld_analysis    = 'NSI_analysis/ratio/ratio_data'
+    fld_output      = 'NSI_analysis/ratio/ratio_images/ratio_images_nsi%.1f'%nsi_ln_par[1][0]+\
                         '_ln%.1f'%nsi_ln_par[2][1]
+#import os 
+#os.mkdir(fld_output)
 
 # LOAD EXPERIMENT PARAMETERS
 batch_params    = pickle.load(open(fld_analysis+'/batch_params.pickle', "rb" ))

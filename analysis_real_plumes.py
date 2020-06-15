@@ -9,6 +9,7 @@ analysis_loops_real_plumes.py
 
 import numpy as np
 import matplotlib.pyplot as plt
+import os 
 
 import pickle        
 
@@ -34,16 +35,21 @@ cmap    = plt.get_cmap('rainbow')
 # *****************************************************************
 
 fld_analysis = 'NSI_analysis/real_plumes/sim_200s_data/'     
-fld_output = 'NSI_analysis/real_plumes/sim_200s_images/'     
 stim_dur    =  201000
 
 # ORN NSI params
-nsi_ln_par = [[0,0],[.3,0],[0,10.0],] 
+nsi_ln_par = [[0,0],[.3,0],[0,2.2],] 
             # [[0,0],[.3,0],[0,16.6],]
             # [[0,0],[.3,0],[0,13.3],]
             # [[0,0],[.3,0],[0,10],]
             # [[0,0],[.3,0],[0,6.6],]
             # [[0,0],[.3,0],[0,3.3],]
+fld_output = 'NSI_analysis/real_plumes/sim_200s_images/nsi%.1f'%nsi_ln_par[1][0]+\
+                        '_ln%.1f'%nsi_ln_par[2][1]+'/'
+#isFld = os.path.isfile(fld_output)  
+#if not(isFld):
+#os.mkdir(fld_output)
+    
 w_maxs  = [.01,.03,.3, 3, 25, 50, ] # max value in the whiff distribution
 b_maxs  = [25]                      # max value in the blank distribution
 rhos    = [0, 1, 3, 5]
