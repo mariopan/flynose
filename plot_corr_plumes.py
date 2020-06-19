@@ -56,7 +56,7 @@ fig_plumes_tc   = 1         # time course figure
 fig_plumes_dist = 1     
 fig_save        = 0
 
-fld_output    = 'open_field_stimuli/images/'
+fld_output    = 'NSI_analysis/real_plumes/example/'
 rhos            = [0, 1, 3, 5]
 
 # *******************************************************************
@@ -273,7 +273,7 @@ for cc in range(4):
 
 
 if fig_save:
-    fig.savefig(fld_output + '/plumes_stats_violins.png')
+    fig.savefig(fld_output + '/sim_plumes_stats_violins.png')
 
 #%%
 #********************************************************************
