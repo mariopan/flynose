@@ -4,7 +4,7 @@
 Created on Thu Jul 11 13:49:09 2019
 
 @author: mp525
-analysis_ratio_batch2.py
+analysis_ratio_delays.py
 """
 
 import numpy as np
