@@ -2,7 +2,7 @@
 
 The goal of this project is to develop a model of the early olfactory system of *Drosophila*. 
 
-The model consists of a subset of the early olfactory system of insects from ORNs to the AL using only two groups of ORNs (ORN$_a$ and ORN$_{b}$) and their respective PNs and LNs. Each ORN type, *a* and *b*, is though to be tuned to a specific set of odorants (e.g. individual pheromone component) and converges onto its corresponding PNs. 
+The model consists of a subset of the early olfactory system of insects from ORNs to the AL using only two groups of ORNs (ORN_a and ORN_b) and their respective PNs and LNs. Each ORN type, *a* and *b*, is though to be tuned to a specific set of odorants (e.g. individual pheromone component) and converges onto its corresponding PNs. 
 
 <img src="images/Topology_NSI.png" title="Model topology of the early olfactory areas of a *Drosophila*" style="zoom:60%;" />  
 
