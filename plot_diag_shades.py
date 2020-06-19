@@ -102,9 +102,9 @@ def orn_al_settings(axs):
     else:
         x4text = 4000
     #%%
-    axs[0, 2].text(x4text, 75, 'ctrl', fontsize=scale_fs, fontweight='bold',rotation=90)
-    axs[1, 2].text(x4text, 75, 'NSI', fontsize=scale_fs, fontweight='bold',rotation=90)
-    axs[2, 2].text(x4text, 75, 'LN', fontsize=scale_fs, fontweight='bold', rotation=90)
+    axs[0, 2].text(x4text, 75, 'ctrl\n model', fontsize=scale_fs, fontweight='bold',rotation=90)
+    axs[1, 2].text(x4text, 75, 'NSI\n model', fontsize=scale_fs, fontweight='bold',rotation=90)
+    axs[2, 2].text(x4text, 75, 'LN\n model', fontsize=scale_fs, fontweight='bold', rotation=90)
         
     #%%
         
@@ -290,7 +290,7 @@ for inh_cond in inh_conds:
         # RUN SIM
         flynose_out = flynose.main(params2an, fig_opts)
         [t, u_od, orn_spike_matrix, pn_spike_matrix, 
-             ln_spike_matrix, ] = flynose_out
+              ln_spike_matrix, ] = flynose_out
                 
         # Calculate the SDF for ORNs, PNs and LNs
         orn_sdf_tmp, orn_sdf_time = sdf_krofczik.main(
@@ -302,7 +302,7 @@ for inh_cond in inh_conds:
         pn_sdf[ss,:,:] = pn_sdf_tmp*1e3
         
     data2plot = [t, u_od, orn_sdf_time, orn_sdf, 
-                 pn_sdf_time, pn_sdf, ]
+                  pn_sdf_time, pn_sdf, ]
     orn_al_plot(data2plot, params2an, inh_cond)
         
 if fig_save:

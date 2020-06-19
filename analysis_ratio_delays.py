@@ -10,6 +10,7 @@ analysis_ratio_batch2.py
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle        
+import scipy.stats
 
 # *****************************************************************
 # STANDARD FIGURE PARAMS
@@ -111,10 +112,14 @@ id_peak2plot    = 3
 measure         = 'peak' # 'avg' # 'peak' # 
 delay_fig       = 0 # Fig.ResumeDelayedStimuli
 # select a subsample of the params to analyse
-nsi_ln_par   = [[0,0],[0.3,0],[0, 2.2]] 
-            # [[0,0],[0.3,0],[0,16.6]] 
-            # [[0,0],[0.3,0],[0,13.3]] 
+nsi_ln_par   = [[0,0],[0.3,0],[0, 10]] 
+            # [[0,0],[0.3,0],[0, 0.6]] 
+            # [[0,0],[0.3,0],[0, 1.1]] 
+            # [[0,0],[0.3,0],[0, 2.2]] 
             # [[0,0],[0.3,0],[0,10]]
+            # [[0,0],[0.3,0],[0,13.3]] 
+            # [[0,0],[0.3,0],[0,16.6]]            
+            
 
 if delay_fig:
     fld_analysis    = 'NSI_analysis/ratio/delays_data'
@@ -142,10 +147,10 @@ n_concs         = np.size(concs2an)
 # *****************************************************************
 # analysis for zero delay:
 ratio_fig       = 1 # Fig.RatioPeak
-resumen_chess   = 1 # Fig.ResumeEncodeRatioChess
-pn_chess        = 1 # Fig.PNChess
+resumen_chess   = 0 # Fig.ResumeEncodeRatioChess
+pn_chess        = 0 # Fig.PNChess
 resumen_bar     = 0 # Fig.ResumeEncodeRatioBar
-pn_distr        = 1 # Fig.PNdistribution
+pn_distr        = 0 # Fig.PNdistribution
 # *****************************************************************
 
     
@@ -245,37 +250,39 @@ for delay_id, delay in enumerate(delays2an):
             ratio_avg_ln[delay_id, :] = np.median(pn_ratio_avg_ln[0,id_peak2plot ,:,:], axis=1)
             ratio_avg_nsi[delay_id, :] =np.median(pn_ratio_avg_nsi[0,id_peak2plot,:,:], axis=1)
             
-            ratio_avg_noin_err[delay_id, :] = np.diff(np.percentile(pn_ratio_avg_noin[0,id_peak2plot,:,:], [25,50])) #np.std(pn_ratio_avg_noin[0,id_peak2plot,:,:], axis=1)
-            ratio_avg_ln_err[delay_id, :] = np.diff(np.percentile(pn_ratio_avg_ln[0,id_peak2plot,:,:], [25,50])) #np.std(pn_ratio_avg_ln[0,id_peak2plot ,:,:], axis=1)
-            ratio_avg_nsi_err[delay_id, :] =np.diff(np.percentile(pn_ratio_avg_nsi[0,id_peak2plot,:,:], [25,50])) #np.std(pn_ratio_avg_nsi[0,id_peak2plot,:,:], axis=1)
+            ratio_avg_noin_err[delay_id, :] = scipy.stats.iqr(pn_ratio_avg_noin, axis=3)/2 #np.diff(np.percentile(pn_ratio_avg_noin[0,id_peak2plot,:,:], [25,50])) #np.std(pn_ratio_avg_noin[0,id_peak2plot,:,:], axis=1)
+            ratio_avg_ln_err[delay_id, :] = scipy.stats.iqr(pn_ratio_avg_ln, axis=3)/2 #np.diff(np.percentile(pn_ratio_avg_ln[0,id_peak2plot,:,:], [25,50])) #np.std(pn_ratio_avg_ln[0,id_peak2plot ,:,:], axis=1)
+            ratio_avg_nsi_err[delay_id, :] = scipy.stats.iqr(pn_ratio_avg_nsi, axis=3)/2 #np.diff(np.percentile(pn_ratio_avg_nsi[0,id_peak2plot,:,:], [25,50])) #np.std(pn_ratio_avg_nsi[0,id_peak2plot,:,:], axis=1)
         
         elif measure == 'peak':
             ratio_peak_noin[delay_id, :] = np.median(pn_ratio_peak_noin[0,id_peak2plot,:,:], axis=1)
             ratio_peak_ln[delay_id, :] = np.median(pn_ratio_peak_ln[0,id_peak2plot,:,:], axis=1)
             ratio_peak_nsi[delay_id, :] =np.median(pn_ratio_peak_nsi[0,id_peak2plot,:,:], axis=1)
             
-            ratio_peak_noin_err[delay_id, :] = np.diff(np.percentile(pn_ratio_peak_noin[0,id_peak2plot,:,:], [25,50])) #np.std(pn_ratio_peak_noin[0,id_peak2plot,:,:], axis=1)
-            ratio_peak_ln_err[delay_id, :] = np.diff(np.percentile(pn_ratio_peak_ln[0,id_peak2plot,:,:], [25,50])) # np.std(pn_ratio_peak_ln[0,id_peak2plot,:,:], axis=1)
-            ratio_peak_nsi_err[delay_id, :] = np.diff(np.percentile(pn_ratio_peak_nsi[0,id_peak2plot,:,:], [25,50])) # np.std(pn_ratio_peak_nsi[0,id_peak2plot,:,:], axis=1)
+            ratio_peak_noin_err[delay_id, :] = scipy.stats.iqr(pn_ratio_peak_noin, axis=3)/2 #np.diff(np.percentile(pn_ratio_peak_noin[0,id_peak2plot,:,:], [25,50])) #np.std(pn_ratio_peak_noin[0,id_peak2plot,:,:], axis=1)
+            ratio_peak_ln_err[delay_id, :] = scipy.stats.iqr(pn_ratio_peak_ln, axis=3)/2 #np.diff(np.percentile(pn_ratio_peak_ln[0,id_peak2plot,:,:], [25,50])) # np.std(pn_ratio_peak_ln[0,id_peak2plot,:,:], axis=1)
+            ratio_peak_nsi_err[delay_id, :] = scipy.stats.iqr(pn_ratio_peak_nsi, axis=3)/2 #np.diff(np.percentile(pn_ratio_peak_nsi[0,id_peak2plot,:,:], [25,50])) # np.std(pn_ratio_peak_nsi[0,id_peak2plot,:,:], axis=1)
     else:
         if measure == 'avg':
             # average over the run with identical params
             ratio1_noin = np.median(orn_ratio_avg_noin, axis=3)
-            ratio1_nsi  = np.median(orn_ratio_avg_nsi, axis=3)
             ratio1_ln   = np.median(orn_ratio_avg_ln, axis=3)
+            ratio1_nsi  = np.median(orn_ratio_avg_nsi, axis=3)
             
-            ratio1_err_noin = np.squeeze(np.diff(np.percentile(orn_ratio_avg_noin, [25,50],axis=3), axis=0))
-            ratio1_err_nsi = np.squeeze(np.diff(np.percentile(orn_ratio_avg_nsi,  [25,50],axis=3), axis=0)) 
-            ratio1_err_ln = np.squeeze(np.diff(np.percentile(orn_ratio_avg_ln,  [25,50],axis=3), axis=0)) 
+            ratio1_err_noin = scipy.stats.iqr(orn_ratio_avg_noin, axis=3)/2 #np.squeeze(np.diff(np.percentile(orn_ratio_avg_noin, [25,50],axis=3), axis=0))
+            ratio1_err_ln = scipy.stats.iqr(orn_ratio_avg_ln, axis=3)/2 #np.squeeze(np.diff(np.percentile(orn_ratio_avg_ln,  [25,50],axis=3), axis=0)) 
+            ratio1_err_nsi = scipy.stats.iqr(orn_ratio_avg_nsi, axis=3)/2 #np.squeeze(np.diff(np.percentile(orn_ratio_avg_nsi,  [25,50],axis=3), axis=0)) 
             
             # average over the run with identical params
             ratio2_noin = np.median(pn_ratio_avg_noin, axis=3)
-            ratio2_nsi  = np.median(pn_ratio_avg_nsi, axis=3)
             ratio2_ln   = np.median(pn_ratio_avg_ln, axis=3)
+            ratio2_nsi  = np.median(pn_ratio_avg_nsi, axis=3)
             
-            ratio2_err_noin = np.squeeze(np.diff(np.percentile(pn_ratio_avg_noin, [25,50],axis=3), axis=0))#np.std(pn_ratio_peak_noin, axis=3)
-            ratio2_err_nsi = np.squeeze(np.diff(np.percentile(pn_ratio_avg_nsi,  [25,50],axis=3), axis=0)) #np.std(pn_ratio_peak_nsi, axis=3)
-            ratio2_err_ln = np.squeeze(np.diff(np.percentile(pn_ratio_avg_ln,  [25,50],axis=3), axis=0)) #np.std(pn_ratio_peak_ln, axis=3)  
+            
+            ratio2_err_noin = scipy.stats.iqr(pn_ratio_avg_noin, axis=3)/2     #np.squeeze(np.diff(np.percentile(pn_ratio_avg_noin, [25,50],axis=3), axis=0))#np.std(pn_ratio_peak_noin, axis=3)
+            ratio2_err_ln = scipy.stats.iqr(pn_ratio_avg_ln, axis=3)/2     #np.squeeze(np.diff(np.percentile(pn_ratio_avg_ln,  [25,50],axis=3), axis=0)) #np.std(pn_ratio_peak_ln, axis=3)  
+            ratio2_err_nsi = scipy.stats.iqr(pn_ratio_avg_nsi, axis=3)/2     #np.squeeze(np.diff(np.percentile(pn_ratio_avg_nsi,  [25,50],axis=3), axis=0)) #np.std(pn_ratio_peak_nsi, axis=3)
+            
                 
             noin_tmp = ((conc_ratios-pn_ratio_avg_noin.T)/
                         (pn_ratio_avg_noin.T + conc_ratios))**2
@@ -286,21 +293,21 @@ for delay_id, delay in enumerate(delays2an):
         elif measure == 'peak':
             # average over the run with identical params
             ratio1_noin = np.median(orn_ratio_peak_noin, axis=3)
-            ratio1_nsi  = np.median(orn_ratio_peak_nsi, axis=3)
             ratio1_ln   = np.median(orn_ratio_peak_ln, axis=3)
+            ratio1_nsi  = np.median(orn_ratio_peak_nsi, axis=3)
             
-            ratio1_err_noin = np.squeeze(np.diff(np.percentile(orn_ratio_peak_noin, [25,50],axis=3), axis=0))#np.std(pn_ratio_peak_noin, axis=3)
-            ratio1_err_nsi = np.squeeze(np.diff(np.percentile(orn_ratio_peak_nsi,  [25,50],axis=3), axis=0)) #np.std(pn_ratio_peak_nsi, axis=3)
-            ratio1_err_ln = np.squeeze(np.diff(np.percentile(orn_ratio_peak_ln,  [25,50],axis=3), axis=0)) #np.std(pn_ratio_peak_ln, axis=3)  
+            ratio1_err_noin = scipy.stats.iqr(orn_ratio_peak_noin, axis=3)/2     # np.squeeze(np.diff(np.percentile(orn_ratio_peak_noin, [25,50],axis=3), axis=0))#np.std(pn_ratio_peak_noin, axis=3)
+            ratio1_err_ln = scipy.stats.iqr(orn_ratio_peak_ln, axis=3)/2     #np.squeeze(np.diff(np.percentile(orn_ratio_peak_ln,  [25,50],axis=3), axis=0)) #np.std(pn_ratio_peak_ln, axis=3)  
+            ratio1_err_nsi = scipy.stats.iqr(orn_ratio_peak_nsi, axis=3)/2     # np.squeeze(np.diff(np.percentile(orn_ratio_peak_nsi,  [25,50],axis=3), axis=0)) #np.std(pn_ratio_peak_nsi, axis=3)
             
             # average over the run with identical params
             ratio2_noin = np.median(pn_ratio_peak_noin, axis=3)
-            ratio2_nsi  = np.median(pn_ratio_peak_nsi, axis=3)
             ratio2_ln   = np.median(pn_ratio_peak_ln, axis=3)
+            ratio2_nsi  = np.median(pn_ratio_peak_nsi, axis=3)
             
-            ratio2_err_noin = np.squeeze(np.diff(np.percentile(pn_ratio_peak_noin, [25,50],axis=3), axis=0))#np.std(pn_ratio_peak_noin, axis=3)
-            ratio2_err_nsi = np.squeeze(np.diff(np.percentile(pn_ratio_peak_nsi,  [25,50],axis=3), axis=0)) #np.std(pn_ratio_peak_nsi, axis=3)
-            ratio2_err_ln = np.squeeze(np.diff(np.percentile(pn_ratio_peak_ln,  [25,50],axis=3), axis=0)) #np.std(pn_ratio_peak_ln, axis=3)  
+            ratio2_err_noin = scipy.stats.iqr(pn_ratio_peak_noin, axis=3)/2     #np.squeeze(np.diff(np.percentile(pn_ratio_peak_noin, [25,50],axis=3), axis=0))#np.std(pn_ratio_peak_noin, axis=3)
+            ratio2_err_ln = scipy.stats.iqr(pn_ratio_peak_ln, axis=3)/2     #np.squeeze(np.diff(np.percentile(pn_ratio_peak_ln,  [25,50],axis=3), axis=0)) #np.std(pn_ratio_peak_ln, axis=3)  
+            ratio2_err_nsi = scipy.stats.iqr(pn_ratio_peak_nsi, axis=3)/2     #np.squeeze(np.diff(np.percentile(pn_ratio_peak_nsi,  [25,50],axis=3), axis=0)) #np.std(pn_ratio_peak_nsi, axis=3)
                 
             
             noin_tmp = ((conc_ratios-pn_ratio_avg_noin.T)/
@@ -463,9 +470,9 @@ if ratio_fig:
                 ll, bb, ww, hh = axs[rr,cc].get_position().bounds
                 axs[rr,cc].set_position([ll+cc*.03, bb+(2-rr)*.03,ww,hh])        
 
-        axs[0,0].set_title('ctrl ', fontsize=label_fs)
-        axs[0,1].set_title('LN', fontsize=label_fs)
-        axs[0,2].set_title('NSI', fontsize=label_fs)
+        axs[0,0].set_title('ctrl-model', fontsize=label_fs)
+        axs[0,1].set_title('LN-model', fontsize=label_fs)
+        axs[0,2].set_title('NSI-model', fontsize=label_fs)
         
 
         for cc in [1,2]:
@@ -548,7 +555,7 @@ if pn_chess:
             fig.savefig(fld_output+  '/PN_delays0_dur%d'%duration+'.png')
 
 #%% ************************************************************************
-# RESUME BAR FIGURE
+# RESUME CHESS FIGURE
 if resumen_chess:
     # average over conc.ratio and concentrations
     err_code_nsi = np.mean(ratio2dist_nsi, axis=(0))
@@ -562,7 +569,7 @@ if resumen_chess:
     frac = .1 #.04
     pad = .04
     
-    fig, axs = plt.subplots(rs, cs, figsize=(11, 3),) 
+    fig, axs = plt.subplots(rs, cs, figsize=(10, 3.3),) 
 
     ptns = np.arange(5)
     im0 = axs[0].imshow(err_code_noin, cmap='viridis', vmin=0, vmax=vmax)
@@ -570,18 +577,12 @@ if resumen_chess:
     im1 = axs[1].imshow(err_code_ln, cmap='viridis', vmin=0, vmax=vmax)
     
     im2 = axs[2].imshow(err_code_nsi, cmap='viridis', vmin=0, vmax=vmax)
-    cbar = fig.colorbar(im0, ax=axs[2], fraction=.05,pad=pad,orientation='vertical', 
-                 ticks=[0, .2, .4])
-    cbar.set_ticklabels([0, .2, .4])
-    cbar.set_label('code error', fontsize=label_fs)
     
-    ticklabs = cbar.ax.get_yticklabels()
-    cbar.ax.set_yticklabels(ticklabs, fontsize=ticks_fs)
     
     # FIGURE SETTINGS
-    axs[0].set_title('ctrl', fontsize=title_fs)
-    axs[1].set_title('LN', fontsize=title_fs)
-    axs[2].set_title('NSI', fontsize=title_fs)
+    axs[0].set_title('ctrl-model', fontsize=title_fs)
+    axs[1].set_title('LN-model', fontsize=title_fs)
+    axs[2].set_title('NSI-model', fontsize=title_fs)
     
     dur2plot = np.round(dur2an[::1])
     conc2plot = concs2an[::1]
@@ -592,20 +593,44 @@ if resumen_chess:
         axs[c_id].set_yticklabels('', fontsize= ticks_fs)      
         
         axs[c_id].set_xlabel('duration (ms)', fontsize= label_fs)
+    
     axs[0].set_yticklabels(conc2plot, fontsize= ticks_fs)  
-    axs[0].set_ylabel('input (a.u.)', fontsize= label_fs)
-    
-    
-#    # move plot position:
+    axs[0].set_ylabel('input (a.u.)', fontsize= label_fs)    
+
+
+    # move plot position:
     ll, bb, ww, hh = axs[0].get_position().bounds
-    axs[0].set_position([ll-.05, bb+.07,ww,hh])    
-    ll, bb, ww, hh = axs[1].get_position().bounds
-    axs[1].set_position([ll-.05, bb+.07,ww,hh])        
+    ww_new = ww*1.15
+    hh_new = hh*1.15
+    bb_new = bb + 0.02#5
+    ll_new = ll
+    axs[0].set_position([ll-.05, bb_new, ww_new, hh_new])    
     
-    db=.005
-    ll2, bb2, ww2, hh2 = axs[2].get_position().bounds
-    axs[2].set_position([ll+ww, bb+.07, ww+db, hh+db])
-        
+    ll, bb, ww, hh = axs[1].get_position().bounds
+    axs[1].set_position([ll-.04, bb_new, ww_new, hh_new])        
+    
+    ll, bb, ww, hh = axs[2].get_position().bounds
+    axs[2].set_position([ll-.03, bb_new, ww_new, hh_new])     
+    
+    axs[0].text(-.15, 1.18, 'g', transform=axs[0].transAxes, 
+             fontsize=panel_fs, fontweight='bold', va='top', ha='right')
+    
+
+    cbar = fig.colorbar(im0, ax=axs[2], fraction=.05,pad=pad,orientation='vertical', 
+                 ticks=[0, .2, .4])
+    cbar.set_label('code error', fontsize=label_fs)
+    ticklabs = cbar.ax.get_yticklabels()
+    
+    #%% to run separately from the other, or it won't plot the ticklabels
+    cbar.ax.set_yticklabels(ticklabs, fontsize=ticks_fs)
+    
+    ll, bb, ww, hh = cbar.ax.get_position().bounds
+    cbar.ax.set_position([ll+.035, bb+.085, ww, hh-.05])
+   
+    dwdh =1.0125
+    ll_a, bb, ww, hh = axs[2].get_position().bounds
+    axs[2].set_position([ll_a -.025, bb_new, ww_new*dwdh, hh_new*dwdh])
+    
     if fig_save:
         if measure == 'peak':
             fig.savefig(fld_output + '/ratio_stim_peak_resumechess_durs_delay%d'%delay+'.png')

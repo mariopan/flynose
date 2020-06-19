@@ -13,7 +13,7 @@ several downwind distances going from 20 to 330 m.
 import matplotlib.pyplot as plt
 from scipy.integrate import quad
 import numpy as np
-import flynose.stats_for_plumes as stats
+import stats_for_plumes as stats
 
 # *****************************************************************
 # STANDARD FIGURE PARAMS
@@ -23,9 +23,10 @@ plt.rc('text', usetex=True)  # laTex in the polot
 #plt.rc('font', family='serif')
 fig_size = [12, 12]
 fig_position = 1300,10
-title_fs = 20 # font size of ticks
+title_fs = 25 # font size of ticks
 label_fs = 20 # font size of labels
 panel_fs = 30  # font size of panel's letter
+tick_fs = label_fs-3
 black   = 'xkcd:black'
 blue    = 'xkcd:blue'
 red     = 'xkcd:red'
@@ -38,12 +39,10 @@ cmap    = plt.get_cmap('rainbow')
 
 # *****************************************************************
 # Fig. PlumesStats
-fld_stimuli = '../open_field_stimuli/images'
-fig_save    = 0
+fld_stimuli = 'open_field_stimuli/images'
+fig_save    = 1
 fig_name    = '/plumes_stats'
-panels_id   = ['b.', 'c.','d.', ]
-title_fs = 25 # font size of ticks
-label_fs = 25 # font size of labels
+panels_id   = ['a', 'b', 'c', ]
 
 # *******************************************************************
 #  PARAMS FOR WHIFF AND BLANK DISTRIOBUTIONS
@@ -107,12 +106,16 @@ bl_mean = np.zeros(3)
 rs = 1 # number of rows
 cs = 3 # number of columns
 fig = plt.figure(figsize=[13, 4.6])    
-fig.canvas.manager.window.wm_geometry("+%d+%d" % fig_position )
-fig.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
+# fig.canvas.manager.window.wm_geometry("+%d+%d" % fig_position )
+# fig.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
 
-# whiff panel
+# whiff, blank and concentration panels
 ax_wh = plt.subplot(rs,cs, 1)
+ax_bl = plt.subplot(rs,cs, 2)
+ax_conc = plt.subplot(rs,cs, 3)
         
+
+
 pdf_th_wh, logbins_wh, wh_mean[0] = stats.whiffs_blanks_pdf(whiff_min, whiff_maxs[0], g)
 ax_wh.plot(logbins_wh, pdf_th_wh, color='blue', linewidth=5, label='source dist. 60m')
 
@@ -121,25 +124,8 @@ ax_wh.plot(logbins_wh, pdf_th_wh, color='green', linewidth=3, label='source dist
 
 pdf_th_wh, logbins_wh, wh_mean[2]  = stats.whiffs_blanks_pdf(whiff_min, whiff_maxs[2], g)
 ax_wh.plot(logbins_wh, pdf_th_wh, '--', color='red', linewidth=1, label='source dist. 330m')
-ax_wh.yaxis.set_label_coords(-0.1,0.5)
 
-ax_wh.legend(fontsize=label_fs-8, frameon=False)
-ax_wh.set_xscale('log')
-ax_wh.set_yscale('log')
-ax_wh.set_ylabel('pdf', fontsize=label_fs)
-ax_wh.set_xlabel('duration (s)', fontsize=label_fs)
-ax_wh.set_title('Whiff durations', fontsize=title_fs)
-ax_wh.tick_params(axis='both', which='major', labelsize=label_fs-5)
-ax_wh.text(-.1, 1.1, panels_id[0], transform=ax_wh.transAxes,color= blue,
-           fontsize=label_fs, fontweight='bold', va='top', ha='right')
-
-ll, bb, ww, hh = ax_wh.get_position().bounds
-ax_wh.set_position([ll, bb+.05, ww, hh])
-
-        
-# blank panel
-ax_bl = plt.subplot(rs,cs, 2)
-
+#
 pdf_th_bl, logbins_bl, bl_mean[0] = stats.whiffs_blanks_pdf(bl_min, bl_maxs[0], g)
 ax_bl.plot(logbins_bl, pdf_th_bl, color='blue', linewidth=5, label='Theor blanks 60m')
 
@@ -149,44 +135,70 @@ ax_bl.plot(logbins_bl, pdf_th_bl, color='green', linewidth=3, label='Theor blank
 pdf_th_bl, logbins_bl, bl_mean[2] = stats.whiffs_blanks_pdf(bl_min, bl_maxs[2], g)
 ax_bl.plot(logbins_bl, pdf_th_bl, '--', color='red', linewidth=1, label='Theor blanks 330m')
 
+# 
+ax_conc.plot(linbins, -np.log10(1-cdf_th_mm75), linewidth=4, label='Theor Mylne91, 75m')
+
+
+# FIGURE SETTINGS
+ax_wh.legend(fontsize=label_fs-5, frameon=False)
+ax_wh.set_xscale('log')
+ax_wh.set_yscale('log')
+ax_wh.set_ylabel('pdf', fontsize=label_fs)
+ax_wh.set_xlabel('duration (s)', fontsize=label_fs)
+ax_wh.set_title('Whiff durations', fontsize=title_fs)
+ax_wh.tick_params(axis='both', which='major', labelsize=label_fs-5)
+
+#
 ax_bl.set_xscale('log')
 ax_bl.set_yscale('log')
 ax_bl.set_xlabel('duration (s)', fontsize=label_fs)
 ax_bl.set_title('Clean air durations', fontsize=title_fs)
 ax_bl.tick_params(axis='both', which='major', labelsize=label_fs-5)
-ax_bl.text(-.1, 1.1, panels_id[1], transform=ax_bl.transAxes,color= blue,
+
+
+ax_wh.spines['right'].set_color('none')
+ax_wh.spines['top'].set_color('none')
+ax_bl.spines['right'].set_color('none')
+ax_bl.spines['top'].set_color('none')
+ax_conc.spines['right'].set_color('none')
+ax_conc.spines['top'].set_color('none')
+
+# letters on panels
+ax_wh.text(-.1, 1.1, panels_id[0], transform=ax_wh.transAxes, 
+           fontsize=panel_fs, fontweight='bold', va='top', ha='right')
+ax_bl.text(-.1, 1.1, panels_id[1], transform=ax_bl.transAxes,
+           fontsize=panel_fs, fontweight='bold', va='top', ha='right')
+ax_conc.text(-.1, 1.1, panels_id[2], transform=ax_conc.transAxes,
            fontsize=panel_fs, fontweight='bold', va='top', ha='right')
 
-ll, bb, ww, hh = ax_bl.get_position().bounds
-ax_bl.set_position([ll+0.03, bb+.05, ww, hh])
 
 # Concentration panel d.
 y_label_conc_cdf_eff = np.array([0, 0.3, .5, .9, .99, .999, .9999])
 y_label_conc_cdf = -np.log10(1-y_label_conc_cdf_eff)
 
-ax_conc = plt.subplot(rs,cs, 3)
-ax_conc.plot(linbins, -np.log10(1-cdf_th_mm75), linewidth=4, label='Theor Mylne91, 75m')
 ax_conc.set_yticks(y_label_conc_cdf)
 ax_conc.set_yticklabels(y_label_conc_cdf_eff)
 ax_conc.set_ylabel('cdf ' , fontsize=label_fs)
 ax_conc.set_xlabel(r'$C/<C>$', fontsize=label_fs)
-ax_conc.tick_params(axis='both', which='major', labelsize=label_fs-5)
-ax_conc.text(-.1, 1.1, panels_id[2], transform=ax_conc.transAxes,color= blue,
-           fontsize=panel_fs, fontweight='bold', va='top', ha='right')
-
+ax_conc.tick_params(axis='both', which='major', labelsize=tick_fs)
 ax_conc.set_ylim((0, 3.1))
 ax_conc.set_xlim((0, 11.5))
 
+# reset panels positions
+ll, bb, ww, hh = ax_wh.get_position().bounds
+ax_wh.set_position([ll-.04, bb+.05, ww*1.1, hh])
+ll, bb, ww, hh = ax_bl.get_position().bounds
+ax_bl.set_position([ll+0.01, bb+.05, ww*1.1, hh])
 ll, bb, ww, hh = ax_conc.get_position().bounds
-ax_conc.set_position([ll+.075, bb+.05, ww, hh])
+ax_conc.set_position([ll+.06, bb+.05, ww*1.1, hh])
 
 
 if fig_save:
-    fig.savefig(fld_stimuli + fig_name + '_bcd.png')
+    fig.savefig(fld_stimuli + fig_name + '.png')
     
     
 ##%% *****************************************************
-## OLD FIGURE
+## OLD FIGUREs
 #wh_mean = np.zeros(3)
 #bl_mean = np.zeros(3)
 #

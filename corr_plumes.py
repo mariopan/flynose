@@ -241,9 +241,11 @@ if __name__ == '__main__':
     fig_plumes      = 1
     fig_save        = 1
     
+    fld_output      = 'open_field_stimuli/images/'
+    
     # *******************************************************************
     # PARAMS FOR STIMULUS GENERATION
-    t2sim           = 19.7      # [s] time duration of whole simulated stimulus
+    t2sim           = 200      # [s] time duration of whole simulated stimulus
     pts_ms          = 5
     sample_rate     = pts_ms*1000       # [Hz] num of samples per each sec
     n_sample2       = 5                 # [ms] num of samples with constant concentration
@@ -381,5 +383,5 @@ if __name__ == '__main__':
         ll, bb, ww, hh = ax_st2.get_position().bounds
         ax_st2.set_position([ll, bb+.04, ww, hh])
         if fig_save:
-            fig.savefig('../open_field_stimuli/stimuli_timecourse_dur20s_cor_%d.png'%rho_t_exp)
+            fig.savefig(fld_output + '/stimuli_timecourse_dur20s_cor_%d.png'%rho_t_exp)
       

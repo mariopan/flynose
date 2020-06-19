@@ -38,7 +38,7 @@ fld_analysis = 'NSI_analysis/real_plumes/sim_200s_data/'
 stim_dur    =  201000
 
 # ORN NSI params
-nsi_ln_par = [[0,0],[.3,0],[0,2.2],] 
+nsi_ln_par = [[0,0],[.3,0],[0,10],] 
             # [[0,0],[.3,0],[0,16.6],]
             # [[0,0],[.3,0],[0,13.3],]
             # [[0,0],[.3,0],[0,10],]
@@ -57,7 +57,8 @@ rhos    = [0, 1, 3, 5]
 
 seeds       = np.arange(1, 31)
 
-avg_fig     = 1     # Fig.AverPNActivity
+avg_fig     = 0     # Fig.AverPNActivity
+peak_fig    = 0     # Figsupp.PeakPN_thr
 avgplume_fig = 0    # FigSupp.AverCorr (Supp materials)
 resumen_fig = 1     # Fig.PeakPN_resumen
 thrwmax_fig = 1     # Fig.PeakPN_wmax
@@ -86,7 +87,7 @@ n_rhos = np.size(rhos)
 n_wmax = np.size(w_maxs)
 
 # *******************************************************************
-
+# DATA ANALYSIS 
 output_names = ['cor_stim', 'overlap_stim', 'cor_whiff', 
                  'interm_th', 'interm_est_1', 'interm_est_2', 'od_avg1', 
                  'od_avg2', 'orn_avg1', 'orn_avg2', 'pn_avg1', 'pn_avg2', 
@@ -185,16 +186,7 @@ for seed_id, stim_seed in enumerate(seeds):
                 
                 # performance measure #2
                 perf_avg = all_data_tmp[perf_avg_id]
-                
-#                pn_av50_1[rho_id, id_inh,seed_id,w_max_id,]  = perf_avg[0,0]
-#                pn_av100_1[rho_id, id_inh,seed_id,w_max_id,]  = perf_avg[0,1]
-#                pn_av150_1[rho_id, id_inh,seed_id,w_max_id,]  = perf_avg[0,2]
-#                
-#                pn_av50_2[rho_id, id_inh,seed_id,w_max_id,] = perf_avg[1,0]
-#                pn_av100_2[rho_id, id_inh,seed_id,w_max_id,] = perf_avg[1,1]
-#                pn_av150_2[rho_id, id_inh,seed_id,w_max_id,] = perf_avg[1,2] 
-                
-                
+                 
                 # performance measure #3
                 pn_m50_1[rho_id, id_inh,seed_id,w_max_id,]  = perf_avg[0,0]*perf_time[0,0]/1e3
                 pn_m100_1[rho_id, id_inh,seed_id,w_max_id,]  = perf_avg[0,1]*perf_time[0,1]/1e3
@@ -205,17 +197,19 @@ for seed_id, stim_seed in enumerate(seeds):
                 pn_m150_2[rho_id, id_inh,seed_id,w_max_id,] = perf_avg[1,2]*perf_time[1,2]/1e3
                 
 
+
 #%% *********************************************************
 ## FIGURE Fig.AverPNActivity
 ## **********************************************************
 if avg_fig:
     fig2 = plt.figure(figsize=(9,4), ) 
     rs = 1
-    cs = 2
+    cs = 3
     lw = 4
     
     ax_orn = plt.subplot(rs,cs, 1)
     ax_pn = plt.subplot(rs,cs, 2)
+    ax_peak = plt.subplot(rs,cs, 3)
     
     corr_th = np.array(rhos)
     corr_obs = np.mean(np.squeeze(cor_stim[:, :,3,]), axis=1)
@@ -228,7 +222,7 @@ if avg_fig:
                   color='magenta',label='Ind Glo 1', fmt='o')
     ax_orn.errorbar(corr_obs, np.squeeze(np.mean(orn_avg1[:, 1, :,3,], axis=1)),
                   yerr=np.squeeze(np.std(orn_avg1[:, 1, :,3,], axis=1))/
-                  (np.size(orn_avg1[:, 1, :,3,],axis=1))**.5, linewidth=lw, ls='--', 
+                  (np.size(orn_avg1[:, 1, :,3,],axis=1))**.5, linewidth=lw, ls='-', 
                   color='blue',label='NSI Glo 1', fmt='*')
     
     ax_pn.errorbar(corr_obs, np.squeeze(np.mean(pn_avg1[:, 0, :,3,], axis=1)),
@@ -237,115 +231,205 @@ if avg_fig:
                   color='magenta',label='Ind Glo 1', fmt='o')
     ax_pn.errorbar(corr_obs, np.squeeze(np.mean(pn_avg1[:, 1, :,3,], axis=1)),
                   yerr=np.squeeze(np.std(pn_avg1[:, 1, :,3,], axis=1))/
-                  (np.size(pn_avg1[:, 1, :,3,],axis=1))**.5, linewidth=lw, ls='--', 
+                  (np.size(pn_avg1[:, 1, :,3,],axis=1))**.5, linewidth=lw, ls='-', 
                   color='blue',label='NSI Glo 1', fmt='*')
     ax_pn.errorbar(corr_obs, np.squeeze(np.mean(pn_avg1[:, 2, :,3,], axis=1)),
                   yerr=np.squeeze(np.std(pn_avg1[:, 2, :,3,], axis=1))/
-                  (np.size(pn_avg1[:, 2, :,3,],axis=1))**.5, linewidth=lw, ls='-.', 
+                  (np.size(pn_avg1[:, 2, :,3,],axis=1))**.5, linewidth=lw, ls='-', 
                   color='orange',label='LN Glo 1', fmt='d')
 
+    # PEAK PANEL D
+    pn_tmp = .5*(pn_m150_2+pn_m150_1)
+    y_ticks = [75, 150, 225, 300]
+    # corr_tmp = np.array(rhos)
+    w_max_id = 3
+    
+    y2plot_ln = np.squeeze(pn_tmp[:, 2, :, w_max_id, ])
+    y2plot_nsi = np.squeeze(pn_tmp[:, 1, :, w_max_id, ])
+    y2plot_noin = np.squeeze(pn_tmp[:, 0, :, w_max_id, ])
+
+    ax_peak.errorbar(corr_obs, np.mean(y2plot_noin, axis=1),
+       yerr=np.std(y2plot_noin, axis=1)/np.sqrt(n_seeds),
+       linewidth=lw, color='magenta',label='Indep')
+    ax_peak.errorbar(corr_obs, np.mean(y2plot_ln, axis=1),
+       yerr=np.std(y2plot_ln, axis=1)/np.sqrt(n_seeds),
+       linewidth=lw, color='orange',label='LN')
+    ax_peak.errorbar(corr_obs, np.mean(y2plot_nsi, axis=1),
+       yerr=np.std(y2plot_nsi, axis=1)/np.sqrt(n_seeds),
+       linewidth=lw, color='blue',label='NSI')
+           
+    # PLOT SETTINGS 
     ax_orn.tick_params(axis='both', which='major', labelsize=label_fs-3)
     ax_pn.tick_params(axis='both', which='major', labelsize=label_fs-3)
+    ax_peak.tick_params(axis='both', which='major', labelsize=label_fs-3)
     
     ax_orn.set_ylabel('ORN avg (Hz)', fontsize=label_fs)
     ax_pn.set_ylabel('PN avg (Hz)', fontsize=label_fs)
-    
-    ax_orn.set_xlabel('Observed correlation (unitless)', fontsize=label_fs)
+    ax_peak.set_ylabel('PN activity \n (unitless)', fontsize=label_fs)    
+
     ax_pn.set_xlabel('Observed correlation (unitless)', fontsize=label_fs,)
     
     ax_orn.spines['right'].set_color('none')
     ax_orn.spines['top'].set_color('none')
     ax_pn.spines['right'].set_color('none')
     ax_pn.spines['top'].set_color('none')
-    
-    ax_pn.text(.3, 16, 'ctrl', color='magenta', fontsize=label_fs)
-    ax_pn.text(.3, 14, 'NSI', color=blue, fontsize=label_fs)
-    ax_pn.text(.3, 12, 'LN', color=orange, fontsize=label_fs)
+    ax_peak.spines['right'].set_color('none')
+    ax_peak.spines['top'].set_color('none')
     
     ax_orn.text(-.15, 1.15, 'b', transform=ax_orn.transAxes,color= black,
               fontsize=panel_fs, fontweight='bold', va='top', ha='right')
     ax_pn.text(-.15, 1.15, 'c', transform=ax_pn.transAxes,color= black,
               fontsize=panel_fs, fontweight='bold', va='top', ha='right')
+    ax_pn.text(-.15, 1.15, 'd', transform=ax_peak.transAxes,color= black,
+              fontsize=panel_fs, fontweight='bold', va='top', ha='right')
+    
     # change panels positions and sizes:
     ll, bb, ww, hh = ax_orn.get_position().bounds
-    ax_orn.set_position([ll,bb+.04,ww,hh-.04])        
+    ax_orn.set_position([ll-.05,bb+.04,ww,hh-.04])        
     ll, bb, ww, hh = ax_pn.get_position().bounds
-    ax_pn.set_position([ll+.04,bb+.04,ww,hh-.04])        
+    ax_pn.set_position([ll,bb+.04,ww,hh-.04])        
+    ll, bb, ww, hh = ax_peak.get_position().bounds
+    ax_peak.set_position([ll+.06,bb+.04,ww,hh-.04])  
     
     if fig_save:
         fig2.savefig(fld_output+  '/NSI_AverActiv_'+fig_name+'.png')
 
 #%% *********************************************************
-## FIGURE Fig.AverPlumeCorr
+## FIGURE Fig.PeakPNActivity
 ## **********************************************************
-if avgplume_fig:
-    fig2 = plt.figure(figsize=(12,4), ) 
+if peak_fig:
+        
+    fig, axs = plt.subplots(rs, cs, figsize=(9, 4), ) 
     rs = 1
-    cs = 2
-    lw = 4
+    cs = 3
+    w_max_id = 3
     
-    ax_conc = plt.subplot(rs,cs,1)
-    ax_corr = plt.subplot(rs,cs,2) # Correlation/Overlap between stimuli
-
-    corr_th = np.array(rhos)
+    for thr_id, thr in enumerate(thrs):
+        if thr == 50:
+            pn_tmp = .5*(pn_m50_2+pn_m50_1)           
+            panel_id = 'a'
+            y_ticks = [500, 1000, 1500, 2000]
+        elif thr == 100:
+            pn_tmp = .5*(pn_m100_2+pn_m100_1)
+            y_ticks = [300, 600, 900, 1200]
+            panel_id = 'b'
+        elif thr == 150:
+            pn_tmp = .5*(pn_m150_2+pn_m150_1)
+            panel_id = 'c'
+            y_ticks = [75, 150, 225, 300]
+        
+        
+        y2plot_ln = np.squeeze(pn_tmp[:, 2, :, w_max_id, ])
+        y2plot_nsi = np.squeeze(pn_tmp[:, 1, :, w_max_id, ])
+        y2plot_noin = np.squeeze(pn_tmp[:, 0, :, w_max_id, ])
+        
+        axs[thr_id].errorbar(corr_obs, np.mean(y2plot_noin, axis=1),
+           yerr=np.std(y2plot_noin, axis=1)/np.sqrt(n_seeds),
+           linewidth=lw, color='magenta',label='Indep')
+        axs[thr_id].errorbar(corr_obs, np.mean(y2plot_ln, axis=1),
+           yerr=np.std(y2plot_ln, axis=1)/np.sqrt(n_seeds),
+           linewidth=lw, color='orange',label='LN')
+        axs[thr_id].errorbar(corr_obs, np.mean(y2plot_nsi, axis=1),
+           yerr=np.std(y2plot_nsi, axis=1)/np.sqrt(n_seeds),
+           linewidth=lw, color='blue',label='NSI')
     
-    corr_obs = np.mean(np.squeeze(cor_stim[:, :,3,]), axis=1)
-    corr_obs_err = (np.std(np.squeeze(cor_stim[:, :,3,]), axis=1)/
-                        np.size(np.squeeze(cor_stim[:, :,3,]))**0.5)
-    overlap_obs = np.mean(np.squeeze(overlap_stim[:, :,3,]), axis=1)
-    overlap_obs_err= (np.std(np.squeeze(overlap_stim[:, :,3,]), axis=1)/
-                        np.size(np.squeeze(overlap_stim[:, :,3,]))**0.5)
+        # PLOT SETTINGS 
+        axs[thr_id].tick_params(axis='both', which='major', labelsize=label_fs-3)
+        
+        axs[thr_id].spines['right'].set_color('none')
+        axs[thr_id].spines['top'].set_color('none')
+        
+        axs[thr_id].text(-.15, 1.15, panel_id, transform=axs[thr_id].transAxes,
+                  fontsize=panel_fs, fontweight='bold', va='top', ha='right')
+        axs[thr_id].set_title('thr=%d Hz'%thr, fontsize=title_fs)
+    axs[0].set_ylabel('PN activity \n (unitless)', fontsize=label_fs)    
     
-    interm_av_th = np.mean(np.squeeze(interm_th[:, :,3,]), axis=1)
-    interm_obs = np.mean(np.squeeze(interm_est_1[:, :,3,]), axis=1)
-    interm_obs_err = (np.std(np.squeeze(interm_est_1[:, :,3,]), axis=1)/
-                      np.size(np.squeeze(interm_est_1[:, :,3,]))**0.5)
-    
-                                    #[rho_id, id_inh,seed_id,w_max_id,]
-                                    #[rho_id, id_inh,seed_id] 
-    ax_conc.errorbar(corr_obs, np.squeeze(np.mean(od_avg1[:, 0, :,3,], axis=1)),
-                  yerr= .1, linewidth=lw, fmt='o', color='green',label='Glo 1')
-
-    # SETTINGS
-    ax_conc.set_ylim((0, .6))
-    ax_conc.set_ylabel('Odorants \n concentration', fontsize=label_fs)
-    corr_th_v = 1 - np.exp(-corr_th)
-    ax_corr.errorbar(corr_th_v, corr_obs, 
-                  yerr=corr_obs_err, label='corr stim', fmt='.')
-    ax_corr.errorbar(corr_th_v, overlap_obs, 
-                  yerr=overlap_obs_err, label='overlap stim', fmt='o')
-    ax_corr.plot(corr_th_v, interm_av_th, '-', label='interm theor')
-    ax_corr.errorbar(corr_th_v, interm_obs, 
-                  yerr=interm_obs_err, label='interm obs', fmt='d')
-     
-    ax_conc.tick_params(axis='both', which='major', labelsize=label_fs-3)
-    ax_corr.tick_params(axis='both', which='major', labelsize=label_fs-3)
-    
-    ax_corr.legend(fontsize=label_fs-7, frameon=False)
-    
-    ax_conc.set_xlabel('Observed correlation', fontsize=label_fs)
-    ax_corr.set_ylabel('Observed values (au)', fontsize=label_fs)
-    ax_corr.set_xlabel('Theor. correlation', fontsize=label_fs)
-    
-    ax_corr.spines['right'].set_color('none')
-    ax_corr.spines['top'].set_color('none')
-    ax_conc.spines['right'].set_color('none')
-    ax_conc.spines['top'].set_color('none')
-    
-    ax_conc.text(-.15, 1.15, 'a', transform=ax_conc.transAxes,
-              fontsize=panel_fs, fontweight='bold', va='top', ha='right')
-    ax_corr.text(-.15, 1.15, 'b', transform=ax_corr.transAxes,
-              fontsize=panel_fs, fontweight='bold', va='top', ha='right')
-    
+    axs[1].set_xlabel('Observed correlation (unitless)', fontsize=label_fs,)
+        
     # change panels positions and sizes:
-    ll, bb, ww, hh = ax_conc.get_position().bounds
-    ax_conc.set_position([ll,bb+.04,ww,hh-.04])        
-    ll, bb, ww, hh = ax_corr.get_position().bounds
-    ax_corr.set_position([ll+.04,bb+.04,ww,hh-.04])        
-        
+    ll, bb, ww, hh = axs[0].get_position().bounds
+    axs[0].set_position([ll-.0,bb+.04,ww,hh-.04])        
+    ll, bb, ww, hh = axs[1].get_position().bounds
+    axs[1].set_position([ll+ 0.03,bb+.04,ww,hh-.04])        
+    ll, bb, ww, hh = axs[2].get_position().bounds
+    axs[2].set_position([ll+.06,bb+.04,ww,hh-.04])  
+    
+            
     if fig_save:
-        fig2.savefig(fld_output+  '/NSI_PlumeAverActiv_'+fig_name+'.png')
+        fig.savefig(fld_output + '/NSI_HighConc_'+fig_name+'.png')
         
+        
+#%% *********************************************************
+## FIGURE Fig.PeakPN_wmax
+## **********************************************************
+
+if thrwmax_fig:
+
+    rs = np.size(b_maxs) 
+    cs = n_wmax    
+
+#    wh_tot  = np.ones((n_rhos, n_wmax))
+#    wh_tot  = 5*stim_dur*np.squeeze(interm_th[:, 0,:,]) # rho_id, seed_id,w_max_id,]
+    corr_tmp = np.array(rhos)
+    for thr in thrs:
+        fig, axs = plt.subplots(rs, cs, figsize=(9,2.5), ) 
+        
+        for w_max_id, w_max in enumerate(w_maxs):
+            
+            if thr == 50:
+                pn_tmp = .5*(pn_m50_2+pn_m50_1)           
+                y_ticks = [500, 1000, 1500, 2000]
+            elif thr == 100:
+                pn_tmp = .5*(pn_m100_2+pn_m100_1)
+                y_ticks = [300, 600, 900, 1200]
+            elif thr == 150:
+                pn_tmp = .5*(pn_m150_2+pn_m150_1)
+                y_ticks = [75, 150, 225, 300]
+                
+            y2plot_ln = np.squeeze(pn_tmp[:, 2, :, w_max_id, ])
+            y2plot_nsi = np.squeeze(pn_tmp[:, 1, :, w_max_id, ])
+            y2plot_noin = np.squeeze(pn_tmp[:, 0, :, w_max_id, ])
+    
+            axs[w_max_id].errorbar(corr_tmp, np.mean(y2plot_noin, axis=1),
+               yerr=np.std(y2plot_noin, axis=1)/np.sqrt(n_seeds),
+               linewidth=lw, color='magenta',label='Indep')
+            axs[w_max_id].errorbar(corr_tmp, np.mean(y2plot_ln, axis=1),
+               yerr=np.std(y2plot_ln, axis=1)/np.sqrt(n_seeds),
+               linewidth=lw, color='orange',label='LN')
+            axs[w_max_id].errorbar(corr_tmp, np.mean(y2plot_nsi, axis=1),
+               yerr=np.std(y2plot_nsi, axis=1)/np.sqrt(n_seeds),
+               linewidth=lw, color='blue',label='NSI')
+                    
+            # SETTINGS
+            #ax_orn.tick_params(axis='both', which='major', labelsize=label_fs-3)
+            axs[w_max_id].set_title('%.2g'%w_max+' s', fontsize=title_fs)
+            axs[w_max_id].tick_params(axis='both', which='major', labelsize=label_fs-5)
+            axs[w_max_id].set_xticks(corr_tmp[[0, 1, 2]])
+            axs[w_max_id].set_xticklabels([0, 0.9, 0.999]) # np.array(1-np.power(.10, corr_tmp[[0,1,2]])))
+                           
+            axs[w_max_id].spines['right'].set_color('none')
+            axs[w_max_id].spines['top'].set_color('none')
+                   
+            # panels positions
+            ll, bb, ww, hh = axs[w_max_id].get_position().bounds
+            axs[w_max_id].set_position([ll+.01+.015*w_max_id, bb+.1, ww, hh-.15])   
+            
+            axs[w_max_id].set_yticklabels('', fontsize=label_fs-5)            
+            axs[w_max_id].set_yticks(y_ticks)
+            axs[w_max_id].set_ylim(0,y_ticks[-1]*1.02)                            
+            
+        letter_pos = [-.5, 1.25]
+        axs[0].text(letter_pos[0], letter_pos[1], 'a', transform=axs[0].transAxes, 
+                    fontsize=panel_fs, fontweight='bold', va='top', ha='right')
+        axs[0].set_yticklabels(y_ticks, fontsize=label_fs-5)
+        axs[0].set_ylabel('PN activity \n (unitless)' , fontsize=label_fs)
+        
+        axs[2].set_xlabel('Observed correlation (unitless)', fontsize=label_fs)
+        axs[2].xaxis.set_label_coords(1.1, -.15)
+        
+        if fig_save:
+            fig.savefig(fld_output+ '/NSI_nuPN_wmax_%dHz'%thr+'_'+ fig_name + '.png')    
+            
         
 #%%**********************************************************
 # FIGURE: Fig.PeakPN_resumen
@@ -427,91 +511,76 @@ if resumen_fig:
         if fig_save:
             fig.savefig(fld_output+ '/NSI_Perf_log'+ fig_name + '_%d'%thr+ 'Hz.png')    
 
+       
+            
 #%% *********************************************************
-## FIGURE Fig.PeakPN_wmax
+## FIGURE Fig.AverPlumeCorr
 ## **********************************************************
-
-if thrwmax_fig:
-
-    rs = np.size(b_maxs) 
-    cs = n_wmax    
-
-#    wh_tot  = np.ones((n_rhos, n_wmax))
-#    wh_tot  = 5*stim_dur*np.squeeze(interm_th[:, 0,:,]) # rho_id, seed_id,w_max_id,]
-    corr_tmp = np.array(rhos)
-    for thr in thrs:
-        fig, axs = plt.subplots(rs, cs, figsize=(9,2.5), ) 
-        
-        for w_max_id, w_max in enumerate(w_maxs):
-            
-            if thr == 50:
-                pn_tmp = .5*(pn_m50_2+pn_m50_1)           
-                panel_id = 'c'#%d'%w_max_id
-                y_ticks = [500, 1000, 1500, 2000]
-            elif thr == 100:
-                pn_tmp = .5*(pn_m100_2+pn_m100_1)
-                y_ticks = [300, 600, 900, 1200]
-                panel_id = 'b'#%d'%w_max_id
-            elif thr == 150:
-                pn_tmp = .5*(pn_m150_2+pn_m150_1)
-                panel_id = 'a'#%d'%w_max_id
-                y_ticks = [75, 150, 225, 300]
-                
-            y2plot_ln = np.squeeze(pn_tmp[:, 2, :, w_max_id, ])
-            y2plot_nsi = np.squeeze(pn_tmp[:, 1, :, w_max_id, ])
-            y2plot_noin = np.squeeze(pn_tmp[:, 0, :, w_max_id, ])
+if avgplume_fig:
+    fig2 = plt.figure(figsize=(12,4), ) 
+    rs = 1
+    cs = 2
+    lw = 4
     
-            axs[w_max_id].errorbar(corr_tmp, np.mean(y2plot_noin, axis=1),
-               yerr=np.std(y2plot_noin, axis=1)/np.sqrt(n_seeds),
-               linewidth=lw, color='magenta',label='Indep')
-            axs[w_max_id].errorbar(corr_tmp, np.mean(y2plot_ln, axis=1),
-               yerr=np.std(y2plot_ln, axis=1)/np.sqrt(n_seeds),
-               linewidth=lw, color='orange',label='LN')
-            axs[w_max_id].errorbar(corr_tmp, np.mean(y2plot_nsi, axis=1),
-               yerr=np.std(y2plot_nsi, axis=1)/np.sqrt(n_seeds),
-               linewidth=lw, color='blue',label='NSI')
+    ax_conc = plt.subplot(rs,cs,1)
+    ax_corr = plt.subplot(rs,cs,2) # Correlation/Overlap between stimuli
+
+    corr_th = np.array(rhos)
+    
+    corr_obs = np.mean(np.squeeze(cor_stim[:, :,3,]), axis=1)
+    corr_obs_err = (np.std(np.squeeze(cor_stim[:, :,3,]), axis=1)/
+                        np.size(np.squeeze(cor_stim[:, :,3,]))**0.5)
+    overlap_obs = np.mean(np.squeeze(overlap_stim[:, :,3,]), axis=1)
+    overlap_obs_err= (np.std(np.squeeze(overlap_stim[:, :,3,]), axis=1)/
+                        np.size(np.squeeze(overlap_stim[:, :,3,]))**0.5)
+    
+    interm_av_th = np.mean(np.squeeze(interm_th[:, :,3,]), axis=1)
+    interm_obs = np.mean(np.squeeze(interm_est_1[:, :,3,]), axis=1)
+    interm_obs_err = (np.std(np.squeeze(interm_est_1[:, :,3,]), axis=1)/
+                      np.size(np.squeeze(interm_est_1[:, :,3,]))**0.5)
+    
+                                    #[rho_id, id_inh,seed_id,w_max_id,]
+                                    #[rho_id, id_inh,seed_id] 
+    ax_conc.errorbar(corr_obs, np.squeeze(np.mean(od_avg1[:, 0, :,3,], axis=1)),
+                  yerr= .1, linewidth=lw, fmt='o', color='green',label='Glo 1')
+
+    # SETTINGS
+    ax_conc.set_ylim((0, .6))
+    ax_conc.set_ylabel('Odorants \n concentration', fontsize=label_fs)
+    corr_th_v = 1 - np.exp(-corr_th)
+    ax_corr.errorbar(corr_th_v, corr_obs, 
+                  yerr=corr_obs_err, label='corr stim', fmt='.')
+    ax_corr.errorbar(corr_th_v, overlap_obs, 
+                  yerr=overlap_obs_err, label='overlap stim', fmt='o')
+    ax_corr.plot(corr_th_v, interm_av_th, '-', label='interm theor')
+    ax_corr.errorbar(corr_th_v, interm_obs, 
+                  yerr=interm_obs_err, label='interm obs', fmt='d')
+     
+    ax_conc.tick_params(axis='both', which='major', labelsize=label_fs-3)
+    ax_corr.tick_params(axis='both', which='major', labelsize=label_fs-3)
+    
+    ax_corr.legend(fontsize=label_fs-7, frameon=False)
+    
+    ax_conc.set_xlabel('Observed correlation', fontsize=label_fs)
+    ax_corr.set_ylabel('Observed values (au)', fontsize=label_fs)
+    ax_corr.set_xlabel('Theor. correlation', fontsize=label_fs)
+    
+    ax_corr.spines['right'].set_color('none')
+    ax_corr.spines['top'].set_color('none')
+    ax_conc.spines['right'].set_color('none')
+    ax_conc.spines['top'].set_color('none')
+    
+    ax_conc.text(-.15, 1.15, 'a', transform=ax_conc.transAxes,
+              fontsize=panel_fs, fontweight='bold', va='top', ha='right')
+    ax_corr.text(-.15, 1.15, 'b', transform=ax_corr.transAxes,
+              fontsize=panel_fs, fontweight='bold', va='top', ha='right')
+    
+    # change panels positions and sizes:
+    ll, bb, ww, hh = ax_conc.get_position().bounds
+    ax_conc.set_position([ll,bb+.04,ww,hh-.04])        
+    ll, bb, ww, hh = ax_corr.get_position().bounds
+    ax_corr.set_position([ll+.04,bb+.04,ww,hh-.04])        
+        
+    if fig_save:
+        fig2.savefig(fld_output+  '/NSI_PlumeAverActiv_'+fig_name+'.png')
                     
-            # SETTINGS
-            #ax_orn.tick_params(axis='both', which='major', labelsize=label_fs-3)
-            axs[w_max_id].set_title('%.2g'%w_max+'ms', fontsize=title_fs)
-            axs[w_max_id].tick_params(axis='both', which='major', labelsize=label_fs-5)
-            axs[w_max_id].set_xticks(corr_tmp[[0, 1, 2]])
-            axs[w_max_id].set_xticklabels([0, 0.9, 0.999]) # np.array(1-np.power(.10, corr_tmp[[0,1,2]])))
-                           
-            axs[w_max_id].spines['right'].set_color('none')
-            axs[w_max_id].spines['top'].set_color('none')
-        
-#            if w_max_id==0:
-#                letter_pos = [-.25, 1.25]
-#            else:
-#                letter_pos = [-.1, 1.25]
-        
-#            axs[w_max_id].text(letter_pos[0], letter_pos[1], panel_id, 
-#               transform=axs[w_max_id].transAxes,color= black,
-#                  fontsize=panel_fs-10, fontweight='bold', va='top', ha='right')
-                   
-            # panels positions
-            ll, bb, ww, hh = axs[w_max_id].get_position().bounds
-            axs[w_max_id].set_position([ll+.01+.015*w_max_id, bb+.1, ww, hh-.15])   
-            
-            axs[w_max_id].set_yticklabels('', fontsize=label_fs-5)            
-            axs[w_max_id].set_yticks(y_ticks)
-            axs[w_max_id].set_ylim(0,y_ticks[-1]*1.02)                            
-            
-        letter_pos = [-.5, 1.25]
-        axs[0].text(letter_pos[0], letter_pos[1], panel_id, 
-               transform=axs[0].transAxes,color= black,
-                  fontsize=panel_fs, fontweight='bold', va='top', ha='right')
-        axs[0].set_yticklabels(y_ticks, fontsize=label_fs-5)
-        axs[0].set_ylabel('PN activity \n (unitless)' , fontsize=label_fs)
-        
-        axs[2].set_xlabel('Observed correlation (unitless)', fontsize=label_fs)
-        axs[2].xaxis.set_label_coords(1.1, -.15)
-                             
-#        axs[0].text(.3, y_ticks[2], 'ctrl', color='magenta', fontsize=label_fs)
-#        axs[0].text(.3, y_ticks[1], 'NSI', color=blue, fontsize=label_fs)
-#        axs[0].text(.3, y_ticks[0], 'LN', color=orange, fontsize=label_fs)        
-    
-        if fig_save:
-            fig.savefig(fld_output+ '/NSI_nuPN_wmax_%dHz'%thr+'_'+ fig_name + '.png')    
-            
