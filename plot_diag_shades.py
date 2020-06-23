@@ -76,21 +76,21 @@ def orn_al_settings(axs):
         axs[2, 1].text(105, 10, '50 ms', color=black, fontsize=scale_fs)
         # vertical line
         axs[2, 1].plot([100, 100], [50, 150], color=black) 
-        axs[2, 1].text(80, 140, '100 Hz', color=black,rotation=90, fontsize=scale_fs)
+        axs[2, 1].text(80, 40, '100 Hz', color=black,rotation=90, fontsize=scale_fs)
     elif fig_id=='ts_a':
         # horizzontal line
         axs[2, 1].plot([100, 150], [50, 50], color=black) 
         axs[2, 1].text(105, 10, '50 ms', color=black, fontsize=scale_fs)
         # vertical line
         axs[2, 1].plot([100, 100], [50, 150], color=black) 
-        axs[2, 1].text(75, 140, '100 Hz', color=black,rotation=90, fontsize=scale_fs)
+        axs[2, 1].text(75, 40, '100 Hz', color=black,rotation=90, fontsize=scale_fs)
     elif fig_id=='pl':
         # horizzontal line
         axs[2, 1].plot([2000, 2500], [50, 50], color=black) 
         axs[2, 1].text(2000, 10, '500 ms', color=black, fontsize=scale_fs)
         # vertical line
         axs[2, 1].plot([2000, 2000], [50, 150], color=black) 
-        axs[2, 1].text(1600, 130, '100 Hz', color=black,rotation=90, fontsize=scale_fs)
+        axs[2, 1].text(1600, 40, '100 Hz', color=black,rotation=90, fontsize=scale_fs)
     
     if (fig_id=='ts_a') | (fig_id=='pl'):
         axs[0, 0].text(.05, 1.4, 'a', transform=axs[0,0].transAxes, 
@@ -177,11 +177,11 @@ fld_analysis= 'NSI_analysis/triangle_stim/diag_figs'
 inh_conds   = ['nsi', 'ln', 'noin'] 
 
 # ORN NSI params
-alpha_ln    = 13.3
-nsi_str     = 0.3
+alpha_ln    = 16.6
+nsi_str     = 0.2
 
 # Stimulus params 
-fig_id = 'pl' # 'ts_s' #  'ts_a' # 'pl'
+fig_id = 'ts_a' # 'ts_s' #  'ts_a' # 'pl'
 if fig_id == 'ts_s':
     stim_type   = 'ts'          # 'ts'  # 'ss' # 'pl'
     delay       = 0    
@@ -248,7 +248,8 @@ fig_opts    = [orn_fig, al_fig, fig_ui, fig_save, data_save, al_dyn,
 stim_params = [stim_type, pts_ms, t_tot, t_on, t_off, 
                        concs, plume_params]
 
-fig_name    = 'diag_stim_'+stim_type+'_delay_%d'%delay
+fig_name    = 'diag_stim_'+stim_type+'_delay_%d'%delay + \
+                    '_nsi%.2f'%nsi_str+'_ln%.1f'%alpha_ln
 
 
 # Plot settings/params

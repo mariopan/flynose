@@ -77,9 +77,13 @@ def martelli_plot(all_data_tmp, analysis_par, id_c):
         
         ax_conc_m.set_xticklabels('')
         
-        if (len(st_name) == 2) | (st_name == 'step_'):
+        if (len(st_name) == 2):
             ax_conc_m.set_ylabel('Input (a.u.)', fontsize=label_fs)
             ax_orn_m.set_ylabel(' Norm. firing rates \n (unitless)', fontsize=label_fs)
+            
+        if (st_name == 'step_'):
+            ax_conc_m.set_ylabel('Input (a.u.)', fontsize=label_fs)
+            ax_orn_m.set_ylabel(' Firing rates \n (unitless)', fontsize=label_fs)
             
         if len(st_name) > 2:
             ax_conc_m.set_title(st_name[:-1], fontsize = title_fs+10)
@@ -91,8 +95,6 @@ def martelli_plot(all_data_tmp, analysis_par, id_c):
             
             ax_conc_m.set_yticks(np.linspace(0,400, 5))
             ax_orn_m.set_yticks(np.linspace(0,250, 6))
-#            ax_conc_m.tick_params(axis='both', labelsize=ticks_fs)
-#            ax_orn_m.tick_params(axis='both', labelsize=ticks_fs)
             
             ax_conc_m.set_ylim((-5, 400))
             ax_orn_m.set_ylim((0, 250))            
@@ -278,62 +280,62 @@ def olsen2010_data(all_data_tmp, analysis_par):
     
     return out_olsen
     
-##*****************************************************
-## FIG.Laz
-#t_on = 0
-#peaks       = [1, 2, 3]#np.linspace(0, 7, 11)
-#stim_dur    = 1000  # 50 # 100 #500
-#inh_conds   = ['nsi'] #['nsi', 'ln', 'noin'] #
-#stim_type_tmp = 'ramp_' #'step_' # 'parabola_' #
-#stim_type   = stim_type_tmp
-#delay2an    = 0
-#peak_ratio  = 1
-#b_max       = [3] # 3, 50, 150
-#w_max       = [3] # 3, 50, 150
-#rho         = [0] #[0, 1, 3, 5]: 
-#alpha_ln    = 13.3 # alpha_ln  = 0.4
-#nsi_str     = 0.3        
-#n_lines     = np.size(peaks)
-#fld_analysis = 'NSI_analysis/lazar_sim/'
-#
-#martelli_fig= 1 # Fig.laz
-#orn_al_fig  = 0
-#olsen_fig   = 0
-#
-#fig_martelli_name   = stim_type_tmp
-#fig_orn_al_name = ''
-#fig_olsen_fit_name = ''
-#
-#fig_save    = 1
-
-
-
-
 #*****************************************************
-# FIG: Olsen-Wilson 2010 / Martelli 2013
-peaks       = np.linspace(0.7, 7, 10)
-stim_dur    = 500  # 50 # 100 #500
-t_on        = 300  #  500
-inh_conds   = ['noin'] #['nsi', 'ln', 'noin'] #
-stim_type   = 'ss' # 'ss'   # 'ts'
+# FIG.Laz
+t_on = 0
+peaks       = [1, 2, 3]#np.linspace(0, 7, 11)
+stim_dur    = 1000  # 50 # 100 #500
+inh_conds   = ['nsi'] #['nsi', 'ln', 'noin'] #
+stim_type_tmp = 'step_' #'ramp_' #'step_' # 'parabola_' #
+stim_type   = stim_type_tmp
 delay2an    = 0
 peak_ratio  = 1
-b_max       = 3 # 3, 50, 150
-w_max       = 3 # 3, 50, 150
-rho         = 0 #[0, 1, 3, 5]: 
-alpha_ln    = 0.6
+b_max       = np.nan # 3, 50, 150
+w_max       = np.nan # 3, 50, 150
+rho         = np.nan #[0, 1, 3, 5]: 
+alpha_ln    = 13.3 # alpha_ln  = 0.4
 nsi_str     = 0.3        
 n_lines     = np.size(peaks)
-fld_analysis        = 'Olsen2010_Martelli2013/data'
-fig_orn_al_name     = '/../images/' +'ORN-PN_Olsen2010_timecourse_dur_%d'%stim_dur
-fig_olsen_fit_name  = '/../images/' +'ORN-PN_Olsen2010_dur_%d'%stim_dur
-fig_martelli_name   = '/../images/' +'ORN-Martelli2013_dur_%d'%stim_dur
-orn_al_fig      = 1 # PNORNactivity, time course side
-olsen_fig       = 0 # PNORNactivity, Olsen side
-martelli_fig    = 0 # ORN_response, Martelli side
+fld_analysis = 'NSI_analysis/lazar_sim/'
 
-fig_save        = 1
-data_save       = 0
+martelli_fig= 1 # Fig.laz
+orn_al_fig  = 0
+olsen_fig   = 0
+
+fig_martelli_name   = stim_type_tmp
+fig_orn_al_name = ''
+fig_olsen_fit_name = ''
+
+fig_save    = 1
+
+
+
+
+# #*****************************************************
+# # FIG: Olsen-Wilson 2010 / Martelli 2013
+# peaks       = np.linspace(0.7, 7, 10)
+# stim_dur    = 500  # 50 # 100 #500
+# t_on        = 300  #  500
+# inh_conds   = ['noin'] #['nsi', 'ln', 'noin'] #
+# stim_type   = 'ss' # 'ss'   # 'ts'
+# delay2an    = 0
+# peak_ratio  = 1
+# b_max       = 3 # 3, 50, 150
+# w_max       = 3 # 3, 50, 150
+# rho         = 0 #[0, 1, 3, 5]: 
+# alpha_ln    = 0.6
+# nsi_str     = 0.3        
+# n_lines     = np.size(peaks)
+# fld_analysis        = 'Olsen2010_Martelli2013/data'
+# fig_orn_al_name     = '/../images/' +'ORN-PN_Olsen2010_timecourse_dur_%d'%stim_dur
+# fig_olsen_fit_name  = '/../images/' +'ORN-PN_Olsen2010_dur_%d'%stim_dur
+# fig_martelli_name   = '/../images/' +'ORN-Martelli2013_dur_%d'%stim_dur
+# orn_al_fig      = 1 # PNORNactivity, time course side
+# olsen_fig       = 0 # PNORNactivity, Olsen side
+# martelli_fig    = 0 # ORN_response, Martelli side
+
+# fig_save        = 1
+# data_save       = 0
 
 
 

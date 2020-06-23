@@ -549,26 +549,34 @@ def main(params2an, fig_opts):
         ax_orn_fr = plt.subplot(rs, cs, 4)
         
         
-        ax_orn1.plot(t-t_on, u_od[:,0], color= green,linewidth=lw+1, 
+        ax_orn1.plot(t-t_on, u_od[:,0], linewidth=lw+1, color=black, 
                      label=r'Glom %d'%(1))
-#        ax_orn1.plot(t-t_on, u_od[:,1], '--', color=purple,linewidth=lw, 
-#                     label=r'Glom %d'%(2)) # before it was multiplied by 100
-        ax_orn2.plot(t-t_on, r_orn[:,0], color=col_glo[1,:]/2,linewidth=lw+1,
+        ax_orn2.plot(t-t_on, r_orn[:,0], linestyle='--',color=black,  linewidth=lw+1, 
                      label=r'r, glom: %d'%(1))
-#        ax_orn2.plot(t-t_on, r_orn[:,1],'--', color=col_glo[1,:]/2,linewidth=lw,
-#                     label=r'r, glom: %d'%(2))
-        ax_orn3.plot(t-t_on, x_orn[:,0], color=green,linewidth=lw+1,
+        ax_orn3.plot(t-t_on, x_orn[:,0], linewidth=lw+1, color=black, 
                      label=r'Od, glom : %d'%(0))
-#        ax_orn3.plot(t-t_on, x_orn[:,1], '--',color=purple,linewidth=lw, 
-#                     label=r'Od, glom : %d'%(1))
-        ax_orn4.plot(t-t_on, y_orn[:,0], color=col_glo[1,:]/2, linewidth=lw+1, 
+        ax_orn4.plot(t-t_on, y_orn[:,0], linestyle='--', color=black, linewidth=lw+1, 
                      label=r'Od, glom : %d'%(0))
-#        ax_orn4.plot(t-t_on, y_orn[:,1], '--',color=col_glo[1,:]/2, linewidth=lw, 
-#                     label=r'Od, glom : %d'%(1))
-        ax_orn_fr.plot(orn_sdf_time-t_on, np.mean(orn_sdf[:,:num_orns_glo], axis=1), 
-                     color=green,  linewidth=lw+1,label='sdf glo 1')
-        ax_orn_fr.plot(orn_sdf_time-t_on, np.mean(orn_sdf[:,num_orns_glo:], axis=1), 
-                     color=purple, linewidth=lw,label='sdf glo 2')
+
+        trsp = .3
+        x1 = orn_sdf[:,:num_orns_glo]
+        mu1 = x1.mean(axis=1)
+        sigma1 = x1.std(axis=1)
+        ax_orn_fr.plot(orn_sdf_time-t_on, mu1, linewidth=lw+1, color=green)
+        ax_orn_fr.fill_between(orn_sdf_time-t_on, 
+            mu1+sigma1, mu1-sigma1, facecolor=green, alpha=trsp)
+        
+        # ax_orn_fr.plot(orn_sdf_time-t_on, np.mean(orn_sdf[:,:num_orns_glo], axis=1), 
+                     # color=green,  linewidth=lw+1,label='sdf glo 1')
+        x1 = orn_sdf[:,num_orns_glo:]
+        mu1 = x1.mean(axis=1)
+        sigma1 = x1.std(axis=1)
+        ax_orn_fr.plot(orn_sdf_time-t_on, mu1, linewidth=lw+1, color=purple)
+        ax_orn_fr.fill_between(orn_sdf_time-t_on, 
+            mu1+sigma1, mu1-sigma1, facecolor=purple, alpha=trsp,label='sdf glo 2')
+        # ax_orn_fr.plot(orn_sdf_time-t_on, np.mean(orn_sdf[:,num_orns_glo:], axis=1), 
+                     # color=purple, linewidth=lw,label='sdf glo 2')
+
         spikes_orn_0 = np.argwhere(num_spike_orn[:,:num_orns_glo])
         spikes_orn_1 = np.argwhere(num_spike_orn[:,num_orns_glo:])
         
@@ -593,13 +601,13 @@ def main(params2an, fig_opts):
         ax_orn_sc.set_xticklabels('')
         
         
-        ax_orn1.yaxis.label.set_color(green)
+        # ax_orn1.yaxis.label.set_color(green)
         ax_orn1.set_ylabel('Input (a.u.)', fontsize=label_fs)
-        ax_orn2.yaxis.label.set_color(col_glo[0,:]/2)
+        # ax_orn2.yaxis.label.set_color(col_glo[0,:]/2)
         ax_orn2.set_ylabel(r'r (a.u.) ', fontsize=label_fs)
-        ax_orn3.yaxis.label.set_color(green)
+        # ax_orn3.yaxis.label.set_color(green)
         ax_orn3.set_ylabel(r'y (a.u.)', fontsize=label_fs)
-        ax_orn4.yaxis.label.set_color(col_glo[1,:]/2)
+        # ax_orn4.yaxis.label.set_color(col_glo[1,:]/2)
         ax_orn4.set_ylabel(r'x (a.u.)', fontsize=label_fs)
         ax_orn_fr.set_ylabel('firing rates (Hz)', fontsize=label_fs)
         ax_orn_fr.set_xlabel('Time  (ms)', fontsize=label_fs) 
@@ -997,8 +1005,8 @@ if __name__ == '__main__':
     dt_sdf  = 5
 
     # ORN NSI params
-    alpha_ln        = 13.3# ln spike h=0.4
-    nsi_str         = 0.3
+    alpha_ln        = 0#16.6  # 13.3 #10.0 # 0.0 # ln spike h=0.4
+    nsi_str         = 0.2   # 0.3 # 0.0
     
     # Trials and errors 
 
@@ -1007,14 +1015,14 @@ if __name__ == '__main__':
    
     #***********************************************
     # stimulus params
-    stim_dur    = 10
+    stim_dur    = 50
     delay       = 0    
     stim_type   = 'ts'          # 'ts'  # 'ss' # 'pl'
     pts_ms      = 5
     t_tot       = 420        # ms 
     t_on        = [300, 300+delay]    # ms
     t_off       = np.array(t_on)+stim_dur # ms
-    concs       = [1, 1]
+    concs       = [1.4, 1.4]
     sdf_size    = int(t_tot/dt_sdf)
     # real plumes params
     b_max           = np.nan # 3, 50, 150
@@ -1067,7 +1075,7 @@ if __name__ == '__main__':
         mkdir(fld_analysis)
     
     
-    n_loops         = 100
+    n_loops         = 10
     pn_avg_dif      = np.zeros(n_loops)
     pn_avg_ratio    = np.zeros(n_loops)
     pn_peak_ratio   = np.zeros(n_loops)
@@ -1133,8 +1141,6 @@ if __name__ == '__main__':
             print('mean time strong')
             print(perf_time[1,:])
         #%%
-#        print('peak ratio:%.1f, conc weak:%.1f Hz, conc strong:%.1f Hz'
-#          %(pn_peak_ratio[id_loop], pn_peak_w, pn_peak_s))
     print('peak strong:%.1f Hz, peak weak:%.1f Hz'
           %(np.mean(pn_peak_s), np.mean(pn_peak_w)))
     print('peak ratio:%.1f, avg ratio:%.1f, avg dif:%.1f Hz'
@@ -1142,7 +1148,7 @@ if __name__ == '__main__':
             np.mean(np.ma.masked_invalid(pn_avg_ratio)), np.mean(pn_avg_dif)))
     
     toc = timeit.default_timer()
-    print('time to do %d sims: %.1f'%(n_loops, toc-tic))
+    print('time to do %d sims: %.1f s'%(n_loops, toc-tic))
     print('')
                         
 else:

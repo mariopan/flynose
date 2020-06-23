@@ -44,42 +44,48 @@ rho         = np.nan #[0, 1, 3, 5]:
 stim_seed   = np.nan   # if =np.nan() no traceable random
 # figure and output options
 verbose     = 0    
+tau_sdf     = 20
+dt_sdf      = 5      
 
 
-#***********************************************
-# FIG. ORN_response
-fld_analysis = 'NSI_analysis/ORN_dynamics' #/sdf_test
-inh_conds   = ['noin'] 
-stim_type   = 'ss' # 'ts' # 'ss' # 'rp'# '
-stim_dur    = 500
-delay       = 0
-peaks       = [0.8]
-peak_ratio  = 1
-t_tot       = 1200        # ms 
-orn_fig     = 1
-al_fig      = 0
-fig_ui      = 1
-fig_save    = 1
-data_save   = 1  
-al_dyn      = 0
+# #***********************************************
+# # FIG. ORN_response
+# fld_analysis = 'NSI_analysis/ORN_dynamics' #/sdf_test
+# inh_conds   = ['noin'] 
+# stim_type   = 'ss' # 'ts' # 'ss' # 'rp'# '
+# stim_dur    = 500
+# delay       = 0
+# peaks       = [0.8]
+# peak_ratio  = 1
+# t_tot       = 1200        # ms 
+# orn_fig     = 1
+# al_fig      = 0
+# fig_ui      = 1
+# fig_save    = 1
+# data_save   = 0  
+# al_dyn      = 0
         
-##***********************************************
-## Lazar and Kim data reproduction
-#fld_analysis    = 'NSI_analysis/lazar_sim/'
-#inh_conds       = ['nsi', ] #'ln', 'noin'
-#ext_stimulus    = True
-#stim_type       = 'ramp_3' # 'step_3' 'parabola_3' 'ramp_3'
-#stim_data_fld   = 'lazar_data_hr/'
-#stim_dur        = np.nan
-#delay           = np.nan
-#peak_ratio      = np.nan
-#peaks           = [1,] 
-#al_dyn          = 0
-#orn_fig         = 0
-#al_fig          = 0
-#fig_ui          = 1        
-#fig_save        = 0
-#data_save       = 1    
+#***********************************************
+# Lazar and Kim data reproduction
+fld_analysis    = 'NSI_analysis/lazar_sim/'
+inh_conds       = ['nsi', ] #'ln', 'noin'
+ext_stimulus    = True
+stim_type       = 'ramp_1' # 'step_3' 'parabola_3' 'ramp_3'
+stim_data_fld   = 'lazar_data_hr/'
+
+stim_dur        = np.nan
+delay           = np.nan
+peak_ratio      = np.nan
+peaks           = [1,] 
+al_dyn          = 0
+orn_fig         = 0
+al_fig          = 0
+fig_ui          = 1        
+fig_save        = 0
+data_save       = 1    
+t_tot       = 3500 # ms 
+tau_sdf     = 60
+dt_sdf      = 5      
 
 ##***********************************************
 ## Olsen-Wilson 2010 figure
@@ -157,8 +163,6 @@ al_dyn      = 0
 t_on        = [300, 300+delay]    # ms
 t_off       = np.array(t_on)+stim_dur # ms
 concs       = [0, 0]
-tau_sdf     = 20
-dt_sdf      = 5      
 sdf_size    = int(t_tot/dt_sdf)       
 
 for stim_seed in range(1):
@@ -171,8 +175,7 @@ for stim_seed in range(1):
     else:
         print('NEW analysis fld: ' + fld_analysis)    
         mkdir(fld_analysis)
-    copyfile('flynose.py', fld_analysis+'/flynose.py') 
-    
+        
     n_loops     = 1
     pn_avg_dif  = np.zeros(n_loops)
     
@@ -184,7 +187,7 @@ for stim_seed in range(1):
         stim_params = [stim_type, pts_ms, t_tot, t_on, t_off, 
                        concs, plume_params]
     
-        print('conc: %.1f, stim_dur:%fms, spike LN: %.1f, NSI strength: %.1f'
+        print('conc: %.1f, stim_dur:%.1f ms, spike LN: %.1f, NSI strength: %.1f'
           %(peak, stim_dur,alpha_ln,nsi_str))
 
         if len(stim_type)>2:
