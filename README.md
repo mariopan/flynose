@@ -38,9 +38,9 @@ To run, **flynose.py** uses other scripts:
 
 ### Parameters
 
-     *params2an* is a list containing the main parameters that are used for the most common simulations: the strength of the NSI, *nsi_str* and the strength of the AL lateral inhibition, *alpha_ln*. The third element is another list with the parameters for the stimulus: *stim_params*.
+*params2an* is a list containing the main parameters that are used for the most common simulations: the strength of the NSI, *nsi_str* and the strength of the AL lateral inhibition, *alpha_ln*. The third element is another list with the parameters for the stimulus: *stim_params*.
 
-   *fig_opts* is a list containing several flags to decide from outside **flynose.py** whether for exanple if we want the figure of the ORNs dynamics, *orn_fig*, or to save the figure, *fig_save*, or to simulate the AL, *al_dyn*.
+*fig_opts* is a list containing several flags to decide from outside **flynose.py** whether for exanple if we want the figure of the ORNs dynamics, *orn_fig*, or to save the figure, *fig_save*, or to simulate the AL, *al_dyn*.
 
 
 
@@ -52,9 +52,9 @@ The output is a single variable that consists of 5 vectors:
 
 * t: 1d np array, the time series of the time used for the simulation (ms)
 * u_od: 2d np array of the odorant concentration input to the ORNs
-* orn_sp_mat: 2d np array of the spikes trains of the ORNs. The first element is spike time and the second element is the ORN id
-* pn_sp_mat:2d np array of the spikes trains of the PNs. The first element is spike time and the second element is the PN id
-* ln_sp_mat: 2d np array of the spikes trains of the LNs. The first element is       spike time and the second element is the LN id
+* orn_sp_mat: 2d np array of the spikes trains of the ORNs. The first column is spike time and the second column is the ORN id
+* pn_sp_mat:2d np array of the spikes trains of the PNs. The first column is spike time and the second column is the PN id
+* ln_sp_mat: 2d np array of the spikes trains of the LNs. The first column is spike time and the second column is the LN id
 
 
 
