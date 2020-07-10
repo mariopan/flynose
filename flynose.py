@@ -31,8 +31,7 @@ import stats_for_plumes as stats
 
 # *****************************************************************
 # FUNCTIONS
-
-def depalo_eq2(z,t,u,u2,orn_params,):
+def depalo_eq2(z,t,u,orn_params,num_glo):
     a_y = orn_params[0]
     c_x = orn_params[1]
     b_y = orn_params[2]
@@ -46,23 +45,104 @@ def depalo_eq2(z,t,u,u2,orn_params,):
     n = orn_params[8]
     omega_nsi = orn_params[9]
     
-    r = z[0]
-    x = z[1]
-    y = z[2]
+    if num_glo == 0 or num_glo > 4:
+        print('Error: number of glomeruli has to be non-zero and not greater than 4')
     
-    s = z[3] # r2
-    q = z[4] # x2
-    w = z[5] # y2
-    
-    drdt = b_r*u**n*(1-r) - d_r*r
-    dsdt = b_r*u2**n*(1-s) - d_r*s
-    
-    dydt = a_r*r - c_x*x*(1+d_x*y) - b_x*y - omega_nsi*w*y 
-    dxdt = a_y*y - b_y*x
-    
-    dwdt = a_r*s - c_x*q*(1+d_x*w) - b_x*w - omega_nsi*y*w
-    dqdt = a_y*w - b_y*q
-    dzdt = [drdt,dxdt,dydt,dsdt,dqdt,dwdt]
+    elif num_glo == 1:
+            r = z[0]
+            x = z[1]
+            y = z[2]
+            
+            drdt = b_r*u[0]**n*(1-r) - d_r*r
+            
+            dydt = a_r*r - c_x*x*(1+d_x*y) - b_x*y - omega_nsi*y 
+            dxdt = a_y*y - b_y*x
+            dzdt = [drdt,dxdt,dydt]
+            
+    elif num_glo == 2:
+            r = z[0]
+            x = z[1]
+            y = z[2]
+            
+            s = z[3]  # r2 
+            q = z[4]  # x2
+            w = z[5]  # y2
+            
+            drdt = b_r*u[0]**n*(1-r) - d_r*r
+            dsdt = b_r*u[1]**n*(1-s) - d_r*s
+            
+            dydt = a_r*r - c_x*x*(1+d_x*y) - b_x*y - omega_nsi*w*y 
+            dxdt = a_y*y - b_y*x
+            
+            dwdt = a_r*s - c_x*q*(1+d_x*w) - b_x*w - omega_nsi*y*w
+            dqdt = a_y*w - b_y*q
+            
+            dzdt = [drdt,dxdt,dydt,dsdt,dqdt,dwdt]
+            
+    elif num_glo == 3:
+            r = z[0]
+            x = z[1]
+            y = z[2]
+            
+            s = z[3]  # r2
+            q = z[4]  # x2
+            w = z[5]  # y2
+            
+            f = z[6]  # r3
+            p = z[7]  # x3
+            m = z[8]  # y2
+            
+            drdt = b_r*u[0]**n*(1-r) - d_r*r
+            dsdt = b_r*u[1]**n*(1-s) - d_r*s
+            dfdt = b_r*u[2]**n*(1-f) - d_r*f
+            
+            dydt = a_r*r - c_x*x*(1+d_x*y) - b_x*y - omega_nsi*w*y - omega_nsi*m*y
+            dxdt = a_y*y - b_y*x
+            
+            dwdt = a_r*s - c_x*q*(1+d_x*w) - b_x*w - omega_nsi*y*w - omega_nsi*m*w
+            dqdt = a_y*w - b_y*q
+            
+            dmdt = a_r*f - c_x*p*(1+d_x*m) - b_x*m - omega_nsi*w*m - omega_nsi*y*m
+            dpdt = a_y*m - b_y*p   
+            
+            dzdt = [drdt,dxdt,dydt,dsdt,dqdt,dwdt,dfdt,dpdt,dmdt] 
+            
+    elif num_glo == 4:
+            r = z[0]
+            x = z[1]
+            y = z[2]
+            
+            s = z[3]  # r2 
+            q = z[4]  # x2
+            w = z[5]  # y2
+            
+            f = z[6]  # r3
+            p = z[7]  # x3
+            m = z[8]  # y3
+            
+            h = z[9]  # r4
+            g = z[10] # x4
+            c = z[11] # y4
+
+            drdt = b_r*u[0]**n*(1-r) - d_r*r
+            dsdt = b_r*u[1]**n*(1-s) - d_r*s
+            dfdt = b_r*u[2]**n*(1-f) - d_r*f
+            dhdt = b_r*u[3]**n*(1-h) - d_r*h
+            
+            dydt = a_r*r - c_x*x*(1+d_x*y) - b_x*y - omega_nsi*w*y - omega_nsi*m*y - omega_nsi*c*y
+            dxdt = a_y*y - b_y*x
+            
+            dwdt = a_r*s - c_x*q*(1+d_x*w) - b_x*w - omega_nsi*y*w - omega_nsi*m*w - omega_nsi*c*w
+            dqdt = a_y*w - b_y*q
+            
+            dmdt = a_r*f - c_x*p*(1+d_x*m) - b_x*m - omega_nsi*w*m - omega_nsi*y*m - omega_nsi*c*m
+            dpdt = a_y*m - b_y*p   
+            
+            dcdt = a_r*h - c_x*g*(1+d_x*c) - b_x*c - omega_nsi*w*c - omega_nsi*m*c - omega_nsi*y*c
+            dgdt = a_y*c - b_y*g  
+            
+            dzdt = [drdt,dxdt,dydt,dsdt,dqdt,dwdt,dfdt,dpdt,dmdt,dhdt,dgdt,dcdt]
+            
     return dzdt
 
 def rect_func(b, x):
@@ -215,10 +295,11 @@ def main(params2an, fig_opts):
     delay           = t_on2-t_on
 
     # initialize output vectors
-    num_sens        = 2     # number of sensilla
-    num_glo         = 2     # number of glomeruli per sensilla
-    num_glo_tot     = num_sens*num_glo # number of glomeruli in total
-    u_od            = np.zeros((n2sim, num_glo))
+    num_glo_list    = [4,3,2,1]     # number of glomeruli per sensilla
+    num_sens        = len(num_glo_list)  # number of sensilla
+    num_glo_tot     = sum(num_glo_list) # number of glomeruli in total
+    # TEMPORARY FIX U_OD SCALING
+    u_od            = np.zeros((n2sim, 2))
 #    cor_stim        = np.nan
 #    overlap_stim    = np.nan
 #    cor_whiff       = np.nan
@@ -334,7 +415,7 @@ def main(params2an, fig_opts):
         t_off2          = t_on2 + stim_dur    # [ms]
         stim_off2       = t_off2*pts_ms
         
-        u_od            = np.zeros((n2sim, num_glo))
+        u_od            = np.zeros((n2sim, 2))
         u_od[:, 0]      = .01*ex_stim[:,1]
         u_od[:, 1]      = .01*(ex_stim[0,1]+ex_stim[-1,1])/2
     
@@ -433,63 +514,81 @@ def main(params2an, fig_opts):
     for pp in range(num_glo_tot):
         pn_ln_mat[pp*num_pns_glo:(pp+1)*num_pns_glo,
                   pp*num_lns_glo:(pp+1)*num_lns_glo] = pn_spike_height
-        
-    ln_pn_mat           = np.zeros((num_pns_tot,num_lns_tot))
-    for pp in range(int(num_sens)):
-        ln_pn_mat[((pp+pp)+1)*num_pns_glo:((pp+pp)+2)*num_pns_glo,
-                  (pp+pp)*num_lns_glo:((pp+pp)+1)*num_lns_glo] = ln_spike_height
-        ln_pn_mat[(pp+pp)*num_pns_glo:((pp+pp)+1)*num_pns_glo,
-                  ((pp+pp)+1)*num_lns_glo:((pp+pp)+2)*num_lns_glo] = ln_spike_height
-    ln_pn_mat = np.transpose(ln_pn_mat)
-    
-    # TESTING cross-inhibition between glomeruli units
-    cross_sens = 0
-    ln_pn_mat[0:6,10:20] = cross_sens
-    ln_pn_mat[6:12,0:10] = cross_sens
-    #
+     
+    glo_id = 0        
+    ln_pn_mat           = np.zeros((num_lns_tot,num_pns_tot))
+    for pp in range(num_sens):
+        num_glo = num_glo_list[pp]
+        # Inhibitory LN connectivity within glomeruli cluster
+        ln_pn_mat[(glo_id*num_lns_glo):((glo_id+num_glo)*num_lns_glo),
+                  (glo_id*num_pns_glo):((glo_id+num_glo)*num_pns_glo)] = ln_spike_height
+        for qq in range(num_glo):
+            # PN innervating LN are not inhibited
+            ln_pn_mat[((glo_id+qq)*num_lns_glo):((glo_id+qq+1)*num_lns_glo),
+                      ((glo_id+qq)*num_pns_glo):((glo_id+qq+1)*num_pns_glo)] = 0
+        glo_id = glo_id + num_glo
     
     # *****************************************************************
     # GENERATE ORN RESPONSE TO ODOR INPUT 
-    num_spike_orn       = np.zeros((n2sim, num_glo))
-    r_orn               = np.zeros((n2sim, num_glo))
-    x_orn               = np.zeros((n2sim, num_glo))
-    y_orn               = np.zeros((n2sim, num_glo))
-    nu_orn              = np.zeros((n2sim, num_glo))   
+    # num_spike_orn       = np.zeros((n2sim, num_glo))
+    # r_orn               = np.zeros((n2sim, num_glo))
+    # x_orn               = np.zeros((n2sim, num_glo))
+    # y_orn               = np.zeros((n2sim, num_glo))
+    # nu_orn              = np.zeros((n2sim, num_glo))   
     tnu_orn             = np.zeros((n2sim, num_glo_tot))
     tr_orn              = np.zeros((n2sim, num_glo_tot))
     tx_orn              = np.zeros((n2sim, num_glo_tot))
     ty_orn              = np.zeros((n2sim, num_glo_tot))
     
     # initial conditions
-    z_orn0          = np.ones((num_glo, 3))*[0, 0, 0]
-    r_orn[0,:]        = z_orn0[:, 0]
-    x_orn[0,:]        = z_orn0[:, 1]
-    y_orn[0,:]        = z_orn0[:, 2]
-    tot_od            = np.zeros([n2sim, num_glo])
+    # z_orn0          = np.ones((num_glo, 3))*[0, 0, 0]
+    # r_orn[0,:]        = z_orn0[:, 0]
+    # x_orn[0,:]        = z_orn0[:, 1]
+    # y_orn[0,:]        = z_orn0[:, 2]
+    # tot_od            = np.zeros([n2sim, num_glo])
     
     # ODOUR PREFERENCE
     od_pref = np.array([[1,0],
                         [0,1],
+                        [0,0],
                         [1,0],
-                        [0,0]])
-    
-    for pp in range(num_sens):      
+                        [1,0],
+                        [0,0],
+                        [0,1],
+                        [1,0],
+                        [0,0],
+                        [0,1]])
+    glo_id = 0
+    sen_id = 0
+    for pp in range(num_sens):     
+        num_glo = num_glo_list[pp]
+        # GENERATE ORN RESPONSE TO ODOR INPUT
+        num_spike_orn       = np.zeros((n2sim, num_glo))
+        r_orn               = np.zeros((n2sim, num_glo))
+        x_orn               = np.zeros((n2sim, num_glo))
+        y_orn               = np.zeros((n2sim, num_glo))
+        nu_orn              = np.zeros((n2sim, num_glo))  
+        # initial conditions
+        z_orn0            = np.ones((num_glo, 3))*[0, 0, 0]
+        r_orn[0,:]        = z_orn0[:, 0]
+        x_orn[0,:]        = z_orn0[:, 1]
+        y_orn[0,:]        = z_orn0[:, 2]
+        tot_od            = np.zeros([n2sim, num_glo])
         for qq in range(num_glo):
-            temp_od_pref = u_od*od_pref[(pp*num_glo)+qq,:]
+            temp_od_pref = u_od*od_pref[glo_id,:]
             tot_od[:,qq] = np.sum(temp_od_pref, axis=1)
-        
-        od_x  = tot_od[:,0]
-        od_y  = tot_od[:,1]
+            glo_id = glo_id+1
 
         for tt in range(1, n2sim-t_ref-1):
             # span for next time step
             tspan = [t[tt-1],t[tt]]
             
-            z0_unid = np.zeros(6)
-            z0_unid[0:3] = z_orn0[0,:]
-            z0_unid[3:6] = z_orn0[1,:]
+            z0_unid = np.zeros(num_glo*3)
+            for zz in range(num_glo):
+                z0_unid[zz*3:(zz+1)*3] = z_orn0[zz,:]
+
             z_orn = odeint(depalo_eq2, z0_unid, tspan,
-                           args=(od_x[tt], od_y[tt], orn_params,))
+                           args=(tot_od[tt], orn_params, num_glo))
             for gg in range(num_glo):
                 z_orn0[gg,0] = z_orn[1][0+gg*3]
                 z_orn0[gg,1] = z_orn[1][1+gg*3]
@@ -500,10 +599,11 @@ def main(params2an, fig_opts):
                 y_orn[tt,gg] = z_orn[1][2+gg*3]
                 nu_orn[tt,gg] = rect_func(B0, y_orn[tt,gg])
                 
-        tnu_orn[:,(pp*num_glo):((pp+1)*num_glo)] = nu_orn
-        tr_orn[:,(pp*num_glo):((pp+1)*num_glo)]  =  r_orn
-        tx_orn[:,(pp*num_glo):((pp+1)*num_glo)]  =  x_orn
-        ty_orn[:,(pp*num_glo):((pp+1)*num_glo)]  =  y_orn
+        tnu_orn[:,sen_id:(sen_id+num_glo)] =  nu_orn
+        tr_orn[:,sen_id:(sen_id+num_glo)]  =  r_orn
+        tx_orn[:,sen_id:(sen_id+num_glo)]  =  x_orn
+        ty_orn[:,sen_id:(sen_id+num_glo)]  =  y_orn
+        sen_id = sen_id + num_glo
     
     # *****************************************************************
     # Transform the average nu_orn into a spiking 
@@ -517,11 +617,15 @@ def main(params2an, fig_opts):
     
     nu_tmp = np.zeros((n2sim,num_orns_tot))
     
+    orns_id = 0
+    glo_id  = 0
     for pp in range(num_sens):
-        nu_tmp[:,pp*(num_orns_glo*num_glo):
-               (pp+1)*(num_orns_glo*num_glo)] = np.concatenate(
-                   (np.tile(tnu_orn[:,(pp*num_glo)], (num_orns_glo,1)), 
-                    np.tile(tnu_orn[:,(pp*num_glo)+1], (num_orns_glo,1)))).transpose()
+        num_glo = num_glo_list[pp]
+        for qq in range(num_glo):
+            nu_tmp[:,orns_id:(orns_id+num_orns_glo)] = (np.tile(tnu_orn[
+                :,glo_id], (num_orns_glo,1))).transpose()
+            glo_id = glo_id +1
+            orns_id = orns_id + num_orns_glo
     
     t_zeros = np.zeros((1, num_pns_tot))
     num_spike_orn = (rnd < nu_tmp/(pts_ms*1e3))*1.0
@@ -578,6 +682,7 @@ def main(params2an, fig_opts):
         if ext_stimulus:
             t2plot = 0, t_tot
         
+        orn_id = 0
         for pp in range(num_sens):
             panels_id = ['a', 'b', 'c', 'd']
             fig_orn = plt.figure(figsize=[8.5, 8])
@@ -590,8 +695,6 @@ def main(params2an, fig_opts):
             ax_orn4 = ax_orn3.twinx()
             ax_orn_sc = plt.subplot(rs, cs, 3)
             ax_orn_fr = plt.subplot(rs, cs, 4)
-            
-            
             ax_orn1.plot(t-t_on, u_od[:,0], linewidth=lw+1, color=black, 
                          label=r'Glom %d'%(1))
             ax_orn2.plot(t-t_on, r_orn[:,0], linestyle='--',color=black,  linewidth=lw+1, 
@@ -600,33 +703,23 @@ def main(params2an, fig_opts):
                          label=r'Od, glom : %d'%(0))
             ax_orn4.plot(t-t_on, y_orn[:,0], linestyle='--', color=black, linewidth=lw+1, 
                          label=r'Od, glom : %d'%(0))
-    
             trsp = .3
-            x1 = orn_sdf[:,((pp+pp)*num_orns_glo):(((pp+pp)+1)*num_orns_glo)]
-            mu1 = x1.mean(axis=1)
-            sigma1 = x1.std(axis=1)
-            ax_orn_fr.plot(orn_sdf_time-t_on, mu1, linewidth=lw+1, color=green)
-            ax_orn_fr.fill_between(orn_sdf_time-t_on, 
-                mu1+sigma1, mu1-sigma1, facecolor=green, alpha=trsp)
             
-            # ax_orn_fr.plot(orn_sdf_time-t_on, np.mean(orn_sdf[:,:num_orns_glo], axis=1), 
-                         # color=green,  linewidth=lw+1,label='sdf glo 1')
-            x1 = orn_sdf[:,(((pp+pp)+1)*num_orns_glo):(((pp+pp)+2)*num_orns_glo)]
-            mu1 = x1.mean(axis=1)
-            sigma1 = x1.std(axis=1)
-            ax_orn_fr.plot(orn_sdf_time-t_on, mu1, linewidth=lw+1, color=purple)
-            ax_orn_fr.fill_between(orn_sdf_time-t_on, 
-                mu1+sigma1, mu1-sigma1, facecolor=purple, alpha=trsp,label='sdf glo 2')
-            # ax_orn_fr.plot(orn_sdf_time-t_on, np.mean(orn_sdf[:,num_orns_glo:], axis=1), 
-                         # color=purple, linewidth=lw,label='sdf glo 2')
+            fig_color = ['purple','green','cyan','red']
+            num_glo = num_glo_list[pp]
+            for qq in range(num_glo):
+                x1 = orn_sdf[:,orn_id:(orn_id+num_orns_glo)]
+                mu1 = x1.mean(axis=1)
+                sigma1 = x1.std(axis=1)
+                ax_orn_fr.plot(orn_sdf_time-t_on, mu1, linewidth=lw+1, color=fig_color[qq])
+                ax_orn_fr.fill_between(orn_sdf_time-t_on, 
+                    mu1+sigma1, mu1-sigma1, facecolor=green, alpha=trsp,label='sdf glo '+str(qq))
     
-            spikes_orn_0 = np.argwhere(num_spike_orn[:,((pp+pp)*num_orns_glo):(((pp+pp)+1)*num_orns_glo)])
-            spikes_orn_1 = np.argwhere(num_spike_orn[:,(((pp+pp)+1)*num_orns_glo):(((pp+pp)+2)*num_orns_glo)])
-            
-            ax_orn_sc.scatter(spikes_orn_0[:,0]/pts_ms-t_on, 
-                            spikes_orn_0[:,1], color=purple, s=10)
-            ax_orn_sc.scatter(spikes_orn_1[:,0]/pts_ms-t_on, 
-                            num_orns_glo+spikes_orn_1[:,1], color=green, s=10)
+                spikes_orn = np.argwhere(num_spike_orn[:,orn_id:(orn_id+num_orns_glo)])
+                
+                ax_orn_sc.scatter(spikes_orn[:,0]/pts_ms-t_on, 
+                                (num_orns_glo*qq)+spikes_orn[:,1], color=fig_color[qq], s=10)
+                orn_id = orn_id + num_orns_glo
     
             # FIGURE SETTINGS
             ax_orn1.tick_params(axis='both', which='major', labelsize=ticks_fs)
@@ -889,6 +982,7 @@ def main(params2an, fig_opts):
         rs = 4 # number of rows
         cs = 1 # number of cols
         fig_size = [7, 8] 
+        fig_color = ['purple','green','cyan','red']
         
         if stim_type == 'pl':
             #lw = 1.1
@@ -897,35 +991,30 @@ def main(params2an, fig_opts):
             cs = 2 # number of cols
             fig_size = [10, 5]
 
+        glo_id = 0
         for qq in range(num_sens):
-            fig_pn = plt.figure(figsize=fig_size)
-            
+            num_glo = num_glo_list[qq]
             ax_conc = plt.subplot(rs, cs, 1)
             ax_orn = plt.subplot(rs, cs, 2)
             ax_pn = plt.subplot(rs, cs, 3)
             ax_ln = plt.subplot(rs, cs, 4)
-            
+            fig_pn = plt.figure(figsize=fig_size)
             ax_conc.plot(t-t_on, 100*u_od[:,0], color=green, linewidth=lw+2, 
-                          label='glom : '+'%d'%(1))
+                              label='glom : '+'%d'%(1))
             ax_conc.plot(t-t_on, 100*u_od[:,1], '--',color=purple, linewidth=lw+1, 
-                          label='glom : '+'%d'%(2))
-             
-            ax_orn.plot(orn_sdf_time-t_on, np.mean(orn_sdf[:,(qq+qq)*num_orns_glo:((qq+qq)+1)*num_orns_glo], axis=1), 
-                         color=green, linewidth=lw+1,label='sdf glo 1')
-            ax_orn.plot(orn_sdf_time-t_on, np.mean(orn_sdf[:,((qq+qq)+1)*num_orns_glo:((qq+qq)+2)*num_orns_glo], axis=1), 
-                         '--',color=purple, linewidth=lw,label='sdf glo 2')
+                              label='glom : '+'%d'%(2))
             
-            ax_pn.plot(pn_sdf_time-t_on, pn_sdf[:,(qq+qq)*num_pns_glo:((qq+qq)+1)*num_pns_glo], '--',color=purple, 
-                                  linewidth=lw, label='PN : '+'%d'%(qq))
-                    
-            ax_pn.plot(pn_sdf_time-t_on, pn_sdf[:,((qq+qq)+1)*num_pns_glo:((qq+qq)+2)*num_pns_glo], color=green, 
-                                  linewidth=lw+1, label='PN : '+'%d'%(qq))
-            
-            ax_ln.plot(ln_sdf_time-t_on, ln_sdf[:,(qq+qq)*num_lns_glo:((qq+qq)+1)*num_lns_glo], '--',color=purple, 
-                                  linewidth=lw, label='LN : '+'%d'%(qq))
-           
-            ax_ln.plot(ln_sdf_time-t_on, ln_sdf[:,((qq+qq)+1)*num_lns_glo:((qq+qq)+2)*num_lns_glo], color=green,
-                                  linewidth=lw+1, label='LN : '+'%d'%(qq))        
+            for ll in range(num_glo):
+                ax_orn.plot(orn_sdf_time-t_on, np.mean(orn_sdf[:,glo_id*num_orns_glo:((glo_id+1)*num_orns_glo)], axis=1),
+                                                      color=fig_color[ll], linewidth=lw+1,label='sdf glo')
+                
+                ax_pn.plot(pn_sdf_time-t_on, pn_sdf[:,glo_id*num_pns_glo:((glo_id+1)*num_pns_glo)], '--',color=fig_color[ll], 
+                                      linewidth=lw, label='PN')
+                
+                ax_ln.plot(ln_sdf_time-t_on, ln_sdf[:,glo_id*num_lns_glo:((glo_id+1)*num_lns_glo)], '--',color=fig_color[ll], 
+                                      linewidth=lw, label='LN')
+                glo_id = glo_id+1
+                
             ax_conc.set_xlim(t2plot)
             ax_orn.set_xlim(t2plot)
             ax_pn.set_xlim(t2plot)
@@ -1096,8 +1185,8 @@ if __name__ == '__main__':
     params2an = [nsi_str, alpha_ln, stim_params,]
     
     orn_fig     = 0
-    al_fig      = 1
-    fig_ui      = 1        
+    al_fig      = 0
+    fig_ui      = 0        
     fig_save    = 0    
     data_save   = 0
     al_dyn      = 1
@@ -1166,7 +1255,7 @@ if __name__ == '__main__':
             pn_tmp[:,1] = np.mean(pn_sdf[id_stim_w, num_pns_glo:], axis=1)
             perf_time = np.zeros((2, 3))
             perf_avg = np.zeros((2, 3))
-            
+            id_glo = None
             for id_glo in range(2):
                 for thr_id, thr in enumerate([50, 100, 150]):
                     perf_time[id_glo, thr_id, ] = np.sum(pn_tmp[:, id_glo]>thr)*pn_sdf_dt
