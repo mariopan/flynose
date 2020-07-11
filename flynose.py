@@ -713,7 +713,7 @@ def main(params2an, fig_opts):
                 sigma1 = x1.std(axis=1)
                 ax_orn_fr.plot(orn_sdf_time-t_on, mu1, linewidth=lw+1, color=fig_color[qq])
                 ax_orn_fr.fill_between(orn_sdf_time-t_on, 
-                    mu1+sigma1, mu1-sigma1, facecolor=green, alpha=trsp,label='sdf glo '+str(qq))
+                    mu1+sigma1, mu1-sigma1, facecolor=fig_color[qq], alpha=trsp,label='sdf glo '+str(qq))
     
                 spikes_orn = np.argwhere(num_spike_orn[:,orn_id:(orn_id+num_orns_glo)])
                 
