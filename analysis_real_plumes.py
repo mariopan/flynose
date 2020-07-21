@@ -17,7 +17,7 @@ import pickle
 # STANDARD FIGURE PARAMS
 lw = 2
 fs = 20
-plt.rc('text', usetex=True)  # laTex in the polot
+# plt.rc('text', usetex=True)  # laTex in the polot
 #plt.rc('font', family='serif')
 fig_size = [12, 12]
 fig_position = 1300,10
@@ -30,6 +30,8 @@ red     = 'xkcd:red'
 green   = 'xkcd:green'
 purple  = 'xkcd:purple'
 orange  = 'xkcd:orange'
+pink    = 'xkcd:pink'
+cyan    = 'xkcd:cyan'
 cmap    = plt.get_cmap('rainbow')
 
 # *****************************************************************
@@ -60,7 +62,7 @@ seeds       = np.arange(1, 31)
 avg_fig     = 0     # Fig.AverPNActivity
 peak_fig    = 0     # Figsupp.PeakPN_thr
 avgplume_fig = 0    # FigSupp.AverCorr (Supp materials)
-resumen_fig = 1     # Fig.PeakPN_resumen
+resumen_fig = 0     # Fig.PeakPN_resumen
 thrwmax_fig = 1     # Fig.PeakPN_wmax
 thrs        = [50, 100, 150] # thr
 fig_save    = 1
@@ -218,24 +220,24 @@ if avg_fig:
      
     ax_orn.errorbar(corr_obs, np.squeeze(np.mean(orn_avg1[:, 0, :,3,], axis=1)),
                   yerr=np.squeeze(np.std(orn_avg1[:, 0, :,3,], axis=1))/
-                  (np.size(orn_avg1[:, 0, :,3,],axis=1))**.5, linewidth=lw, ls='-', 
-                  color='magenta',label='Ind Glo 1', fmt='o')
+                  (np.size(orn_avg1[:, 0, :,3,],axis=1))**.5, linewidth=lw, ls='-.', 
+                  color=pink, label='Ind Glo 1', fmt='o')
     ax_orn.errorbar(corr_obs, np.squeeze(np.mean(orn_avg1[:, 1, :,3,], axis=1)),
                   yerr=np.squeeze(np.std(orn_avg1[:, 1, :,3,], axis=1))/
-                  (np.size(orn_avg1[:, 1, :,3,],axis=1))**.5, linewidth=lw, ls='-', 
-                  color='blue',label='NSI Glo 1', fmt='*')
+                  (np.size(orn_avg1[:, 1, :,3,],axis=1))**.5, linewidth=lw, ls='--', 
+                  color=cyan,label='NSI Glo 1', fmt='*')
     
     ax_pn.errorbar(corr_obs, np.squeeze(np.mean(pn_avg1[:, 0, :,3,], axis=1)),
                   yerr=np.squeeze(np.std(pn_avg1[:, 0, :,3,], axis=1))/
-                  (np.size(pn_avg1[:, 0, :,3,],axis=1))**.5, linewidth=lw, ls='-', 
-                  color='magenta',label='Ind Glo 1', fmt='o')
+                  (np.size(pn_avg1[:, 0, :,3,],axis=1))**.5, linewidth=lw, ls='-.', 
+                  color=pink,label='Ind Glo 1', fmt='o')
     ax_pn.errorbar(corr_obs, np.squeeze(np.mean(pn_avg1[:, 1, :,3,], axis=1)),
                   yerr=np.squeeze(np.std(pn_avg1[:, 1, :,3,], axis=1))/
                   (np.size(pn_avg1[:, 1, :,3,],axis=1))**.5, linewidth=lw, ls='-', 
-                  color='blue',label='NSI Glo 1', fmt='*')
+                  color=cyan,label='NSI Glo 1', fmt='*')
     ax_pn.errorbar(corr_obs, np.squeeze(np.mean(pn_avg1[:, 2, :,3,], axis=1)),
                   yerr=np.squeeze(np.std(pn_avg1[:, 2, :,3,], axis=1))/
-                  (np.size(pn_avg1[:, 2, :,3,],axis=1))**.5, linewidth=lw, ls='-', 
+                  (np.size(pn_avg1[:, 2, :,3,],axis=1))**.5, linewidth=lw, ls='--', 
                   color='orange',label='LN Glo 1', fmt='d')
 
     # PEAK PANEL D
@@ -250,13 +252,13 @@ if avg_fig:
 
     ax_peak.errorbar(corr_obs, np.mean(y2plot_noin, axis=1),
        yerr=np.std(y2plot_noin, axis=1)/np.sqrt(n_seeds),
-       linewidth=lw, color='magenta',label='Indep')
+       linewidth=lw, ls='-.',color=pink,label='Indep')
     ax_peak.errorbar(corr_obs, np.mean(y2plot_ln, axis=1),
        yerr=np.std(y2plot_ln, axis=1)/np.sqrt(n_seeds),
-       linewidth=lw, color='orange',label='LN')
+       linewidth=lw, ls='-',color='orange',label='LN')
     ax_peak.errorbar(corr_obs, np.mean(y2plot_nsi, axis=1),
        yerr=np.std(y2plot_nsi, axis=1)/np.sqrt(n_seeds),
-       linewidth=lw, color='blue',label='NSI')
+       linewidth=lw, ls='--',color=cyan,label='NSI')
            
     # PLOT SETTINGS 
     ax_orn.tick_params(axis='both', which='major', labelsize=label_fs-3)
@@ -299,9 +301,11 @@ if avg_fig:
 ## **********************************************************
 if peak_fig:
         
-    fig, axs = plt.subplots(rs, cs, figsize=(9, 4), ) 
     rs = 1
     cs = 3
+    corr_obs = np.mean(np.squeeze(cor_stim[:, :,3,]), axis=1)
+     
+    fig, axs = plt.subplots(rs, cs, figsize=(9, 4), ) 
     w_max_id = 3
     
     for thr_id, thr in enumerate(thrs):
@@ -325,13 +329,13 @@ if peak_fig:
         
         axs[thr_id].errorbar(corr_obs, np.mean(y2plot_noin, axis=1),
            yerr=np.std(y2plot_noin, axis=1)/np.sqrt(n_seeds),
-           linewidth=lw, color='magenta',label='Indep')
+           linewidth=lw, color=pink, ls= '-.', label='Indep')
         axs[thr_id].errorbar(corr_obs, np.mean(y2plot_ln, axis=1),
            yerr=np.std(y2plot_ln, axis=1)/np.sqrt(n_seeds),
-           linewidth=lw, color='orange',label='LN')
+           linewidth=lw, color='orange',ls= '-',label='LN')
         axs[thr_id].errorbar(corr_obs, np.mean(y2plot_nsi, axis=1),
            yerr=np.std(y2plot_nsi, axis=1)/np.sqrt(n_seeds),
-           linewidth=lw, color='blue',label='NSI')
+           linewidth=lw, color=cyan,ls= '--',label='NSI')
     
         # PLOT SETTINGS 
         axs[thr_id].tick_params(axis='both', which='major', labelsize=label_fs-3)
@@ -347,12 +351,13 @@ if peak_fig:
     axs[1].set_xlabel('Observed correlation (unitless)', fontsize=label_fs,)
         
     # change panels positions and sizes:
+    e_sx = 0.01
     ll, bb, ww, hh = axs[0].get_position().bounds
-    axs[0].set_position([ll-.0,bb+.04,ww,hh-.04])        
+    axs[0].set_position([ll-.0+e_sx,bb+.04,ww,hh-.04])        
     ll, bb, ww, hh = axs[1].get_position().bounds
-    axs[1].set_position([ll+ 0.03,bb+.04,ww,hh-.04])        
+    axs[1].set_position([ll+ 0.03+e_sx,bb+.04,ww,hh-.04])        
     ll, bb, ww, hh = axs[2].get_position().bounds
-    axs[2].set_position([ll+.06,bb+.04,ww,hh-.04])  
+    axs[2].set_position([ll+.06+e_sx,bb+.04,ww,hh-.04])  
     
             
     if fig_save:
@@ -392,18 +397,19 @@ if thrwmax_fig:
     
             axs[w_max_id].errorbar(corr_tmp, np.mean(y2plot_noin, axis=1),
                yerr=np.std(y2plot_noin, axis=1)/np.sqrt(n_seeds),
-               linewidth=lw, color='magenta',label='Indep')
+               linewidth=lw, color=pink, ls='-.', label='Indep')
             axs[w_max_id].errorbar(corr_tmp, np.mean(y2plot_ln, axis=1),
                yerr=np.std(y2plot_ln, axis=1)/np.sqrt(n_seeds),
-               linewidth=lw, color='orange',label='LN')
+               linewidth=lw, color='orange',ls='-', label='LN')
             axs[w_max_id].errorbar(corr_tmp, np.mean(y2plot_nsi, axis=1),
                yerr=np.std(y2plot_nsi, axis=1)/np.sqrt(n_seeds),
-               linewidth=lw, color='blue',label='NSI')
+               linewidth=lw, color=cyan,ls='--', label='NSI')
                     
             # SETTINGS
             #ax_orn.tick_params(axis='both', which='major', labelsize=label_fs-3)
+            tick_label_fs = label_fs - 7
             axs[w_max_id].set_title('%.2g'%w_max+' s', fontsize=title_fs)
-            axs[w_max_id].tick_params(axis='both', which='major', labelsize=label_fs-5)
+            axs[w_max_id].tick_params(axis='both', which='major', labelsize=tick_label_fs)
             axs[w_max_id].set_xticks(corr_tmp[[0, 1, 2]])
             axs[w_max_id].set_xticklabels([0, 0.9, 0.999]) # np.array(1-np.power(.10, corr_tmp[[0,1,2]])))
                            
@@ -414,14 +420,14 @@ if thrwmax_fig:
             ll, bb, ww, hh = axs[w_max_id].get_position().bounds
             axs[w_max_id].set_position([ll+.01+.015*w_max_id, bb+.1, ww, hh-.15])   
             
-            axs[w_max_id].set_yticklabels('', fontsize=label_fs-5)            
+            axs[w_max_id].set_yticklabels('', fontsize=tick_label_fs)            
             axs[w_max_id].set_yticks(y_ticks)
             axs[w_max_id].set_ylim(0,y_ticks[-1]*1.02)                            
             
         letter_pos = [-.5, 1.25]
         axs[0].text(letter_pos[0], letter_pos[1], 'a', transform=axs[0].transAxes, 
                     fontsize=panel_fs, fontweight='bold', va='top', ha='right')
-        axs[0].set_yticklabels(y_ticks, fontsize=label_fs-5)
+        axs[0].set_yticklabels(y_ticks, fontsize=tick_label_fs)
         axs[0].set_ylabel('PN activity \n (unitless)' , fontsize=label_fs)
         
         axs[2].set_xlabel('Observed correlation (unitless)', fontsize=label_fs)
@@ -466,10 +472,10 @@ if resumen_fig:
         delta_ln10 = np.squeeze(pn_tmp0[2,:] - pn_tmp1[2,:])
         
         axs[0].plot(w_maxs, delta_ln0, '*-', color=orange, label=r'$x$=LN, $\rho=$0')
-        axs[0].plot(w_maxs, delta_nsi0, '.-', color=blue, label=r'$x$=NSI, $\rho=$0')
+        axs[0].plot(w_maxs, delta_nsi0, '.-', color=cyan, label=r'$x$=NSI, $\rho=$0')
         
         axs[1].plot(w_maxs, delta_ln10, '*-', color=orange, label=r'$x$=LN, $\rho=$1')
-        axs[1].plot(w_maxs, delta_nsi10, '.-', color=blue, label=r'$x$=NSI, $\rho=$1')
+        axs[1].plot(w_maxs, delta_nsi10, '.-', color=cyan, label=r'$x$=NSI, $\rho=$1')
         
         # SETTINGS        
 #        axs[0].set_title(r'$\Theta$:%d Hz'%thr, fontsize=fs)
@@ -502,7 +508,7 @@ if resumen_fig:
 #            axs[id_col].tick_params(axis='both', which='major', labelsize=label_fs)
             
         axs[0].set_ylabel(r'$p_{ctrl}^0 - p_x^0$' + '  (unitless)', fontsize=label_fs)
-        axs[0].text(.03, y_ticks[2]*1.1, 'x=NSI', color=blue, fontsize=label_fs)
+        axs[0].text(.03, y_ticks[2]*1.1, 'x=NSI', color=cyan, fontsize=label_fs)
         axs[0].text(.03, y_ticks[1]*1.4, 'x=LN', color=orange, fontsize=label_fs)
         
         axs[1].set_ylabel(r'$p_x^0 - p_x^1$'+ '  (unitless)', fontsize=label_fs)
