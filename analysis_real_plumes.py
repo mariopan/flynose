@@ -17,7 +17,7 @@ import pickle
 # STANDARD FIGURE PARAMS
 lw = 2
 fs = 20
-# plt.rc('text', usetex=True)  # laTex in the polot
+plt.rc('text', usetex=True)  # laTex in the polot
 #plt.rc('font', family='serif')
 fig_size = [12, 12]
 fig_position = 1300,10
@@ -60,10 +60,10 @@ rhos    = [0, 1, 3, 5]
 seeds       = np.arange(1, 31)
 
 avg_fig     = 0     # Fig.AverPNActivity
-peak_fig    = 0     # Figsupp.PeakPN_thr
+peak_fig    = 1     # Figsupp.PeakPN_thr
 avgplume_fig = 0    # FigSupp.AverCorr (Supp materials)
 resumen_fig = 0     # Fig.PeakPN_resumen
-thrwmax_fig = 1     # Fig.PeakPN_wmax
+thrwmax_fig = 0     # Fig.PeakPN_wmax
 thrs        = [50, 100, 150] # thr
 fig_save    = 1
 fig_name    = 'dur_%d'%stim_dur + \
@@ -280,18 +280,18 @@ if avg_fig:
     
     ax_orn.text(-.15, 1.15, 'b', transform=ax_orn.transAxes,color= black,
               fontsize=panel_fs, fontweight='bold', va='top', ha='right')
-    ax_pn.text(-.15, 1.15, 'c', transform=ax_pn.transAxes,color= black,
+    ax_pn.text(-.2, 1.15, 'c', transform=ax_pn.transAxes,color= black,
               fontsize=panel_fs, fontweight='bold', va='top', ha='right')
-    ax_pn.text(-.15, 1.15, 'd', transform=ax_peak.transAxes,color= black,
+    ax_pn.text(-.2, 1.15, 'd', transform=ax_peak.transAxes,color= black,
               fontsize=panel_fs, fontweight='bold', va='top', ha='right')
     
     # change panels positions and sizes:
     ll, bb, ww, hh = ax_orn.get_position().bounds
     ax_orn.set_position([ll-.05,bb+.04,ww,hh-.04])        
     ll, bb, ww, hh = ax_pn.get_position().bounds
-    ax_pn.set_position([ll,bb+.04,ww,hh-.04])        
+    ax_pn.set_position([ll+.01,bb+.04,ww,hh-.04])        
     ll, bb, ww, hh = ax_peak.get_position().bounds
-    ax_peak.set_position([ll+.06,bb+.04,ww,hh-.04])  
+    ax_peak.set_position([ll+.07,bb+.04,ww,hh-.04])  
     
     if fig_save:
         fig2.savefig(fld_output+  '/NSI_AverActiv_'+fig_name+'.png')

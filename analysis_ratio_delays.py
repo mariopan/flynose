@@ -17,7 +17,7 @@ import MI
 # STANDARD FIGURE PARAMS
 fs = 20
 lw = 2
-# plt.rc('text', usetex=True)  # laTex in the polot
+plt.rc('text', usetex=True)  # laTex in the plot
 # plt.rc('font', family='serif')
 
 fig_size = [10, 6]
@@ -110,11 +110,11 @@ def fig_activity():
     fig.colorbar(im2, ax=axs[2])
 
 # *****************************************************************
-fig_save        = 1
+fig_save        = 0
 
 id_peak2plot    = 3
 measure         = 'peak' # 'avg' # 'peak' # 
-delay_fig       = 0 # Fig.ResumeDelayedStimuli
+delay_fig       = 1 # Fig.ResumeDelayedStimuli
 # select a subsample of the params to analyse
 nsi_ln_par   = [[0,0],[0.3,0],[0, 10]] # standard values for the paper
             # [[0,0],[0.3,0],[0, 0.6]] 
@@ -147,7 +147,7 @@ if delay_fig==0:
 # analysis for zero delay:
 ratio_fig       = 0 # Fig.RatioPeak
 resumen_chess   = 0 # Fig.ResumeEncodeRatioChess
-resumen_chess_mi   = 1 # Fig.ResumeEncodeRatioChess
+resumen_chess_mi   = 0 # Fig.ResumeEncodeRatioChess
 
 pn_chess        = 0 # Fig.PNChess
 resumen_bar     = 0 # Fig.ResumeEncodeRatioBar
@@ -469,13 +469,13 @@ if resumen_chess_mi:
     # adjust bar size and position
     ll, bb, ww, hh = cbar.ax.get_position().bounds
     cbar.ax.set_position([ll-.015, bb+.085, ww, hh-.12])
-    #cbar.ax.set_position([ll+.035, bb+.085, ww, hh-.05])
+    # cbar.ax.set_position([ll+.035, bb+.085, ww, hh-.05])
    
     #adjust 3rd chess board size and position
     dwdh =1.0125
     ll_a, bb, ww, hh = axs[2].get_position().bounds
     axs[2].set_position([ll_a -.045, bb_new, ww_new*dwdh, hh_new*dwdh])
-    #axs[2].set_position([ll_a -.025, bb_new, ww_new*dwdh, hh_new*dwdh])
+    # axs[2].set_position([ll_a -.025, bb_new, ww_new*dwdh, hh_new*dwdh])
     
     if fig_save:
         if measure == 'peak':
