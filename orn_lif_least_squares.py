@@ -37,7 +37,6 @@ import pickle
 from scipy.interpolate import interp1d
 import pandas
     
-import os
 
 # to obtain lines with a color of different shades
 import matplotlib as mpl
@@ -175,7 +174,7 @@ def orn_lif0(params2fit, *args):
 
 def ethyl_data(conc2fit, ):
     # load observe ORN data and return into t and freq
-    data_fld = my_home + 'MEGA/WORK/OdorObjects/Data/Martelli2013/ab3A_ethyl_acetate'
+    data_fld = 'ab3A_ethyl_acetate/'
     
     # file_names = ['ethyl_ab3A_10.csv', 'ethyl_ab3A_17.csv', 'ethyl_ab3A_20.csv', 
     #               'ethyl_ab3A_22.csv', 'ethyl_ab3A_27.csv', 'ethyl_ab3A_30.csv',
@@ -183,7 +182,7 @@ def ethyl_data(conc2fit, ):
     
     file_name = ['ethyl_ab3A_%d'%int(conc2fit)+'.csv']
 
-    df = pandas.read_csv(data_fld + '/' + file_name[0], names = ['time', 'freq'])
+    df = pandas.read_csv(data_fld  + file_name[0], names = ['time', 'freq'])
     
     t = np.array(df.time)
     freq = np.array(df.freq)
@@ -270,9 +269,8 @@ def figure_fit(params2an, ax):
 
 # figure and data params
 plt.ioff()      # ioff() # to avoid showing the plot every time   
-my_home         = os.path.expanduser("~/")    
-fld_analysis    = my_home + \
-    'MEGA/WORK/Code/PYTHON/giles_flynose/flynose/fit_ORN/' 
+
+fld_analysis    = 'fit_ORN/' 
 fig_name        = 'ORN_fit_'
 data_name       = 'ORN_params_fit_'
 
@@ -446,12 +444,9 @@ print('tot time: %.2f min'%((toc_tot-tic_tot)/60))
 # LOAD EXPERIMENT PARAMETERS
 # figure and data params
 import pickle
-import os
 import numpy as np
 
-my_home         = os.path.expanduser("~/")    
-fld_analysis    = my_home + 'MEGA/WORK/Code/PYTHON/giles_flynose/flynose'+\
-    '/fit_ORN/LIF_ORN_fit_10Nov/' 
+fld_analysis    = 'fit_ORN/LIF_ORN_fit_10Nov/' 
 fig_name        = 'ORN_fit_'
 data_name       = 'ORN_params_fit_'
 
