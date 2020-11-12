@@ -113,10 +113,6 @@ def orn_lif0(params2fit, *args):
     t_on    = args[1] #  170   # approximately -t[0]+50 # added 50ms delay to reach the antenna
     conc    = args[2]
     
-    # analysis params
-    tau_sdf = 50
-    dt_sdf  = 5
-    sdf_params = [tau_sdf, dt_sdf]
     
     # FITTING PARAMS
     # [tau_v, vrest, vrev, ] = params2fit#([.6, 1, .09, 
@@ -130,7 +126,12 @@ def orn_lif0(params2fit, *args):
     [n, alpha_r, beta_r, 
      tau_v, vrest, vrev, 
      g_y, g_r, alpha_y, beta_y, 
-     conc0,] =  params2fit
+     conc0, tau_sdf] =  params2fit
+    
+    # analysis params
+    # tau_sdf = 50
+    dt_sdf  = 5
+    sdf_params = [tau_sdf, dt_sdf]
     
     # Stimulus PARAMETERS 
     stim_params         = dict([
@@ -284,7 +285,7 @@ delay_obs       = 50    # ms, delay between open valve and antenna
 
 pts_ms          = 1     # number of pts per ms for the simulations
 
-n_tpts          = 50    # number of datapoints in each curve
+n_tpts          = 200    # number of datapoints in each curve
 t_fit           = np.linspace(-t_on_fit, t_tot_fit-t_on_fit, n_tpts)
 t_fit_obs       = t_fit+delay_obs
 
@@ -316,7 +317,15 @@ elif orn_model == 'lif':
      conc0,] =  params2fit
     params2fit = [7.5e-01, 1.129e1, 7.31e-02, 2.8e+00,
      6.53e-01, 1.665e+01, 8.0685e-01, 6.57e-01,
-     2.26e-01, 3.405e-03, 1.598e-04,] # good params fit
+     2.26e-01, 3.405e-03, 1.598e-04,] # good params fit obtained with 50 tpts
+    params2fit = [9.093e-01, 1.842e+01, 5.006e-02, 2.3e+00,
+                  1.427e+00, 1.9134e+01, 1.131808e+00, 8.2575e-01,
+                  1.4928e-01, 3.061e-03, 3.64e-04,]# good params fit obtained with 200 tpts
+    params2fit = [8.22066870e-01, 1.26228808e+01, 7.6758436748e-02, 2.26183540e+00,
+                  9.69461053e-01, 2.11784081e+01, 5.853575783e-01, 8.64162073e-01,
+                  4.5310619e-01, 3.467184e-03, 2.853669391e-04, 41] # loss='soft_l1', f_scale=0.1, 
+
+
 file_names = ['ethyl_ab3A_10.csv', 'ethyl_ab3A_17.csv', 'ethyl_ab3A_20.csv', 
                   'ethyl_ab3A_22.csv', 'ethyl_ab3A_27.csv', 'ethyl_ab3A_30.csv',
                   'ethyl_ab3A_35.csv', 'ethyl_ab3A_40.csv', 'ethyl_ab3A_80.csv',]
@@ -325,15 +334,12 @@ concs_obs       = np.array([10, 20,30, ]) # list of concentrations to list
 concs_sim       = 10**-np.array(concs_obs/10) # list of concentrations to list
 n_cs            = len(concs_obs)
 
-
-
-
 # extract observed ORN and simulate with standard params
 fig = plt.figure()
 ax = fig.subplots(1, 1,)
 nu_obs_all = figure_fit(params2fit, ax)
 # ax.set_title('params default')
-plt.show()
+# plt.show()
 # fig.savefig(fld_analysis + fig_name + 'default.png')
 
 # with open(fld_analysis+ data_name +'default.pickle', 'wb') as f:
@@ -366,12 +372,11 @@ print('estimated cost: %.f2'%cost_est)
 #%% FIT OBSERVED DATA TO SIMULATIONS
 tic_tot = tictoc()
 
-
-
-diff_step       = 1e-5
+diff_step       = 1e-4
 
 # LOWER BOUNDS
 lb              = np.zeros_like(params2fit)
+lb[-1]          = 20
 
 # UPPER BOUNDS
 if orn_model=='lif':
@@ -379,12 +384,14 @@ if orn_model=='lif':
 elif orn_model=='dp':
     ub          = np.ones_like(params2fit)*300
 ub[0]           = 1       # upper bounds for n, transduction params
+ub[-1]          = 150
 
 # Run the fit until cost is very low or for a max of max_nn times
-max_nn = 40
+max_nn = 250
 bad_fit = True
 nn = 0
-cost = 1000
+cost_goal = 20000
+print('cost goal: %d'%cost_goal)
 while bad_fit: 
     params_0 = ub
     # check that the starting params are all w/in the bounds
@@ -392,6 +399,7 @@ while bad_fit:
     while ~np.all((params_0>lb) & (params_0<ub)):
         new_try += 1
         params_0 = params2fit*(1+.5*np.random.randn(len(params2fit)))
+        
     print('trial #: %d, params 0:'%nn)
     print(params_0)
         
@@ -420,6 +428,7 @@ while bad_fit:
 
     # SAVE FIGURE AND DATA
     fig.savefig(fld_analysis + fig_name + str(nn) +'.png')
+    plt.close()
     # plt.show()
     
     with open(fld_analysis+ data_name + str(nn) + '.pickle', 'wb') as f:
@@ -433,7 +442,7 @@ while bad_fit:
                      nu_obs_all, concs_obs, concs_sim, file_names, 
                      params_0, args_fit, lb, ub, 
                      diff_step, res_lsq, saved_pars], f)
-    if (cost < 1000) or (nn == max_nn):
+    if (cost < cost_goal) or (nn == max_nn):
         bad_fit = False
     nn += 1
     
@@ -446,12 +455,13 @@ print('tot time: %.2f min'%((toc_tot-tic_tot)/60))
 import pickle
 import numpy as np
 
-fld_analysis    = 'fit_ORN/LIF_ORN_fit_10Nov/' 
+fld_analysis    = 'fit_ORN/'#'LIF_ORN_fit_50tpts/' 
 fig_name        = 'ORN_fit_'
 data_name       = 'ORN_params_fit_'
 
-cost =  np.empty(41)
-for nn in range(41):
+
+cost =  np.empty(250)
+for nn in range(len(cost)):
     
     all_params    = pickle.load(open(fld_analysis+data_name + str(nn) + '.pickle', "rb" ))
     [t_tot, t_on, t_tot_fit, t_on_fit, delay_obs, 
@@ -461,8 +471,10 @@ for nn in range(41):
         diff_step, res_lsq, saved_pars] = all_params
     cost[nn] =  res_lsq.cost
     
-    if cost[nn] < 70000:
+    if cost[nn] < 21000:
         print('cost(%d): %.2f' %(nn, cost[nn]))
+        print('Fit params:')
+        print(str(res_lsq.x))
         print('distance from start:')
         print(str(np.round(1000*params_0/res_lsq.x)/10))
         print('distance from best fit: ')
