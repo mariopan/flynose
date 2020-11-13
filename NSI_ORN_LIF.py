@@ -69,34 +69,48 @@ cmap    = plt.get_cmap('rainbow')
 
 
 #%% DEFINE FUNCTIONS
+
+# tic toc
+def tictoc():
+    return timeit.default_timer()
+
 # stimulus
 def stim_fcn(stim_params):
     
-    tmp_ks = ['stim_type', 'stim_dur', 'pts_ms', 't_tot', 't_on', 'concs', 'conc0',]    
+    tmp_ks = \
+        ['stim_type', 'stim_dur', 'pts_ms', 't_tot', 't_on', 'concs', 'conc0',]    
     [stim_type, stim_dur, pts_ms, t_tot, t_on, concs, conc0] = [
         stim_params[x] for x in tmp_ks]  
     
     # Stimulus params    
+    n_od            = len(concs)
     t_off           = t_on+stim_dur
-    stim_on         = t_on*pts_ms   # [num. of samples]
-    stim_off        = t_off*pts_ms    
     
     n2sim           = pts_ms*t_tot + 1      # number of time points
     
-    u_od            = np.ones((n2sim, 1)) * conc0
+    u_od            = np.ones((n2sim, n_od)) * conc0
     
     if (stim_type == 'ss'):
         # Single Step Stimuli
         
         tau_on          = 50
-        t_tmp           = np.linspace(0, t_off-t_on, stim_off-stim_on)    
+        for nn in range(n_od):
+            stim_on         = t_on[nn]*pts_ms   # [num. of samples]
+            stim_off        = t_off[nn]*pts_ms    
+            # stimulus onset
+            t_tmp           = \
+                np.linspace(0, t_off[nn]-t_on[nn], stim_off-stim_on)
             
-        u_od[stim_on:stim_off, 0] = conc0 + concs*(1-np.exp(-t_tmp/tau_on))
-        
-        t_tmp           = np.linspace(0, t_tot-t_off, 1+t_tot*pts_ms-stim_off)    
-        
-        u_od[stim_off:, 0] = conc0 + u_od[stim_off-1, 0]*np.exp(-t_tmp/tau_on)
-        
+            u_od[stim_on:stim_off, nn] = \
+                conc0[nn] + concs[nn]*(1 - np.exp(-t_tmp/tau_on))
+            
+            # stimulus offset
+            t_tmp           = \
+                np.linspace(0, t_tot-t_off[nn], 1 + t_tot*pts_ms-stim_off)    
+            
+            u_od[stim_off:, nn] = conc0[nn] + \
+                u_od[stim_off-1, nn]*np.exp(-t_tmp/tau_on)
+ 
     return u_od
 
 
@@ -115,9 +129,9 @@ def transd(r0,t,u,orn_params,):
     return r    
 
 # LIF 1
-def v_orn_ode(v0, t, r, y, orn_params, ):
+def v_orn_ode(v0, t, r, y, vrev, orn_params, ):
     tau_v = orn_params['tau_v']
-    vrev = orn_params['vrev']
+    # vrev = orn_params['vrev']
     vrest = orn_params['vrest']
     r = r*orn_params['g_r']
     y = y*orn_params['g_y']
@@ -139,10 +153,11 @@ def y_adapt(y0, t, orn_params):
     #dydt = -y/tau_y + ay * sum(delta(t-t_spike))
     return y
 
-
+    
 # ************************************************************************
 # main function of the LIF ORN 
 def main(orn_params, stim_params, sdf_params):
+    
     
     # ********************************************************
     [tau_sdf, dt_sdf] = sdf_params
@@ -155,52 +170,74 @@ def main(orn_params, stim_params, sdf_params):
     
     n2sim       = pts_ms*t_tot + 1      # number of time points
     t           = np.linspace(0, t_tot, n2sim) # time points
+    n_neu       = 2
     
+    u_od        = np.zeros((n2sim, ))
     u_od        = stim_fcn(stim_params)
+    
     
     # *****************************************************************
     # ORN PARAMETERS 
-    t_ref = orn_params['t_ref']
-    theta = orn_params['theta']
-    alpha_y = orn_params['alpha_y']
-    vrest = orn_params['vrest']
+    t_ref           = orn_params['t_ref']
+    theta           = orn_params['theta']
+    alpha_y         = orn_params['alpha_y']
+    vrest           = orn_params['vrest']
+    vrev            = orn_params['vrev']
+    nsi_mat         = [1, 0] # neuron 0 NSIs neuron 1 and viceversa
+    w_nsi           = orn_params['w_nsi']
     
     # *****************************************************************
     # initialize output vectors
-    r_orn           = np.zeros((n2sim, )) 
-    v_orn           = vrest*np.ones((n2sim, )) 
-    y_orn           = np.zeros((n2sim,)) 
-    num_spikes      = np.zeros((n2sim,1))
-    orn_ref         = 0
+    r_orn           = np.zeros((n2sim, n_neu)) 
+    v_orn           = vrest*np.ones((n2sim, n_neu)) 
+    y_orn           = np.zeros((n2sim, n_neu))
+    vrev_t          = np.ones(n_neu)*vrev
+    num_spikes      = np.zeros((n2sim, n_neu))
+    orn_ref         = np.zeros(n_neu)
     
-    # ********************************************************
+    #%% ********************************************************
     # Trasnduction output
+    tic  = tictoc()
     for tt in range(1, n2sim-1):
         # span for next time step
         tspan = [t[tt-1],t[tt]]
-        r_orn[tt, ] = transd(r_orn[tt-1, ], tspan, u_od[tt], orn_params)   
+        r_orn[tt, :] = transd(r_orn[tt-1, :], tspan, u_od[tt, :], orn_params)   
+    toc  = tictoc()-tic
+    print(toc)
     
-    # ********************************************************
+    #%% ********************************************************
     # LIF ORN generation
+    tic  = tictoc()
     for tt in range(1, n2sim-t_ref-1):
         # span for next time step
         tspan = [t[tt-1],t[tt]]
         
-        y_orn[tt, ] = y_adapt(y_orn[tt-1,], tspan, orn_params)
+        y_orn[tt, :] = y_adapt(y_orn[tt-1, :], tspan, orn_params)
+        vrev_t = vrev*(1 - w_nsi*(v_orn[tt-1, nsi_mat]-vrest))
+
+        # *********************************
+        # ORNs whose ref_cnt is equal to zero:
+        orn_ref0 = (orn_ref==0)
+        v_orn[tt, orn_ref0] = v_orn_ode(v_orn[tt-1, orn_ref0], tspan, 
+                                        r_orn[tt, orn_ref0], y_orn[tt, orn_ref0], 
+                                        vrev_t[orn_ref0], orn_params)
         
-        if orn_ref == 0:            
-            v_orn[tt, ] = v_orn_ode(v_orn[tt-1, ], tspan, r_orn[tt], y_orn[tt], 
-                                 orn_params)            
+        # ORNs whose Voltage is above threshold AND whose ref_cnt is equal to zero:
+        orn_above_thr = (v_orn[tt, :] >= theta) & (orn_ref==0)
+        num_spikes[tt, orn_above_thr] = num_spikes[tt, orn_above_thr] + 1
+        orn_ref[orn_above_thr] = t_ref
+        y_orn[tt:(tt+t_ref), orn_above_thr] = y_orn[tt, orn_above_thr]+alpha_y
+           
             
-            if v_orn[tt,]>theta:
-                orn_ref = t_ref
-                num_spikes[tt,] = num_spikes[tt,]+1
-                y_orn[tt:(tt+t_ref), ] = y_orn[tt]+alpha_y
-            
-        else:
-            orn_ref -= 1
+        # ORNs whose ref_cnt is different from zero:
+        orn_ref_no0 = (orn_ref!=0)
+        # Refractory period count down
+        orn_ref[orn_ref_no0] = orn_ref[orn_ref_no0] - 1 
     
-    # *****************************************************************
+    toc  = tictoc()-tic
+    print(toc)
+    
+    #%% *****************************************************************
     # Calculate the spike matrix 
     spike_matrix = np.asarray(np.where(num_spikes))
     spike_matrix[0,:] = spike_matrix[0,:]/pts_ms
@@ -238,16 +275,39 @@ if __name__ == '__main__':
     sdf_params = [tau_sdf, dt_sdf]
     
     # stimulus params
-    stim_params         = dict([
+    # ODOUR PREFERENCE
+    od_pref = np.array([[1,0],
+                        [0,1],])
+                        # [0,0],
+                        # [1,0],
+                        # [1,0],
+                        # [0,0],
+                        # [0,1],
+                        # [1,0],
+                        # [0,0],
+                        # [0,1]])
+                        
+    stim_params     = dict([
                         ('stim_dur' , 500),
                         ('stim_type' , 'ss'),   # 'ts'  # 'ss' # 'pl'
                         ('pts_ms' , 5),         # simulated pts per ms 
                         ('t_tot', 1500),        # ms 
-                        ('t_on', 300),          # ms
-                        ('concs', .01),
-                        ('conc0', 1e-3),
+                        ('od_pref', od_pref)])
+    n_od = 1
+    if n_od == 1:
+        concs_params    = dict([
+                        ('t_on', np.array([300])),          # ms
+                        ('concs', [0.01]),
+                        ('conc0', [1e-3]),
                         ])
-
+    elif n_od == 2:
+        concs_params    = dict([
+                        ('t_on', [300, 300]),          # ms
+                        ('concs', [.01, .1e-3]),
+                        ('conc0', [1e-3, 1e-3]),
+                        ])
+    
+    stim_params.update(concs_params)
     
     # ORN PARAMETERS 
     orn_params = dict([
@@ -266,8 +326,9 @@ if __name__ == '__main__':
                         ('g_r', 1),       
         # Adaptation params
                         ('alpha_y', .25), 
-                        ('beta_y', .002), ])
-    
+                        ('beta_y', .002), 
+        # NSI params
+                        ('w_nsi', .2), ])
     
     tic = timeit.default_timer()
     orn_lif_out         = main(orn_params, stim_params, sdf_params)
@@ -280,10 +341,12 @@ if __name__ == '__main__':
     
     
     
-    # *****************************************************************
+    #%% *****************************************************************
     # FIGURE ORN dynamics
     t_on = stim_params['t_on']
     pts_ms = stim_params['pts_ms']
+    vrest = orn_params['vrest']
+    vrev = orn_params['vrev']
     
     t2plot = -500, 1000 #t_tot #-t_on, t_tot-t_on
     rs = 3 # number of rows
@@ -303,6 +366,8 @@ if __name__ == '__main__':
     ax_orn1.plot(t-t_on, u_od[:,], linewidth=lw+1, color=black,)
     ax_orn2.plot(t-t_on, r_orn[:,], linewidth=lw+1, color=blue,)
     ax_orn3.plot(t-t_on, v_orn[:,], linewidth=lw+1, color=black,)
+    ax_orn3.plot([t[0]-t_on, t[-1]-t_on], [vrest, vrest], '--', linewidth=lw, color=red,)
+    ax_orn3.plot([t[0]-t_on, t[-1]-t_on], [vrev, vrev], '-.', linewidth=lw, color=red,)
     ax_orn4.plot(t-t_on, y_orn[:,], linewidth=lw+1, color=blue,)
 
     ax_orn_fr.plot(t_sdf-t_on, orn_sdf, color=green, linewidth=lw+1, 
