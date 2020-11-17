@@ -587,9 +587,8 @@ def main(params2an, fig_opts):
             for zz in range(num_glo):
                 z0_unid[zz*3:(zz+1)*3] = z_orn0[zz,:]
 
-            # possible bug: tot_od[tt] -> tot_od[tt, :]
             z_orn = odeint(depalo_eq2, z0_unid, tspan,
-                           args=(tot_od[tt], orn_params, num_glo))
+                           args=(tot_od[tt,:], orn_params, num_glo))
             for gg in range(num_glo):
                 z_orn0[gg,0] = z_orn[1][0+gg*3]
                 z_orn0[gg,1] = z_orn[1][1+gg*3]
