@@ -247,7 +247,6 @@ if __name__ == '__main__':
                         ('concs', .01),
                         ('conc0', 1e-3),
                         ])
-
     
     # ORN PARAMETERS 
     orn_params = dict([

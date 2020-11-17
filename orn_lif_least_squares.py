@@ -323,7 +323,8 @@ elif orn_model == 'lif':
                   1.4928e-01, 3.061e-03, 3.64e-04,]# good params fit obtained with 200 tpts
     params2fit = [8.22066870e-01, 1.26228808e+01, 7.6758436748e-02, 2.26183540e+00,
                   9.69461053e-01, 2.11784081e+01, 5.853575783e-01, 8.64162073e-01,
-                  4.5310619e-01, 3.467184e-03, 2.853669391e-04, 41] # loss='soft_l1', f_scale=0.1, 
+                  4.5310619e-01, 3.467184e-03, 2.853669391e-04, 41] # loss='soft_l1', 
+    # f_scale=0.1, 
 
 
 file_names = ['ethyl_ab3A_10.csv', 'ethyl_ab3A_17.csv', 'ethyl_ab3A_20.csv', 
@@ -339,7 +340,7 @@ fig = plt.figure()
 ax = fig.subplots(1, 1,)
 nu_obs_all = figure_fit(params2fit, ax)
 # ax.set_title('params default')
-# plt.show()
+plt.show()
 # fig.savefig(fld_analysis + fig_name + 'default.png')
 
 # with open(fld_analysis+ data_name +'default.pickle', 'wb') as f:
