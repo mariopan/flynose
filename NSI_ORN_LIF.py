@@ -154,6 +154,54 @@ def y_adapt(y0, t, orn_params):
     #dydt = -y/tau_y + ay * sum(delta(t-t_spike))
     return y
 
+def rev_fcn(vrev, w_nsi, v_orn, nsi_mat, vrest, t, n_neu, ):
+    # 1 Co-housed ORN
+    def solo_ORN():
+        vrev_t = vrev
+        return vrev_t
+    
+    # 2 Co-housed ORNs
+    def duo_ORN():
+        vect_a = nsi_vect[:, 1]
+        vrev_t = vrev*(1 - w_nsi*(v_orn[t, vect_a]-vrest))
+        return vrev_t
+    
+    # 3 Co-housed ORNs
+    def tri_ORN():
+        vect_a = [nsi_vect[x, 1] for x in range(0, len(nsi_vect[:, 0]), 2)]
+        vect_b = [nsi_vect[x, 1] for x in range(1, len(nsi_vect[:, 0]), 2)]
+         
+        vrev_t = vrev*(1 - (w_nsi*(v_orn[t, vect_a] - vrest)+
+                            w_nsi*(v_orn[t, vect_b] - vrest)))
+        return vrev_t
+    
+    # 4 Co-housed ORNs
+    def quad_ORN():
+        vect_a = [nsi_vect[x, 1] for x in range(0, len(nsi_vect[:, 0]), 3)]
+        vect_b = [nsi_vect[x, 1] for x in range(1, len(nsi_vect[:, 0]), 3)]
+        vect_c = [nsi_vect[x, 1] for x in range(2, len(nsi_vect[:, 0]), 3)]
+        
+        vrev_t = vrev*(1 - (w_nsi*(v_orn[t, vect_a] - vrest)+
+                            w_nsi*(v_orn[t, vect_b] - vrest)+
+                            w_nsi*(v_orn[t, vect_c] - vrest)))
+        return vrev_t
+    
+    # Convert matrix to vector
+    nsi_vect = np.transpose(np.asarray(np.where(nsi_mat == 1)))
+    
+    # Run correct ORN number
+    rev_dict = {
+        1 : solo_ORN,
+        2 :  duo_ORN, 
+        3 :  tri_ORN,
+        4 : quad_ORN,
+        }
+    
+    
+    vrev_t = rev_dict[n_neu]()
+    return vrev_t
+   
+        
     
 # ************************************************************************
 # main function of the LIF ORN 
@@ -166,10 +214,9 @@ def main(orn_params, stim_params, sdf_params, sens_params):
     tmp_ks = ['pts_ms', 't_tot', 'n_od', ]    
     [pts_ms, t_tot, n_od, ] = [
         stim_params[x] for x in tmp_ks]    
-    
     # SENSILLUM PARAMETERS
     n_neu           = sens_params['n_neu']
-    nsi_vect        = sens_params['nsi_vect']
+    nsi_mat         = sens_params['nsi_mat']
     # od_pref         = sens_params['od_pref']
     w_nsi           = sens_params['w_nsi']
     n_sens          = sens_params['n_sens']
@@ -198,7 +245,7 @@ def main(orn_params, stim_params, sdf_params, sens_params):
     # ODOUR STIMULUS/I
     u_od            = stim_fcn(stim_params)
     
-    # Trasnduction output
+    # Transduction output
     for tt in range(1, n2sim-1):
         # span for next time step
         tspan = [t[tt-1],t[tt]] 
@@ -218,11 +265,17 @@ def main(orn_params, stim_params, sdf_params, sens_params):
         y_orn[tt, :] = y_adapt(y_orn[tt-1, :], tspan, orn_params)
         
         # NSI effect on reversal potential 
-        vrev_t = vrev*(1 - w_nsi*(v_orn[tt-1, nsi_vect]-vrest))
+        vrev_t = rev_fcn(vrev, w_nsi, v_orn, nsi_mat, vrest, tt-1, n_neu)
 
+        
         # ORNs whose ref_cnt is equal to zero:
         orn_ref0 = (orn_ref==0)
-        v_orn[tt, orn_ref0] = v_orn_ode(v_orn[tt-1, orn_ref0], tspan, 
+        if n_neu == 1:
+            v_orn[tt, orn_ref0] = v_orn_ode(v_orn[tt-1, orn_ref0], tspan, 
+                                        r_tot[tt, orn_ref0], y_orn[tt, orn_ref0], 
+                                        vrev_t, orn_params)
+        else:
+            v_orn[tt, orn_ref0] = v_orn_ode(v_orn[tt-1, orn_ref0], tspan, 
                                         r_tot[tt, orn_ref0], y_orn[tt, orn_ref0], 
                                         vrev_t[orn_ref0], orn_params)
         
@@ -254,7 +307,7 @@ def main(orn_params, stim_params, sdf_params, sens_params):
         # orn_sdf = orn_sdf[:,0]*1e3    
         orn_sdf = orn_sdf*1e3 
     orn_lif_out = [t, u_od, r_orn, v_orn, y_orn, 
-                   num_spikes, spike_matrix, orn_sdf, t_sdf]
+                   num_spikes, spike_matrix, orn_sdf, t_sdf,]
     
     return  orn_lif_out 
 
@@ -294,39 +347,40 @@ if __name__ == '__main__':
     stim_params.update(concs_params)
     
     # Sensilla/network parameters
-    n_sens = 2
-    n_neu = 2
+    n_sens = 1
+    n_neu = 1
     
-    # Connectivity vector for n_sens identical sensilla with 2 ORNs
-    odds = np.arange(1, n_neu*n_sens, 2)
-    evens = np.arange(0, n_neu*n_sens, 2)
-    nsi_vect = np.empty((n_sens, 2), dtype=int) 
-    nsi_vect[:,0] = odds
-    nsi_vect[:,1] = evens
-    nsi_vect = nsi_vect.reshape(n_neu*n_sens)
-       
+    # Connectivity matrix for ORNs
+    nsi_mat = np.zeros((n_neu*n_sens,n_neu*n_sens))
+    for pp in range(n_sens):
+        nsi_mat[pp*n_neu:(pp+1)*n_neu,pp*n_neu:(pp+1)*n_neu] = 1
+        np.fill_diagonal(nsi_mat[pp*n_neu:(pp+1)*n_neu,pp*n_neu:(pp+1)*n_neu],0)
+
+    
     sens_params     = dict([
                         ('n_neu', n_neu),
                         ('n_sens', n_sens),
-                        ('nsi_vect', nsi_vect), #[1,0] neuron 0 NSIs neuron 1 and viceversa
-                        # ('od_pref' , np.array([[1,0], [0,1],])),
-                                # [0,0],
-                                # [1,0],
-                                # [1,0],
-                                # [0,0],
-                                # [0,1],
-                                # [1,0],
-                                # [0,0],
-                                # [0,1]])
+                        ('nsi_mat', nsi_mat), #[1,0] neuron 0 NSIs neuron 1 and viceversa
                         # NSI params
                         ('w_nsi', .000000015), 
+                        ('od_pref' , np.array([[1,0], [0,1], [0,1], [1,0], 
+                                               [0,0], [1,0], [0,1], [1,0]]))
+                               #  [0,0],
+                               #  [1,0],
+                               #  [1,0],
+                               #  [0,0],
+                               #  [0,1],
+                               #  [1,0],
+                               #  [0,0],
+                               #  [0,1]
                         ])
     
-    
-    if (n_neu==2) and (n_od == 2):
-        # it depends on the number of neurons/odorants
-        transd_mat = np.eye(2)
+    # Create Transduction Matrix
+    transd_mat = np.zeros((n_neu, n_od))
+    for pp in range(n_neu):
+        transd_mat[pp,:] = sens_params['od_pref'][pp,:]
         
+    
     # ORN Parameters 
     orn_params = dict([
         # Transduction params
@@ -361,10 +415,9 @@ if __name__ == '__main__':
     print('sim run time: %.2f s' %(toc-tic))
     
     [t, u_od, r_orn, v_orn, y_orn, num_spikes, spike_matrix, orn_sdf,
-     t_sdf]  = orn_lif_out
+     t_sdf,]  = orn_lif_out
     
-    
-    
+      
     #%% *****************************************************************
     # FIGURE ORN dynamics
     t_on = np.min(stim_params['t_on'])
