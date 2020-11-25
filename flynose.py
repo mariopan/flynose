@@ -514,7 +514,7 @@ def main(params2an, fig_opts):
     for pp in range(num_glo_tot):
         pn_ln_mat[pp*num_pns_glo:(pp+1)*num_pns_glo,
                   pp*num_lns_glo:(pp+1)*num_lns_glo] = pn_spike_height
-     
+    
     glo_id = 0        
     ln_pn_mat           = np.zeros((num_lns_tot,num_pns_tot))
     for pp in range(num_sens):
@@ -1156,7 +1156,7 @@ if __name__ == '__main__':
     t_tot           = 420        # ms 
     t_on            = [300, 300+delay]    # ms
     t_off           = np.array(t_on)+stim_dur # ms
-    concs           = [1.4, 1.4]
+    concs           = [4.4, 1.4]
     sdf_size        = int(t_tot/dt_sdf)
     # real plumes params
     b_max           = np.nan # 3, 50, 150
@@ -1191,11 +1191,11 @@ if __name__ == '__main__':
     params2an = [nsi_str, alpha_ln, stim_params,]
     
     orn_fig     = 0
-    al_fig      = 0
+    al_fig      = 1
     fig_ui      = 1        
     fig_save    = 1    
     data_save   = 0
-    al_dyn      = 0
+    al_dyn      = 1
     verbose     = 0    
 
     fig_opts = [orn_fig, al_fig, fig_ui, fig_save, data_save, al_dyn, 
