@@ -216,10 +216,31 @@ def main(orn_params, stim_params, sdf_params, sens_params):
         stim_params[x] for x in tmp_ks]    
     # SENSILLUM PARAMETERS
     n_neu           = sens_params['n_neu']
-    nsi_mat         = sens_params['nsi_mat']
     # od_pref         = sens_params['od_pref']
     w_nsi           = sens_params['w_nsi']
     n_sens          = sens_params['n_sens']
+    
+    # Connectivity matrix for ORNs
+    nsi_mat = np.zeros((n_neu*n_sens, n_neu*n_sens))
+    
+    for pp in range(n_sens*n_neu):
+        nn = np.arange(np.mod(pp,n_sens), n_neu*n_sens, 
+                       n_sens,dtype='int')
+        nsi_mat[pp, nn] = 1
+    np.fill_diagonal(nsi_mat, 0)
+    
+    # n_linkth = n_sens*n_neu*(n_neu-1)
+    # print('Link Th: %d, Link eff: %d' %(n_linkth,np.sum(nsi_mat)))
+    # fig= plt.figure()
+    # plt.imshow(nsi_mat, )
+    # plt.show()
+    
+    # # OLD Connectivity matrix for ORNs
+    # nsi_mat = np.zeros((n_neu*n_sens, n_neu*n_sens))
+    # for pp in range(n_sens):
+    #     nsi_mat[pp*n_neu:(pp+1)*n_neu, pp*n_neu:(pp+1)*n_neu] = 1
+    #     np.fill_diagonal(nsi_mat[pp*n_neu:(pp+1)*n_neu, \
+    #                               pp*n_neu:(pp+1)*n_neu], 0)
     
     # ORN PARAMETERS 
     t_ref           = orn_params['t_ref']
@@ -341,30 +362,23 @@ if __name__ == '__main__':
         concs_params    = dict([
                         ('stim_dur' , np.array([500, 500])),
                         ('t_on', np.array([800, 800])),          # ms
-                        ('concs', np.array([.01, .0001])),
+                        ('concs', np.array([.002, .002])),
                         ])
     
     stim_params.update(concs_params)
     
-    # Sensilla/network parameters
-    n_sens = 1
-    n_neu = 1
-    
-    # Connectivity matrix for ORNs
-    nsi_mat = np.zeros((n_neu*n_sens,n_neu*n_sens))
-    for pp in range(n_sens):
-        nsi_mat[pp*n_neu:(pp+1)*n_neu,pp*n_neu:(pp+1)*n_neu] = 1
-        np.fill_diagonal(nsi_mat[pp*n_neu:(pp+1)*n_neu,pp*n_neu:(pp+1)*n_neu],0)
-
+    #%% Sensilla/network parameters
+    n_sens = 40
+    n_neu = 3
     
     sens_params     = dict([
                         ('n_neu', n_neu),
                         ('n_sens', n_sens),
-                        ('nsi_mat', nsi_mat), #[1,0] neuron 0 NSIs neuron 1 and viceversa
                         # NSI params
-                        ('w_nsi', .000000015), 
-                        ('od_pref' , np.array([[1,0], [0,1], [0,1], [1,0], 
-                                               [0,0], [1,0], [0,1], [1,0]]))
+                        ('w_nsi', .05), 
+                        ('od_pref' , \
+                         np.array([[1,0], [0,1], [0,1], [1,0], 
+                                   [0,0], [1,0], [0,1], [1,0]]))
                                #  [0,0],
                                #  [1,0],
                                #  [1,0],
@@ -379,7 +393,6 @@ if __name__ == '__main__':
     transd_mat = np.zeros((n_neu, n_od))
     for pp in range(n_neu):
         transd_mat[pp,:] = sens_params['od_pref'][pp,:]
-        
     
     # ORN Parameters 
     orn_params = dict([
@@ -439,10 +452,10 @@ if __name__ == '__main__':
     ax_orn2b = ax_orn[0,1].twinx()
     ax_orn4b = ax_orn[1,1].twinx()
     
-    weight_od = np.dot(u_od, transd_mat)
+    # weight_od = np.dot(u_od, transd_mat)
     for id_neu in range(n_neu):
         # PLOT
-        ax_orn[0, id_neu].plot(t-t_on, weight_od[:, id_neu], linewidth=lw+1, color=black,)
+        # ax_orn[0, id_neu].plot(t-t_on, weight_od[:, id_neu], linewidth=lw+1, color=black,)
         if id_neu == 0:
             ax_orn2a.plot(t-t_on, r_orn[:, id_neu], linewidth=lw+1, color=blue,)
             ax_orn4a.plot(t-t_on, y_orn[:, id_neu], linewidth=lw+1, color=blue,)
