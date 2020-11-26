@@ -272,8 +272,12 @@ def main(orn_params, stim_params, sdf_params, sens_params):
         r_orn[tt, :, :] = transd(r_orn[tt-1, :, :], tspan, 
                                   u_od[tt, :], orn_params)   
 
-    r_tot = np.sum(r_orn, axis=2)
-    r_tot = np.tile(r_tot, (1, n_sens))
+    r_tmp = np.sum(r_orn, axis=2)
+    r_tot = np.zeros((n2sim, n_neu*n_sens))
+    for ss in range(n_neu):
+        nn_s = np.arange(ss, n_neu*n_sens, n_neu, dtype='int')
+        for nn in nn_s:
+            r_tot[:, nn] = r_tmp[:, ss] # + noise
     
     # ********************************************************
     # LIF ORN DYNAMICS
