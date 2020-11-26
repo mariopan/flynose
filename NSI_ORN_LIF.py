@@ -197,7 +197,6 @@ def rev_fcn(vrev, w_nsi, v_orn, nsi_mat, vrest, t, n_neu, ):
         4 : quad_ORN,
         }
     
-    
     vrev_t = rev_dict[n_neu]()
     return vrev_t
    
@@ -368,7 +367,7 @@ if __name__ == '__main__':
     stim_params.update(concs_params)
     
     #%% Sensilla/network parameters
-    n_sens = 40
+    n_sens = 1
     n_neu = 3
     
     sens_params     = dict([
@@ -441,133 +440,257 @@ if __name__ == '__main__':
     
     t2plot = -t_on, 1000 #t_tot #-t_on, t_tot-t_on
     rs = 3 # number of rows
-    cs = 2 # number of cols
+    cs = n_neu # number of cols
                     
-    panels_id = ['a', 'b', 'c', 'd', 'e', 'f']
+    panels_id = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l']
     fig_orn, ax_orn = plt.subplots(rs, cs, figsize=[8.5, 6.5])
     fig_orn.tight_layout()
     
-    ax_orn2a = ax_orn[0,0].twinx()
-    ax_orn4a = ax_orn[1,0].twinx()
-    ax_orn2b = ax_orn[0,1].twinx()
-    ax_orn4b = ax_orn[1,1].twinx()
-    
-    # weight_od = np.dot(u_od, transd_mat)
-    for id_neu in range(n_neu):
-        # PLOT
-        # ax_orn[0, id_neu].plot(t-t_on, weight_od[:, id_neu], linewidth=lw+1, color=black,)
-        if id_neu == 0:
-            ax_orn2a.plot(t-t_on, r_orn[:, id_neu], linewidth=lw+1, color=blue,)
-            ax_orn4a.plot(t-t_on, y_orn[:, id_neu], linewidth=lw+1, color=blue,)
-        else:
-            ax_orn2b.plot(t-t_on, r_orn[:, id_neu], linewidth=lw+1, color=blue,)
-            ax_orn4b.plot(t-t_on, y_orn[:, id_neu], linewidth=lw+1, color=blue,)
+    if n_neu == 1:
+        ax_orn2a = ax_orn[0].twinx()
+        ax_orn4a = ax_orn[1].twinx()
+        weight_od = u_od*transd_mat[0,:]
+        ax_orn[0].plot(t-t_on, weight_od, linewidth=lw+1, color=black,)
+        ax_orn2a.plot(t-t_on, r_orn[:, 0], linewidth=lw+1, color=blue,)
+        ax_orn4a.plot(t-t_on, y_orn[:, 0], linewidth=lw+1, color=blue,)
+        ax_orn[1].plot(t-t_on, v_orn[:, 0], linewidth=lw+1, color=black,)
+        ax_orn[1].plot([t[0]-t_on, t[-1]-t_on], [vrest, vrest], '--', linewidth=lw, color=red,)
+        ax_orn[1].plot([t[0]-t_on, t[-1]-t_on], [vrev, vrev], '-.', linewidth=lw, color=red,)
+        ax_orn[2].plot(t_sdf-t_on, orn_sdf[:, 0], color=green, linewidth=lw+1, 
+                              label='\nu')
+        ax_orn[0].tick_params(axis='both', which='major', labelsize=ticks_fs)
+        ax_orn2a.tick_params(axis='both', which='major', labelsize=ticks_fs)
+        ax_orn4a.tick_params(axis='both', which='major', labelsize=ticks_fs)
+        ax_orn[1].tick_params(axis='both', which='major', labelsize=ticks_fs)
+        ax_orn[2].tick_params(axis='both', which='major', labelsize=ticks_fs)
+        ax_orn[0].set_xticklabels('')
+        ax_orn[1].set_xticklabels('')
+        ax_orn2a.set_xticklabels('')
+        ax_orn4a.set_xticklabels('')
+        ax_orn2a.set_yticklabels('')        
+        ax_orn4a.set_yticklabels('')   
+        ax_orn[0].set_ylabel('Input (a.u.)', fontsize=label_fs)
+        ax_orn[1].set_ylabel(r'V (a.u.)', fontsize=label_fs)
+        ax_orn[2].set_ylabel('firing rates (Hz)', fontsize=label_fs)   
+        ax_orn2a.set_ylabel(r'r (a.u.) ', fontsize=label_fs, color=blue,)
+        ax_orn4a.set_ylabel(r'y adapt (a.u.)', fontsize=label_fs, color=blue,)
+        ax_orn[2].set_xlabel('Time  (ms)', fontsize=label_fs) 
+            # ax_orn_sc.set_ylabel('Neuron id', fontsize=label_fs)
         
-        ax_orn[1, id_neu].plot(t-t_on, v_orn[:, id_neu], linewidth=lw+1, color=black,)
-        ax_orn[1, id_neu].plot([t[0]-t_on, t[-1]-t_on], [vrest, vrest], '--', linewidth=lw, color=red,)
-        ax_orn[1, id_neu].plot([t[0]-t_on, t[-1]-t_on], [vrev, vrev], '-.', linewidth=lw, color=red,)
-        ax_orn[2, id_neu].plot(t_sdf-t_on, orn_sdf[:, id_neu], color=green, linewidth=lw+1, 
-                          label='\nu')
-    
-        spikes_orn_0 = np.argwhere(num_spikes)        
-        # ax_orn_sc.scatter(spikes_orn_0[:,0]/pts_ms-t_on, 
-        #                 spikes_orn_0[:,1], color=purple, s=10)
-    
-        # FIGURE SETTINGS
-        ax_orn[0, id_neu].tick_params(axis='both', which='major', labelsize=ticks_fs)
-        if id_neu == 0:
-            ax_orn2a.tick_params(axis='both', which='major', labelsize=ticks_fs)
-            ax_orn4a.tick_params(axis='both', which='major', labelsize=ticks_fs)
-        else:
-            ax_orn2b.tick_params(axis='both', which='major', labelsize=ticks_fs)
-            ax_orn4b.tick_params(axis='both', which='major', labelsize=ticks_fs)    
-        ax_orn[1, id_neu].tick_params(axis='both', which='major', labelsize=ticks_fs)
-        ax_orn[2, id_neu].tick_params(axis='both', which='major', labelsize=ticks_fs)
-        # ax_orn_sc.tick_params(axis='both', which='major', labelsize=ticks_fs)
+        ax_orn[0].text(-.15, 1.25, panels_id[0], transform=ax_orn[0].transAxes, 
+                             fontsize=panel_fs, fontweight='bold', va='top', ha='right')
+        ax_orn[1].text(-.15, 1.25, panels_id[2], transform=ax_orn[1].transAxes, 
+                             fontsize=panel_fs, fontweight='bold', va='top', ha='right')
+        ax_orn[2].text(-.15, 1.25, panels_id[4], transform=ax_orn[2].transAxes, 
+                             fontsize=panel_fs, fontweight='bold', va='top', ha='right')
         
-        ax_orn[0, id_neu].set_xticklabels('')
-        ax_orn[1, id_neu].set_xticklabels('')
-        if id_neu==0:
-            ax_orn2a.set_xticklabels('')
-            ax_orn4a.set_xticklabels('')
-            ax_orn2a.set_yticklabels('')        
-            ax_orn4a.set_yticklabels('')        
-        else:
-            ax_orn2b.set_xticklabels('')
-            ax_orn4b.set_xticklabels('')        
-            ax_orn[0, id_neu].set_yticklabels('')
-            ax_orn[1, id_neu].set_yticklabels('')
-            # ax_orn[2, id_neu].set_yticklabels('')        
-        # ax_orn_sc.set_xticklabels('')        
+        ax_orn[0].spines['top'].set_color('none')
+        ax_orn2a.spines['top'].set_color('none')
+        ax_orn4a.spines['top'].set_color('none')
         
-        if id_neu == 0:
-            ax_orn[0, id_neu].set_ylabel('Input (a.u.)', fontsize=label_fs)
-            ax_orn[1, id_neu].set_ylabel(r'V (a.u.)', fontsize=label_fs)
-            ax_orn[2, id_neu].set_ylabel('firing rates (Hz)', fontsize=label_fs)        
-        else:
-            ax_orn2b.set_ylabel(r'r (a.u.) ', fontsize=label_fs, color=blue,)
-            ax_orn4b.set_ylabel(r'y adapt (a.u.)', fontsize=label_fs, color=blue,)
-        ax_orn[2, id_neu].set_xlabel('Time  (ms)', fontsize=label_fs) 
-        # ax_orn_sc.set_ylabel('Neuron id', fontsize=label_fs)
-    
-        ax_orn[0, id_neu].text(-.15, 1.25, panels_id[0+id_neu], transform=ax_orn[0, id_neu].transAxes, 
-                          fontsize=panel_fs, fontweight='bold', va='top', ha='right')
-        ax_orn[1, id_neu].text(-.15, 1.25, panels_id[2+id_neu], transform=ax_orn[1, id_neu].transAxes, 
-                          fontsize=panel_fs, fontweight='bold', va='top', ha='right')
-        ax_orn[2, id_neu].text(-.15, 1.25, panels_id[4+id_neu], transform=ax_orn[2, id_neu].transAxes, 
-                          fontsize=panel_fs, fontweight='bold', va='top', ha='right')
-        
-        ax_orn[0, id_neu].spines['top'].set_color('none')
-        if id_neu == 0:
-            ax_orn2a.spines['top'].set_color('none')
-            ax_orn4a.spines['top'].set_color('none')
-        else:
-            ax_orn2b.spines['top'].set_color('none')
-            ax_orn4b.spines['top'].set_color('none')
-        
-        ax_orn[1, id_neu].spines['top'].set_color('none')
+        ax_orn[1].spines['top'].set_color('none')
         # ax_orn_sc.spines['right'].set_color('none')
         # ax_orn_sc.spines['top'].set_color('none')
-        ax_orn[2, id_neu].spines['right'].set_color('none')
-        ax_orn[2, id_neu].spines['top'].set_color('none')
+        ax_orn[2].spines['right'].set_color('none')
+        ax_orn[2].spines['top'].set_color('none')
         
-        if id_neu == 0:
-            ll, bb, ww, hh = ax_orn[0, id_neu].get_position().bounds
-            ww_new = ww - 0.08
-            bb_plus = 0.015
-            ll_new = ll + 0.075
-            hh_new = hh - 0.05
-            ax_orn[0, id_neu].set_position([ll_new, bb+2*bb_plus, ww_new, hh_new])
-            ll, bb, ww, hh = ax_orn[1, id_neu].get_position().bounds
-            ax_orn[1, id_neu].set_position([ll_new, bb+1.5*bb_plus, ww_new, hh])
-            # ll, bb, ww, hh = ax_orn_sc.get_position().bounds
-            # ax_orn_sc.set_position([ll_new, bb+bb_plus, ww_new, hh])
-            ll, bb, ww, hh = ax_orn[2, id_neu].get_position().bounds
-            ax_orn[2, id_neu].set_position([ll_new, bb-bb_plus, ww_new, hh])
-        else:
-            ll, bb, ww, hh = ax_orn[0, id_neu].get_position().bounds
-            ww_new = ww - 0.08
-            bb_plus = 0.015
-            ll_new = ll - 0.005
-            hh_new = hh - 0.05
-            ax_orn[0, id_neu].set_position([ll_new, bb+2*bb_plus, ww_new, hh_new])
-            ll, bb, ww, hh = ax_orn[1, id_neu].get_position().bounds
-            ax_orn[1, id_neu].set_position([ll_new, bb+1.5*bb_plus, ww_new, hh])
-            # ll, bb, ww, hh = ax_orn_sc.get_position().bounds
-            # ax_orn_sc.set_position([ll_new, bb+bb_plus, ww_new, hh])
-            ll, bb, ww, hh = ax_orn[2, id_neu].get_position().bounds
-            ax_orn[2, id_neu].set_position([ll_new, bb-bb_plus, ww_new, hh])
-            
-        ax_orn[0, id_neu].set_xlim((t2plot))
-        if id_neu == 0:
-            ax_orn2a.set_xlim((t2plot))
-            ax_orn4a.set_xlim((t2plot))
-        else:
-            ax_orn2b.set_xlim((t2plot))
-            ax_orn4b.set_xlim((t2plot))
-        ax_orn[1, id_neu].set_xlim((t2plot))
+        ll, bb, ww, hh = ax_orn[0].get_position().bounds
+        ww_new = ww - 0.08
+        bb_plus = 0.015
+        ll_new = ll + 0.075
+        hh_new = hh - 0.05
+        ax_orn[0].set_position([ll_new, bb+2*bb_plus, ww_new, hh_new])
+        ll, bb, ww, hh = ax_orn[1].get_position().bounds
+        ax_orn[1].set_position([ll_new, bb+1.5*bb_plus, ww_new, hh])
+        # ll, bb, ww, hh = ax_orn_sc.get_position().bounds
+        # ax_orn_sc.set_position([ll_new, bb+bb_plus, ww_new, hh])
+        ll, bb, ww, hh = ax_orn[2].get_position().bounds
+        ax_orn[2].set_position([ll_new, bb-bb_plus, ww_new, hh])
+        
+        ax_orn[0].set_xlim((t2plot))
+        ax_orn2a.set_xlim((t2plot))
+        ax_orn4a.set_xlim((t2plot))
+        ax_orn[1].set_xlim((t2plot))
         # ax_orn_sc.set_xlim((t2plot))
-        ax_orn[2, id_neu].set_xlim((t2plot))
+        ax_orn[2].set_xlim((t2plot))
+        
+        plt.show()
+        
+    else:
+        ax_orn2a = ax_orn[0,0].twinx()
+        ax_orn4a = ax_orn[1,0].twinx()
+        if n_neu > 1:
+            ax_orn2b = ax_orn[0,1].twinx()
+            ax_orn4b = ax_orn[1,1].twinx()
+            if n_neu > 2:
+                ax_orn2c = ax_orn[0,2].twinx()
+                ax_orn4c = ax_orn[1,2].twinx()
+                if n_neu > 3:
+                    ax_orn2d = ax_orn[0,3].twinx()
+                    ax_orn4d = ax_orn[1,3].twinx()
+        
+        #weight_od = u_od*transd_mat
+        for id_neu in range(n_neu):
+            # PLOT
+            weight_od = u_od*transd_mat[id_neu,:]
+            ax_orn[0, id_neu].plot(t-t_on, weight_od, linewidth=lw+1, color=black,) 
+            if id_neu == 0:
+                ax_orn2a.plot(t-t_on, r_orn[:, id_neu], linewidth=lw+1, color=blue,)
+                ax_orn4a.plot(t-t_on, y_orn[:, id_neu], linewidth=lw+1, color=blue,)
+            elif id_neu == 1:        
+                ax_orn2b.plot(t-t_on, r_orn[:, id_neu], linewidth=lw+1, color=blue,)
+                ax_orn4b.plot(t-t_on, y_orn[:, id_neu], linewidth=lw+1, color=blue,)
+            elif id_neu == 2:
+                ax_orn2c.plot(t-t_on, r_orn[:, id_neu], linewidth=lw+1, color=blue,)
+                ax_orn4c.plot(t-t_on, y_orn[:, id_neu], linewidth=lw+1, color=blue,)
+            elif id_neu == 3:
+                ax_orn2d.plot(t-t_on, r_orn[:, id_neu], linewidth=lw+1, color=blue,)
+                ax_orn4d.plot(t-t_on, y_orn[:, id_neu], linewidth=lw+1, color=blue,)
+                
+            ax_orn[1, id_neu].plot(t-t_on, v_orn[:, id_neu], linewidth=lw+1, color=black,)
+            ax_orn[1, id_neu].plot([t[0]-t_on, t[-1]-t_on], [vrest, vrest], '--', linewidth=lw, color=red,)
+            ax_orn[1, id_neu].plot([t[0]-t_on, t[-1]-t_on], [vrev, vrev], '-.', linewidth=lw, color=red,)
+            ax_orn[2, id_neu].plot(t_sdf-t_on, orn_sdf[:, id_neu], color=green, linewidth=lw+1, 
+                              label='\nu')
+        
+            spikes_orn_0 = np.argwhere(num_spikes)        
+            # ax_orn_sc.scatter(spikes_orn_0[:,0]/pts_ms-t_on, 
+            #                 spikes_orn_0[:,1], color=purple, s=10)
+        
+            # FIGURE SETTINGS
+            ax_orn[0, id_neu].tick_params(axis='both', which='major', labelsize=ticks_fs)
+            if id_neu == 0:
+                ax_orn2a.tick_params(axis='both', which='major', labelsize=ticks_fs)
+                ax_orn4a.tick_params(axis='both', which='major', labelsize=ticks_fs)
+            elif id_neu == 1:
+                ax_orn2b.tick_params(axis='both', which='major', labelsize=ticks_fs)
+                ax_orn4b.tick_params(axis='both', which='major', labelsize=ticks_fs)   
+            elif id_neu == 2:
+                ax_orn2c.tick_params(axis='both', which='major', labelsize=ticks_fs)
+                ax_orn4c.tick_params(axis='both', which='major', labelsize=ticks_fs)  
+            elif id_neu == 3:
+                ax_orn2d.tick_params(axis='both', which='major', labelsize=ticks_fs)
+                ax_orn4d.tick_params(axis='both', which='major', labelsize=ticks_fs)  
+                
+            ax_orn[1, id_neu].tick_params(axis='both', which='major', labelsize=ticks_fs)
+            ax_orn[2, id_neu].tick_params(axis='both', which='major', labelsize=ticks_fs)
+            # ax_orn_sc.tick_params(axis='both', which='major', labelsize=ticks_fs)
+            
+            ax_orn[0, id_neu].set_xticklabels('')
+            ax_orn[1, id_neu].set_xticklabels('')
+           
+            if id_neu == 0:
+                ax_orn2a.set_xticklabels('')
+                ax_orn4a.set_xticklabels('')
+                ax_orn2a.set_yticklabels('')        
+                ax_orn4a.set_yticklabels('')        
+            elif id_neu == 1 :
+                ax_orn2b.set_xticklabels('')
+                ax_orn4b.set_xticklabels('')        
+                ax_orn2b.set_yticklabels('')
+                ax_orn4b.set_yticklabels('')
+                # ax_orn[2, id_neu].set_yticklabels('')  
+            elif id_neu == 2:
+                ax_orn2c.set_xticklabels('')
+                ax_orn4c.set_xticklabels('')        
+                ax_orn2c.set_yticklabels('')
+                ax_orn4c.set_yticklabels('')
+            elif id_neu == 3:
+                ax_orn2d.set_xticklabels('')
+                ax_orn4d.set_xticklabels('')        
+                ax_orn2d.set_yticklabels('')
+                ax_orn4d.set_yticklabels('')
+            # ax_orn_sc.set_xticklabels('')        
+            # if n_neu = 1 if n_neu = 2 if n_neu = 3 if n_neu = 4
+            if id_neu == 0:
+                ax_orn[0, id_neu].set_ylabel('Input (a.u.)', fontsize=label_fs)
+                ax_orn[1, id_neu].set_ylabel(r'V (a.u.)', fontsize=label_fs)
+                ax_orn[2, id_neu].set_ylabel('firing rates (Hz)', fontsize=label_fs)        
+            elif id_neu == n_neu-1:
+                if id_neu == 1:
+                    ax_orn2b.set_ylabel(r'r (a.u.) ', fontsize=label_fs, color=blue,)
+                    ax_orn4b.set_ylabel(r'y adapt (a.u.)', fontsize=label_fs, color=blue,)
+                elif id_neu == 2:
+                    ax_orn2c.set_ylabel(r'r (a.u.) ', fontsize=label_fs, color=blue,)
+                    ax_orn4c.set_ylabel(r'y adapt (a.u.)', fontsize=label_fs, color=blue,)
+                elif id_neu == 3:
+                    ax_orn2d.set_ylabel(r'r (a.u.) ', fontsize=label_fs, color=blue,)
+                    ax_orn4d.set_ylabel(r'y adapt (a.u.)', fontsize=label_fs, color=blue,)
     
-    plt.show()
+                     
+            ax_orn[2, id_neu].set_xlabel('Time  (ms)', fontsize=label_fs) 
+            # ax_orn_sc.set_ylabel('Neuron id', fontsize=label_fs)
+        
+            ax_orn[0, id_neu].text(-.15, 1.25, panels_id[0+id_neu], transform=ax_orn[0, id_neu].transAxes, 
+                              fontsize=panel_fs, fontweight='bold', va='top', ha='right')
+            ax_orn[1, id_neu].text(-.15, 1.25, panels_id[n_neu+id_neu], transform=ax_orn[1, id_neu].transAxes, 
+                              fontsize=panel_fs, fontweight='bold', va='top', ha='right')
+            ax_orn[2, id_neu].text(-.15, 1.25, panels_id[(n_neu*2)+id_neu], transform=ax_orn[2, id_neu].transAxes, 
+                              fontsize=panel_fs, fontweight='bold', va='top', ha='right')
+            
+            ax_orn[0, id_neu].spines['top'].set_color('none')
+            if id_neu == 0:
+                ax_orn2a.spines['top'].set_color('none')
+                ax_orn4a.spines['top'].set_color('none')
+            elif id_neu == 1:
+                ax_orn2b.spines['top'].set_color('none')
+                ax_orn4b.spines['top'].set_color('none')
+            elif id_neu == 2:
+                ax_orn2c.spines['top'].set_color('none')
+                ax_orn4c.spines['top'].set_color('none')
+            elif id_neu == 3:
+                ax_orn2d.spines['top'].set_color('none')
+                ax_orn4d.spines['top'].set_color('none')
+            
+            ax_orn[1, id_neu].spines['top'].set_color('none')
+            # ax_orn_sc.spines['right'].set_color('none')
+            # ax_orn_sc.spines['top'].set_color('none')
+            ax_orn[2, id_neu].spines['right'].set_color('none')
+            ax_orn[2, id_neu].spines['top'].set_color('none')
+            
+            if id_neu == 0:
+                ll, bb, ww, hh = ax_orn[0, id_neu].get_position().bounds
+                ww_new = ww - 0.08
+                bb_plus = 0.015
+                ll_new = ll + 0.075
+                hh_new = hh - 0.05
+                ax_orn[0, id_neu].set_position([ll_new, bb+2*bb_plus, ww_new, hh_new])
+                ll, bb, ww, hh = ax_orn[1, id_neu].get_position().bounds
+                ax_orn[1, id_neu].set_position([ll_new, bb+1.5*bb_plus, ww_new, hh])
+                # ll, bb, ww, hh = ax_orn_sc.get_position().bounds
+                # ax_orn_sc.set_position([ll_new, bb+bb_plus, ww_new, hh])
+                ll, bb, ww, hh = ax_orn[2, id_neu].get_position().bounds
+                ax_orn[2, id_neu].set_position([ll_new, bb-bb_plus, ww_new, hh])
+            else:
+                ll, bb, ww, hh = ax_orn[0, id_neu].get_position().bounds
+                ww_new = ww - 0.08
+                bb_plus = 0.015
+                ll_new = ll + (0.075-(0.08*id_neu))
+                hh_new = hh - 0.05
+                ax_orn[0, id_neu].set_position([ll_new, bb+2*bb_plus, ww_new, hh_new])
+                ll, bb, ww, hh = ax_orn[1, id_neu].get_position().bounds
+                ax_orn[1, id_neu].set_position([ll_new, bb+1.5*bb_plus, ww_new, hh])
+                # ll, bb, ww, hh = ax_orn_sc.get_position().bounds
+                # ax_orn_sc.set_position([ll_new, bb+bb_plus, ww_new, hh])
+                ll, bb, ww, hh = ax_orn[2, id_neu].get_position().bounds
+                ax_orn[2, id_neu].set_position([ll_new, bb-bb_plus, ww_new, hh])
+                
+            ax_orn[0, id_neu].set_xlim((t2plot))
+            if id_neu == 0:
+                ax_orn2a.set_xlim((t2plot))
+                ax_orn4a.set_xlim((t2plot))
+            elif id_neu == 1:
+                ax_orn2b.set_xlim((t2plot))
+                ax_orn4b.set_xlim((t2plot))
+            elif id_neu == 2:
+                ax_orn2c.set_xlim((t2plot))
+                ax_orn4c.set_xlim((t2plot))
+            elif id_neu == 3:
+                ax_orn2d.set_xlim((t2plot))
+                ax_orn4d.set_xlim((t2plot))
+            ax_orn[1, id_neu].set_xlim((t2plot))
+            # ax_orn_sc.set_xlim((t2plot))
+            ax_orn[2, id_neu].set_xlim((t2plot))
+    
+        plt.show()
        
