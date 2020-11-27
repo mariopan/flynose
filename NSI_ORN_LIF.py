@@ -86,7 +86,7 @@ def stim_fcn(stim_params):
     n_od            = len(concs)
     t_off           = t_on+stim_dur
     
-    n2sim           = pts_ms*t_tot + 1      # number of time points
+    n2sim           = pts_ms*t_tot       # number of time points
     
     u_od            = np.ones((n2sim, n_od)) * conc0
     
@@ -106,7 +106,7 @@ def stim_fcn(stim_params):
             
             # stimulus offset
             t_tmp           = \
-                np.linspace(0, t_tot-t_off[nn], 1 + t_tot*pts_ms-stim_off)    
+                np.linspace(0, t_tot-t_off[nn], t_tot*pts_ms-stim_off)    
             
             u_od[stim_off:, nn] = conc0 + \
                 (u_od[stim_off-1, nn]-conc0)*np.exp(-t_tmp/tau_on)
@@ -115,12 +115,12 @@ def stim_fcn(stim_params):
 
 
 # transduction function
-def transd(r0,t,u,orn_params,):
+def transd(r0,t,u, transd_params,):
 
-    alpha_r = orn_params['alpha_r']
+    alpha_r     = transd_params['alpha_r']
     alpha_r[alpha_r==0] = 1e-16
-    beta_r = orn_params['beta_r']
-    n = orn_params['n']
+    beta_r      = transd_params['beta_r']
+    n           = transd_params['n']
     
     dt = t[1]-t[0]
     b = -alpha_r * u**n - beta_r
@@ -210,12 +210,11 @@ def main(orn_params, stim_params, sdf_params, sens_params):
     [tau_sdf, dt_sdf] = sdf_params
     
     # STIMULI PARAMETERS 
-    tmp_ks = ['pts_ms', 't_tot', 'n_od', ]    
-    [pts_ms, t_tot, n_od, ] = [
+    tmp_ks = ['pts_ms', 't_tot', 'n_od', 'r_noise']    
+    [pts_ms, t_tot, n_od, r_noise] = [
         stim_params[x] for x in tmp_ks]    
     # SENSILLUM PARAMETERS
     n_neu           = sens_params['n_neu']
-    # od_pref         = sens_params['od_pref']
     w_nsi           = sens_params['w_nsi']
     n_sens          = sens_params['n_sens']
     
@@ -227,20 +226,7 @@ def main(orn_params, stim_params, sdf_params, sens_params):
                        n_sens,dtype='int')
         nsi_mat[pp, nn] = 1
     np.fill_diagonal(nsi_mat, 0)
-    
-    # n_linkth = n_sens*n_neu*(n_neu-1)
-    # print('Link Th: %d, Link eff: %d' %(n_linkth,np.sum(nsi_mat)))
-    # fig= plt.figure()
-    # plt.imshow(nsi_mat, )
-    # plt.show()
-    
-    # # OLD Connectivity matrix for ORNs
-    # nsi_mat = np.zeros((n_neu*n_sens, n_neu*n_sens))
-    # for pp in range(n_sens):
-    #     nsi_mat[pp*n_neu:(pp+1)*n_neu, pp*n_neu:(pp+1)*n_neu] = 1
-    #     np.fill_diagonal(nsi_mat[pp*n_neu:(pp+1)*n_neu, \
-    #                               pp*n_neu:(pp+1)*n_neu], 0)
-    
+        
     # ORN PARAMETERS 
     t_ref           = orn_params['t_ref']
     theta           = orn_params['theta']
@@ -249,36 +235,41 @@ def main(orn_params, stim_params, sdf_params, sens_params):
     vrev            = orn_params['vrev']
     
     # INITIALIZE OUTPUT VECTORS
-    n2sim           = pts_ms*t_tot + 1      # number of time points
+    n2sim           = pts_ms*t_tot      # number of time points
     t               = np.linspace(0, t_tot, n2sim) # time points
     n_neu_tot       = n_neu*n_sens
 
     u_od            = np.zeros((n2sim, n_od))
     
-    r_orn           = np.zeros((n2sim, n_neu, n_od)) 
+    r_orn_od        = np.zeros((n2sim, n_neu, n_od)) 
     v_orn           = vrest*np.ones((n2sim, n_neu_tot)) 
     y_orn           = np.zeros((n2sim, n_neu_tot))
     vrev_t          = np.ones(n_neu_tot)*vrev
     num_spikes      = np.zeros((n2sim, n_neu_tot))
     orn_ref         = np.zeros(n_neu_tot)
     
-    # ODOUR STIMULUS/I
+    #%% ODOUR STIMULUS/I
     u_od            = stim_fcn(stim_params)
     
-    # Transduction output
+    # Transduction for different ORNs and odours
     for tt in range(1, n2sim-1):
         # span for next time step
         tspan = [t[tt-1],t[tt]] 
-        r_orn[tt, :, :] = transd(r_orn[tt-1, :, :], tspan, 
-                                  u_od[tt, :], orn_params)   
+        for id_neu in range(n_neu):
+            transd_params = sens_params['transd_params'][id_neu]
+            r_orn_od[tt, id_neu, :] = transd(
+                r_orn_od[tt-1, id_neu, :], tspan, 
+                              u_od[tt, :], transd_params)   
 
-    r_tmp = np.sum(r_orn, axis=2)
-    r_tot = np.zeros((n2sim, n_neu*n_sens))
-    for ss in range(n_neu):
-        nn_s = np.arange(ss, n_neu*n_sens, n_neu, dtype='int')
-        for nn in nn_s:
-            r_tot[:, nn] = r_tmp[:, ss] # + noise
+    # Replicate to all sensilla and add noise    
+    r_tmp = np.sum(r_orn_od, axis=2)
+    r_orn = np.zeros((n2sim, n_neu*n_sens))
+    for nn in range(n_neu):
+        for ss in range(n_sens):
+            r_orn[:, ss+nn*n_sens] = r_tmp[:, nn] * \
+                (1+ r_noise*np.random.standard_normal((1,n2sim)))
     
+    #%%
     # ********************************************************
     # LIF ORN DYNAMICS
     for tt in range(1, n2sim-t_ref-1):
@@ -290,17 +281,16 @@ def main(orn_params, stim_params, sdf_params, sens_params):
         
         # NSI effect on reversal potential 
         vrev_t = rev_fcn(vrev, w_nsi, v_orn, nsi_mat, vrest, tt-1, n_neu)
-
         
         # ORNs whose ref_cnt is equal to zero:
         orn_ref0 = (orn_ref==0)
         if n_neu == 1:
             v_orn[tt, orn_ref0] = v_orn_ode(v_orn[tt-1, orn_ref0], tspan, 
-                                        r_tot[tt, orn_ref0], y_orn[tt, orn_ref0], 
+                                        r_orn[tt, orn_ref0], y_orn[tt, orn_ref0], 
                                         vrev_t, orn_params)
         else:
             v_orn[tt, orn_ref0] = v_orn_ode(v_orn[tt-1, orn_ref0], tspan, 
-                                        r_tot[tt, orn_ref0], y_orn[tt, orn_ref0], 
+                                        r_orn[tt, orn_ref0], y_orn[tt, orn_ref0], 
                                         vrev_t[orn_ref0], orn_params)
         
         # ORNs whose Voltage is above threshold AND whose ref_cnt is equal to zero:
@@ -309,7 +299,6 @@ def main(orn_params, stim_params, sdf_params, sens_params):
         orn_ref[orn_above_thr] = t_ref
         y_orn[tt:(tt+t_ref), orn_above_thr] = y_orn[tt, orn_above_thr]+alpha_y
            
-            
         # ORNs whose ref_cnt is different from zero:
         orn_ref_no0 = (orn_ref!=0)
         # Refractory period count down
@@ -352,6 +341,7 @@ if __name__ == '__main__':
                         ('n_od', 2), 
                         ('t_tot', 2000),        # ms 
                         ('conc0', [2.853669391e-04]),
+                        ('r_noise', 0.1),
                         ])
     
     n_od = stim_params['n_od']
@@ -365,44 +355,49 @@ if __name__ == '__main__':
         concs_params    = dict([
                         ('stim_dur' , np.array([500, 500])),
                         ('t_on', np.array([800, 800])),          # ms
-                        ('concs', np.array([.002, .002])),
+                        ('concs', np.array([.002, .00002])),
                         ])
     
     stim_params.update(concs_params)
+        
+    # Sensilla/network parameters
+    n_sens              = 3
+    n_neu               = 2
     
-    #%% Sensilla/network parameters
-    n_sens = 1
-    n_neu = 3
+    # Transduction parameters
+    od_pref = np.array([[1,0], [0,1], [0, 1], [1,0], 
+                        [0,0], [1,0], [0,1], [1,0]])
+         
+    transd_vect_3A = od_pref[0,:]
+    transd_vect_3B = od_pref[1,:]
+    
+    ab3A_params = dict([
+        # Transduction params
+                        ('n', .822066870*transd_vect_3A), 
+                        ('alpha_r', 12.6228808*transd_vect_3A), 
+                        ('beta_r', 7.6758436748e-02*transd_vect_3A),
+                        ])
+    
+    ab3B_params = dict([
+        # Transduction params
+                        ('n', .822066870*transd_vect_3B), 
+                        ('alpha_r', 12.6228808*transd_vect_3B), 
+                        ('beta_r', 7.6758436748e-02*transd_vect_3B),
+                        ])
+    
+    transd_params = (ab3A_params, ab3B_params)
     
     sens_params     = dict([
                         ('n_neu', n_neu),
                         ('n_sens', n_sens),
-                        # NSI params
-                        ('w_nsi', .05), 
-                        ('od_pref' , \
-                         np.array([[1,0], [0,1], [0,1], [1,0], 
-                                   [0,0], [1,0], [0,1], [1,0]]))
-                               #  [0,0],
-                               #  [1,0],
-                               #  [1,0],
-                               #  [0,0],
-                               #  [0,1],
-                               #  [1,0],
-                               #  [0,0],
-                               #  [0,1]
+                        ('od_pref' , od_pref),
+        # NSI params
+                        ('w_nsi', .000000015), 
+                        ('transd_params', transd_params),
                         ])
     
-    # Create Transduction Matrix
-    transd_mat = np.zeros((n_neu, n_od))
-    for pp in range(n_neu):
-        transd_mat[pp,:] = sens_params['od_pref'][pp,:]
-    
     # ORN Parameters 
-    orn_params = dict([
-        # Transduction params
-                        ('n', .822066870*transd_mat), 
-                        ('alpha_r', 12.6228808*transd_mat), 
-                        ('beta_r', 7.6758436748e-02*transd_mat),
+    orn_params  = dict([
         # LIF params
                         ('t_ref', 2*stim_params['pts_ms']), # ms; refractory period 
                         ('theta', 1),                 # [mV] firing threshold
@@ -416,6 +411,7 @@ if __name__ == '__main__':
                         ('alpha_y', .45310619), 
                         ('beta_y', 3.467184e-03), 
                         ])
+
     
     # analysis params
     tau_sdf         = 41
@@ -436,11 +432,17 @@ if __name__ == '__main__':
       
     #%% *****************************************************************
     # FIGURE ORN dynamics
-    t_on = np.min(stim_params['t_on'])
-    pts_ms = stim_params['pts_ms']
-    vrest = orn_params['vrest']
-    vrev = orn_params['vrev']
-    n_neu = sens_params['n_neu']
+
+    # Create Transduction Matrix to plot odour 
+    transd_mat = np.zeros((n_neu, n_od))
+    for pp in range(n_neu):
+        transd_mat[pp,:] = sens_params['od_pref'][pp,:]
+    
+    t_on    = np.min(stim_params['t_on'])
+    pts_ms  = stim_params['pts_ms']
+    vrest   = orn_params['vrest']
+    vrev    = orn_params['vrev']
+    n_neu   = sens_params['n_neu']
     
     t2plot = -t_on, 1000 #t_tot #-t_on, t_tot-t_on
     rs = 3 # number of rows
@@ -537,24 +539,29 @@ if __name__ == '__main__':
         for id_neu in range(n_neu):
             # PLOT
             weight_od = u_od*transd_mat[id_neu,:]
-            ax_orn[0, id_neu].plot(t-t_on, weight_od, linewidth=lw+1, color=black,) 
+            ax_orn[0, id_neu].plot(t-t_on, weight_od, linewidth=lw+1, 
+                                   color=black,) 
             if id_neu == 0:
-                ax_orn2a.plot(t-t_on, r_orn[:, id_neu], linewidth=lw+1, color=blue,)
-                ax_orn4a.plot(t-t_on, y_orn[:, id_neu], linewidth=lw+1, color=blue,)
+                ax_orn2a.plot(t-t_on, r_orn[:, id_neu*n_sens], 
+                              linewidth=lw+1, color=blue,)
+                ax_orn4a.plot(t-t_on, y_orn[:, id_neu*n_sens], linewidth=lw+1, color=blue,)
             elif id_neu == 1:        
-                ax_orn2b.plot(t-t_on, r_orn[:, id_neu], linewidth=lw+1, color=blue,)
-                ax_orn4b.plot(t-t_on, y_orn[:, id_neu], linewidth=lw+1, color=blue,)
+                ax_orn2b.plot(t-t_on, r_orn[:, id_neu*n_sens], 
+                              linewidth=lw+1, color=blue,)
+                ax_orn4b.plot(t-t_on, y_orn[:, id_neu*n_sens], linewidth=lw+1, color=blue,)
             elif id_neu == 2:
-                ax_orn2c.plot(t-t_on, r_orn[:, id_neu], linewidth=lw+1, color=blue,)
-                ax_orn4c.plot(t-t_on, y_orn[:, id_neu], linewidth=lw+1, color=blue,)
+                ax_orn2c.plot(t-t_on, r_orn[:, id_neu*n_sens], 
+                              linewidth=lw+1, color=blue,)
+                ax_orn4c.plot(t-t_on, y_orn[:, id_neu*n_sens], linewidth=lw+1, color=blue,)
             elif id_neu == 3:
-                ax_orn2d.plot(t-t_on, r_orn[:, id_neu], linewidth=lw+1, color=blue,)
-                ax_orn4d.plot(t-t_on, y_orn[:, id_neu], linewidth=lw+1, color=blue,)
+                ax_orn2d.plot(t-t_on, r_orn[:, id_neu*n_sens], 
+                              linewidth=lw+1, color=blue,)
+                ax_orn4d.plot(t-t_on, y_orn[:, id_neu*n_sens], linewidth=lw+1, color=blue,)
                 
-            ax_orn[1, id_neu].plot(t-t_on, v_orn[:, id_neu], linewidth=lw+1, color=black,)
+            ax_orn[1, id_neu].plot(t-t_on, v_orn[:, id_neu*n_sens], linewidth=lw+1, color=black,)
             ax_orn[1, id_neu].plot([t[0]-t_on, t[-1]-t_on], [vrest, vrest], '--', linewidth=lw, color=red,)
             ax_orn[1, id_neu].plot([t[0]-t_on, t[-1]-t_on], [vrev, vrev], '-.', linewidth=lw, color=red,)
-            ax_orn[2, id_neu].plot(t_sdf-t_on, orn_sdf[:, id_neu], color=green, linewidth=lw+1, 
+            ax_orn[2, id_neu].plot(t_sdf-t_on, orn_sdf[:, id_neu*n_sens], color=green, linewidth=lw+1, 
                               label='\nu')
         
             spikes_orn_0 = np.argwhere(num_spikes)        
