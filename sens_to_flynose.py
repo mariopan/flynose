@@ -124,7 +124,7 @@ def x_adapt_ex(x0,t,u_orn, tau, a_ad,):
 stim_params     = dict([
                     ('stim_type' , 'ss'),   # 'ts'  # 'ss' # 'pl'
                     ('pts_ms' , 5),         # simulated pts per ms 
-                    ('n_od', 2), 
+                    ('n_od', 2),            # number of odours
                     ('t_tot', 2000),        # ms 
                     ('conc0', [2.853669391e-04]),
                     ('r_noise', 0.1),
@@ -502,8 +502,9 @@ if al_dyn & al_fig:
             ax_orn.plot(orn_sdf_time-t_on[0], np.mean(orn_sdf_tot[:,glo_id*num_orns_glo:((glo_id+1)*num_orns_glo)], axis=1),
                                                   color=fig_color[ll], linewidth=lw+1,label='sdf glo')
             
-            ax_pn.plot(pn_sdf_time-t_on[0], pn_sdf[:,glo_id*num_pns_glo:((glo_id+1)*num_pns_glo)], '--',color=fig_color[ll], 
-                                  linewidth=lw, label='PN')
+            ax_pn.plot(pn_sdf_time-t_on[0], pn_sdf[:, 
+                        glo_id*num_pns_glo:((glo_id+1)*num_pns_glo)], 
+                       '--', color=fig_color[ll], linewidth=lw, label='PN')
             
             ax_ln.plot(ln_sdf_time-t_on[0], ln_sdf[:,glo_id*num_lns_glo:((glo_id+1)*num_lns_glo)], '--',color=fig_color[ll], 
                                   linewidth=lw, label='LN')
