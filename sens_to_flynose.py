@@ -114,7 +114,7 @@ def x_adapt_ex(x0,t,u_orn, tau, a_ad,):
     y = (x0 + a/b)*np.exp(b*dt)-a/b
     return y
 
-#%% Simulation INI
+# Simulation INI
 
 # # Save params 
 # stim_data_fld = ''
@@ -146,42 +146,6 @@ elif n_od == 2:
 
 stim_params.update(concs_params)
 
-# Sensilla/network parameters
-n_sens              = 40
-n_neu               = 2
-
-# Transduction parameters
-od_pref = np.array([[1,0], [0,1], [0, 1], [1,0], 
-                    [0,0], [1,0], [0,1], [1,0]])
-     
-transd_vect_3A = od_pref[0,:]
-transd_vect_3B = od_pref[1,:]
-
-ab3A_params = dict([
-    # Transduction params
-                    ('n', .822066870*transd_vect_3A), 
-                    ('alpha_r', 12.6228808*transd_vect_3A), 
-                    ('beta_r', 7.6758436748e-02*transd_vect_3A),
-                    ])
-
-ab3B_params = dict([
-    # Transduction params
-                    ('n', .822066870*transd_vect_3B), 
-                    ('alpha_r', 12.6228808*transd_vect_3B), 
-                    ('beta_r', 7.6758436748e-02*transd_vect_3B),
-                    ])
-
-transd_params = (ab3A_params, ab3B_params)
-
-sens_params     = dict([
-                    ('n_neu', n_neu),
-                    ('n_sens', n_sens),
-                    ('od_pref' , od_pref),
-    # NSI params
-                    ('w_nsi', .000000015), 
-                    ('transd_params', transd_params),
-                    ])
-
 # ORN Parameters 
 orn_params  = dict([
     # LIF params
@@ -198,33 +162,107 @@ orn_params  = dict([
                     ('beta_y', 3.467184e-03), 
                     ])
 
-
 # SDF/Analysis params
 tau_sdf             = 41
 dt_sdf              = 5
 sdf_params          = [tau_sdf, dt_sdf, ]
 
-#**************************************
-# ORN to AL CONNECTIVITY MATRIX
-num_glo_list        = [n_neu, n_neu]#[4,3,2,1]     # number of glomeruli per sensilla
-num_sens_type       = len(num_glo_list)  # number of type of sensilla
-num_glo_tot         = sum(num_glo_list) # number of glomeruli in total
+# ***************************************************************************
+# TEMP: THIS DESCRIPTION SHOULD BE CREATED PER EACH DIFFERENT SENSILLUM/ORN
+#       IT SHOULD CHANGE DIRECTLY THE VALUES OF TRANSDUCTION PARAMS, 
+#       NOT THE TRANSDUCTION VECTORS
 
-# NETWORK PARAMETERS 
-num_orns_pn         = 18    # number of ORNs per each PN in each glomerulus
-num_orns_glo        = 40    # number of ORNs per each glomerulus
-num_orns_tot        = num_orns_glo*num_glo_tot  # total number of ORNs 
-num_pns_glo         = 5     # number of PNs per each glomerulus
-num_lns_glo         = 3     # number of LNs per each glomerulus
-num_pns_tot         = num_pns_glo*num_glo_tot # number of total PNs
-num_lns_tot         = num_lns_glo*num_glo_tot # number of total LNs 
+# Sensilla/network parameters
+n_orns_recep        = 40         # number of ORNs per each receptor
+
+# Transduction parameters
+od_pref = np.array([[1,0], [0,1],]) # ORNs' sensibilities to each odours
+               #  [0, 1], [1,0], 
+                    # [0,0], [1,0], [0,1], [1,0]
+     
+transd_vect_3A = od_pref[0,:]
+transd_vect_3B = od_pref[1,:]
+transd_vect_3B = od_pref[1,:]
+
+ab3A_params = dict([
+                    ('n', .822066870*transd_vect_3A), 
+                    ('alpha_r', 12.6228808*transd_vect_3A), 
+                    ('beta_r', 7.6758436748e-02*transd_vect_3A),
+                    ])
+
+ab3B_params = dict([
+                    ('n', .822066870*transd_vect_3B), 
+                    ('alpha_r', 12.6228808*transd_vect_3B), 
+                    ('beta_r', 7.6758436748e-02*transd_vect_3B),
+                    ])
+
+ornXXC_params = dict([
+                    ('n', .822066870*transd_vect_3A), 
+                    ('alpha_r', 12.6228808*transd_vect_3A), 
+                    ('beta_r', 7.6758436748e-02*transd_vect_3A),
+                    ])
+
+# sensillum 0
+transd_params0 = (ab3A_params, ab3B_params)
+sens_params0     = dict([
+                    ('n_neu', transd_params0.__len__()), # number of ORN cohoused in the sensillum
+                    ('n_sens', n_orns_recep),
+                    ('od_pref' , od_pref),
+    # NSI params
+                    ('w_nsi', .00000002), 
+                    ('transd_params', transd_params0),
+                    ])
+
+# sensillum 1
+transd_params1 = (ab3A_params, ab3B_params, ornXXC_params)
+sens_params1   = dict([
+                    ('n_neu', transd_params1.__len__()),
+                    ('n_sens', n_orns_recep),
+                    ('od_pref' , od_pref),
+    # NSI params
+                    ('w_nsi', .00000002), 
+                    ('transd_params', transd_params1),
+                    ])
+
+# sensillum 2
+transd_params2 = (ab3A_params, ab3B_params, )
+sens_params2   = dict([
+                    ('n_neu', transd_params2.__len__()),
+                    ('n_sens', n_orns_recep),
+                    ('od_pref' , od_pref),
+    # NSI params
+                    ('w_nsi', .2), 
+                    ('transd_params', transd_params2),
+                    ])
+
+orn_layer = []
+# orn_layer.append(sens_params0)
+# orn_layer.append(sens_params1)
+orn_layer.append(sens_params2)
+# orn_layer.append(sens_params1)
+
+n_sens_type       = orn_layer.__len__()  # number of type of sensilla
+n_recep_list      = np.zeros(n_sens_type, dtype=int)
+for st in range(n_sens_type):
+    n_recep_list[st]      = orn_layer[st]['n_neu'] #[n_neu, n_neu]    # number of ORNs per sensilla
+
+n_recep_tot       = sum(n_recep_list) # number of receptors in total
+
+# AL + ORN layer network parameters
+n_orns_pn         = 18    # number of ORNs per each PN in each glomerulus
+n_orns_tot        = n_orns_recep*n_recep_tot  # total number of ORNs 
+
+n_pns_recep       = 5     # number of PNs per each glomerulus
+n_lns_recep       = 3     # number of LNs per each glomerulus
+n_pns_tot         = n_pns_recep*n_recep_tot # number of total PNs
+n_lns_tot         = n_lns_recep*n_recep_tot # number of total LNs 
 
 pts_ms              = stim_params['pts_ms']
 t_tot               = stim_params['t_tot']
 n2sim               = pts_ms*t_tot       # number of time points
-u_orn               = np.zeros((n2sim, num_pns_tot))
+u_orn               = np.zeros((n2sim, n_pns_tot))
 sdf_size            = int(t_tot/dt_sdf)
-    
+
 # ORN, PN and LN PARAMETERS
 spike_length        = int(4*pts_ms)     # [ms]
 t_ref               = 2*pts_ms          # ms; refractory period 
@@ -235,83 +273,108 @@ pn_spike_height     = .3
 ln_spike_height     = .3
 
 # Each PN belongs to ONLY one of the glomeruli
-ids_glo     = np.arange(num_glo_tot)
-ids_pn_glo  = np.repeat(ids_glo, num_pns_glo)
+ids_recep     = np.arange(n_recep_tot)
+ids_pn_recep  = np.repeat(ids_recep, n_pns_recep)
 
 # Connectivity matrices between ORNs and PNs 
-orn_pn_mat          = np.zeros((num_orns_tot, num_pns_tot))  
-for pp in range(num_pns_tot):
-    rnd_ids             = np.random.permutation(num_orns_glo) 
-    tmp_ids             = rnd_ids[:num_orns_pn] + \
-        num_orns_glo*ids_pn_glo[pp]
+orn_pn_mat          = np.zeros((n_orns_tot, n_pns_tot))  
+for pp in range(n_pns_tot):
+    rnd_ids             = np.random.permutation(n_orns_recep) 
+    tmp_ids             = rnd_ids[:n_orns_pn] + \
+        n_orns_recep*ids_pn_recep[pp]
     # ids_orn_pn[pp,:]    = tmp_ids
     orn_pn_mat[tmp_ids, pp] = orn_spike_height
 
 # Connectivity matrices between PNs and LNs
-pn_ln_mat           = np.zeros((num_pns_tot, num_lns_tot))
-for pp in range(num_glo_tot):
-    pn_ln_mat[pp*num_pns_glo:(pp+1)*num_pns_glo,
-              pp*num_lns_glo:(pp+1)*num_lns_glo] = pn_spike_height
+pn_ln_mat           = np.zeros((n_pns_tot, n_lns_tot))
+for pp in range(n_recep_tot):
+    pn_ln_mat[pp*n_pns_recep:(pp+1)*n_pns_recep,
+              pp*n_lns_recep:(pp+1)*n_lns_recep] = pn_spike_height
 
-glo_id = 0        
-ln_pn_mat           = np.zeros((num_lns_tot,num_pns_tot))
-for pp in range(num_sens_type):
-    num_glo = num_glo_list[pp]
-    # Inhibitory LN connectivity within glomeruli cluster
-    ln_pn_mat[(glo_id*num_lns_glo):((glo_id+num_glo)*num_lns_glo),
-              (glo_id*num_pns_glo):((glo_id+num_glo)*num_pns_glo)] = ln_spike_height
-    for qq in range(num_glo):
+recep_id = 0        
+ln_pn_mat           = np.zeros((n_lns_tot,n_pns_tot))
+for pp in range(n_sens_type):
+    num_recep = n_recep_list[pp]
+    # Inhibitory LN connectivity within receptors cluster
+    ln_pn_mat[(recep_id*n_lns_recep):((recep_id+num_recep)*n_lns_recep),
+              (recep_id*n_pns_recep):((recep_id+num_recep)*n_pns_recep)] = ln_spike_height
+    for qq in range(num_recep):
         # PN innervating LN are not inhibited
-        ln_pn_mat[((glo_id+qq)*num_lns_glo):((glo_id+qq+1)*num_lns_glo),
-                  ((glo_id+qq)*num_pns_glo):((glo_id+qq+1)*num_pns_glo)] = 0
-    glo_id = glo_id + num_glo
+        ln_pn_mat[((recep_id+qq)*n_lns_recep):((recep_id+qq+1)*n_lns_recep),
+                  ((recep_id+qq)*n_pns_recep):((recep_id+qq+1)*n_pns_recep)] = 0
+    recep_id = recep_id + num_recep
 
-#%%*********************************************************************
+
+# flynose verbose description 
+print('flynose Simulation ')    
+print('')
+print('In the ORNs layer there are %d types of sensilla' %(n_sens_type, ))
+print('and %d identical sensilla of each type' %(n_orns_recep, ))
+
+for st in range(n_sens_type):
+    print('   Sensillum %d has %d ORNs of different type' %(st, n_recep_list[st]))
+print('In total, there are %d ORNs of %d different types' %(n_orns_tot, n_recep_tot))
+print('')
+
+print('In the AL there are %d glomeruli. One per each receptor type.' %n_recep_tot)
+print('Each glomerulus has %d PNs and %d LNs' %(n_pns_recep, n_lns_recep))
+print('In total, AL is compound of %d PNs and %d LNs' %(n_pns_tot, n_lns_tot))
+print('Each PNs receives input from %d random ORNs of the same type' %(n_orns_pn))
+print('')
+
+print('flynose is presented with an odour mixtures containing %d odorants' %n_od)
+
+
+#%% ***************************************************************************
 # SIMULATIONS
 
 # ORN LIF SIMULATION
-num_spikes_orn_tot = np.zeros((n2sim, num_orns_tot))
-orn_sdf_tot = np.zeros((sdf_size, num_orns_tot))
+orn_spikes_t = np.zeros((n2sim, n_orns_tot))
+orn_sdf = np.zeros((sdf_size, n_orns_tot))
+tic = tictoc()
+id_orn0 = 0 
 
-for id_sens, n_neu in enumerate(num_glo_list):
-    tic = tictoc()
+for id_sens, n_neu in enumerate(n_recep_list):
     orn_lif_out   = NSI_ORN_LIF.main(orn_params, stim_params, 
-                                 sdf_params, sens_params)
-    toc = tictoc()
+                                 sdf_params, orn_layer[id_sens])
     [t, u_od, r_orn, v_orn, y_orn, 
-     num_spikes_orn, spike_matrix, orn_sdf, orn_sdf_time] = orn_lif_out 
+     n_spikes_orn_tmp, spike_matrix, orn_sdf_tmp, orn_sdf_time] = orn_lif_out 
     
-    ids_orn = np.arange(n_neu*num_orns_glo)+id_sens*num_orns_glo
-    num_spikes_orn_tot[:, ids_orn] = num_spikes_orn
-    orn_sdf_tot[:, ids_orn] = orn_sdf
+    ids_orn = np.arange(n_neu*n_orns_recep) + id_orn0 
+    
+    orn_spikes_t[:, ids_orn] = n_spikes_orn_tmp
+    orn_sdf[:, ids_orn] = orn_sdf_tmp
+    
+    id_orn0 = ids_orn[-1]+1
 
 
-
-#%%
-orn_spike_all = num_spikes_orn_tot.dot(orn_pn_mat) 
-u_orn =  orn_spike_all
-t_zeros = np.zeros((1, num_pns_tot))
+# Generate input to PNs
+orn_spikes_all = orn_spikes_t.dot(orn_pn_mat) 
+u_orn =  orn_spikes_all
+t_zeros = np.zeros((1, n_pns_tot))
 for tt in range(spike_length-1):
-    orn_spike_all = np.concatenate((t_zeros, orn_spike_all[:-1,:]))
-    u_orn = u_orn + orn_spike_all
-    
-#%%
+    orn_spikes_all = np.concatenate((t_zeros, orn_spikes_all[:-1,:]))
+    u_orn = u_orn + orn_spikes_all
+
+orn_spikes_all = None
+t_zeros = None 
+
+toc = tictoc()
+print('ORNs sim time: %.2f s' %(toc-tic,))
+
+
+# %%  AL SIMULATION 
+
 tic = tictoc()
 
 al_dyn = 1
-
-# *****************************************************************
-# AL SIMULATION 
-# *****************************************************************
   
-alpha_ln = 0.03                           
-# *****************************************************************
-# PN and LN PARAMETERS and OUTPUT VECTORS
+alpha_ln = 0.0#3                           
 
+# PN and LN PARAMETERS and OUTPUT VECTORS
 tau_v               = .5        # [ms]
 tau_s               = 10        # [ms]
 
-#**************************************
 # PN PARAMETERS
 a_s_pn              = 2.5       #     
 vrest_pn            = -6.5      # [mV] resting potential
@@ -319,11 +382,10 @@ vrev_pn             = 15.0      # [mV] reversal potential
 
 alpha_x             = 2.         # ORN input coeff for adaptation variable x_pn
 tau_x               = 600    # [ms] time scale for dynamics of adaptation variable x_pn
-x_pn0               = 0.48*np.ones(num_pns_tot)     # 0.27
+x_pn0               = 0.48*np.ones(n_pns_tot)     # 0.27
 
 pn_params  = np.array([tau_s, tau_v, a_s_pn, vrev_pn, vrest_pn])
 
-#**************************************
 # LN PARAMETERS
 a_s_ln              = 2.5       #     
 vrest_ln            = -3.0      # -1.5 [mV] resting potential
@@ -331,36 +393,33 @@ vrev_ln             = 15.0      # [mV] reversal potential
 
 
 tau_y               = 600    # [ms] time scale for dynamics of adaptation variable y_ln
-y_ln0               = 0.025*np.ones(num_pns_tot) # 0.2
+y_ln0               = 0.025*np.ones(n_pns_tot) # 0.2
 ln_params = np.array([tau_s, tau_v, a_s_ln, vrev_ln, vrest_ln])
-#**************************************
 
-# INITIALIZE LN to PN output vectors
-x_pn            = np.zeros((n2sim, num_pns_tot))
-u_pn            = np.zeros((n2sim, num_lns_tot))
-u_ln            = np.zeros((n2sim, num_pns_tot))
-y_ln            = np.zeros((n2sim, num_pns_tot))
+# Initialize LN to PN output vectors
+x_pn            = np.zeros((n2sim, n_pns_tot))
+u_pn            = np.zeros((n2sim, n_lns_tot))
+u_ln            = np.zeros((n2sim, n_pns_tot))
+y_ln            = np.zeros((n2sim, n_pns_tot))
 
-# INITIALIZE PN output vectors
-num_spike_pn    = np.zeros((n2sim, num_pns_tot))
+# Initialize PN output vectors
+num_spike_pn    = np.zeros((n2sim, n_pns_tot))
 
-# INITIALIZE LN output vectors
-s_ln            = np.zeros((n2sim, num_lns_tot))
-v_ln            = np.zeros((n2sim, num_lns_tot))
-num_spike_ln    = np.zeros((n2sim, num_lns_tot))  
+# Initialize LN output vectors
+s_ln            = np.zeros((n2sim, n_lns_tot))
+v_ln            = np.zeros((n2sim, n_lns_tot))
+num_spike_ln    = np.zeros((n2sim, n_lns_tot))  
 
 # PN and LN params initial conditions
 x_pn[0, :]      = x_pn0
-s_pn            = np.zeros((n2sim, num_pns_tot))
-v_pn            = np.ones((n2sim, num_pns_tot))*vrest_pn
-pn_ref_cnt      = np.zeros(num_pns_tot) # Refractory period counter starts from 0
+s_pn            = np.zeros((n2sim, n_pns_tot))
+v_pn            = np.ones((n2sim, n_pns_tot))*vrest_pn
+pn_ref_cnt      = np.zeros(n_pns_tot) # Refractory period counter starts from 0
 
 y_ln[0, :]      = y_ln0
-s_ln            = np.zeros((n2sim, num_lns_tot))
-v_ln            = np.ones((n2sim, num_lns_tot))*vrest_ln
-ln_ref_cnt      = np.zeros(num_lns_tot) # initially the ref period cnter is equal to 0
-        
-
+s_ln            = np.zeros((n2sim, n_lns_tot))
+v_ln            = np.ones((n2sim, n_lns_tot))*vrest_ln
+ln_ref_cnt      = np.zeros(n_lns_tot) # initially the ref period cnter is equal to 0
 
 if al_dyn:
     # *****************************************************************
@@ -369,12 +428,9 @@ if al_dyn:
         # span for next time step
         tspan = [t[tt-1],t[tt]]
         
-        pp_rnd = np.arange(num_pns_tot) # np.random.permutation(num_pns_tot)
+        pp_rnd = np.arange(n_pns_tot) # np.random.permutation(n_pns_tot)
         
-        # ******************************************************************
-        # Vectorized and fast UPDATE PNS 
-        # ******************************************************************
-        # adaptation variable of PN neuron
+        # Adaptation variable of PN neuron
         x_pn[tt, pp_rnd] = x_adapt_ex(x_pn[tt-1,pp_rnd],tspan, 
                 u_orn[tt, pp_rnd], tau_x, alpha_x, )        
     
@@ -382,10 +438,8 @@ if al_dyn:
         y_ln[tt, pp_rnd] = y_ln_fun_ex(y_ln[tt-1, pp_rnd],tspan, 
                 u_ln[tt, pp_rnd], tau_y, alpha_ln, )
     
-        # *********************************
         # ORN -> PN synapses
         
-        # *********************************
         # PNs whose ref_cnt is equal to zero:
         pn_ref_0 = pn_ref_cnt==0
         s_pn[tt, pn_ref_0] = orn2pn_s_ex(s_pn[tt-1, pn_ref_0],tspan, 
@@ -393,7 +447,6 @@ if al_dyn:
         v_pn[tt, pn_ref_0] = orn2pn_v_ex(v_pn[tt-1, pn_ref_0],tspan, 
                 s_pn[tt-1, pn_ref_0], pn_params, )
         
-        # *********************************
         # PNs whose ref_cnt is different from zero:
         pn_ref_no0 = pn_ref_cnt!=0
         # Refractory period count down
@@ -406,10 +459,8 @@ if al_dyn:
                 np.sum(pn_ln_mat[pn_above_thr,:], axis=0))
         pn_ref_cnt[pn_above_thr] = t_ref
         
-        # *********************************
         # PN -> LN synapses        
         
-        # *********************************
         # LNs whose ref_cnt is equal to zero:
         ln_ref_0 = ln_ref_cnt==0
         s_ln[tt, ln_ref_0] = pn2ln_s_ex(s_ln[tt-1, ln_ref_0], tspan, 
@@ -417,7 +468,6 @@ if al_dyn:
         v_ln[tt, ln_ref_0] = pn2ln_v_ex(v_ln[tt-1, ln_ref_0], tspan, 
                     s_ln[tt-1, ln_ref_0], ln_params, )
         
-        # *********************************
         # LNs whose ref_cnt is different from zero:
         ln_ref_no0 = ln_ref_cnt!=0
         # Refractory period count down
@@ -429,9 +479,7 @@ if al_dyn:
         u_ln[tt:tt+spike_length, :] = (u_ln[tt:tt+spike_length, :] + 
                     np.sum(ln_pn_mat[ln_above_thr,:], axis=0))
         ln_ref_cnt[ln_above_thr] = t_ref
-        # ******************************************************************
         
-    # *****************************************************************
     # Calculate the spike matrix of PNs and LNs
     pn_spike_matrix = np.asarray(np.where(num_spike_pn))
     pn_spike_matrix[0,:] = pn_spike_matrix[0,:]/pts_ms
@@ -441,27 +489,32 @@ if al_dyn:
     ln_spike_matrix[0,:] = ln_spike_matrix[0,:]/pts_ms
     ln_spike_matrix = np.transpose(ln_spike_matrix)
     
-    
-
 else:
+    # output values w/o simulations
     [pn_spike_matrix, ln_spike_matrix, ] = [np.nan, np.nan]
-
     
 toc = tictoc()
 
-print(toc-tic)
+print('AL sim time: %.2f s' %(toc-tic,))
 
 
-# %%******************************************
-# FIGURE ORN, PN, LN
+# %% FIGURE ORN, PN, LN
 # Generate a figure per each sensillum type
 
 al_fig = 1
-stim_type = 'ss'
+stim_type = stim_params['stim_type']
 
-t_on = stim_params['t_on']
+panels_id = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l']
+rs = 4 # number of rows
+cs = 1 # number of cols
+fig_size = [7, 8] 
+recep_clrs = ['purple','green','cyan','red']
+trsp = .3
+    
+t_on    = np.min(stim_params['t_on'])
+t2plot = -t_on, 1000 #t_tot #-t_on, t_tot-t_on
+
 if al_dyn & al_fig:
-    # *****************************************************************
     # Calculate the SDF for PNs and LNs
     pn_sdf, pn_sdf_time = sdf_krofczik.main(pn_spike_matrix, sdf_size,
                                                  tau_sdf, dt_sdf)  # (Hz, ms)
@@ -471,44 +524,42 @@ if al_dyn & al_fig:
                                                  tau_sdf, dt_sdf)  # (Hz, ms)
     ln_sdf= ln_sdf*1e3
     
-    t2plot = -100, 300#t_tot 
-    rs = 4 # number of rows
-    cs = 1 # number of cols
-    fig_size = [7, 8] 
-    fig_color = ['purple','green','cyan','red']
     
-    if stim_type == 'pl':
-        #lw = 1.1
-        t2plot = 0, 4000
-        rs = 2 # number of rows
-        cs = 2 # number of cols
-        fig_size = [10, 5]
-
-    glo_id = 0
-    for qq in range(num_sens_type):
-        num_glo = num_glo_list[qq]
-        
+    recep_id = 0
+    for qq in range(n_sens_type):
+        num_recep = n_recep_list[qq]
+        # for id_sens, n_neu in enumerate(n_recep_list):
+        fig_al = plt.figure(figsize=fig_size)
         ax_conc = plt.subplot(rs, cs, 1)
         ax_orn = plt.subplot(rs, cs, 2)
         ax_pn = plt.subplot(rs, cs, 3)
         ax_ln = plt.subplot(rs, cs, 4)
-        fig_pn = plt.figure(figsize=fig_size)
-        # ax_conc.plot(t-t_on[0], 100*u_od[:,0], color=green, linewidth=lw+2, 
-        #                   label='glom : '+'%d'%(1))
-        # ax_conc.plot(t-t_on[0], 100*u_od[:,1], '--',color=purple, linewidth=lw+1, 
-        #                   label='glom : '+'%d'%(2))
+        ax_conc.plot(t-t_on, 100*u_od[:,0], color=green, linewidth=lw+2, 
+                          label='glom : '+'%d'%(1))
+        ax_conc.plot(t-t_on, 100*u_od[:,1], '--',color=purple, linewidth=lw+1, 
+                          label='glom : '+'%d'%(2))
         
-        for ll in range(num_glo):
-            ax_orn.plot(orn_sdf_time-t_on[0], np.mean(orn_sdf_tot[:,glo_id*num_orns_glo:((glo_id+1)*num_orns_glo)], axis=1),
-                                                  color=fig_color[ll], linewidth=lw+1,label='sdf glo')
+        for ll in range(num_recep):
+            X1 = orn_sdf[:, recep_id*n_orns_recep:((recep_id+1)*n_orns_recep)] # np.mean(orn_sdf_norm[:,:,num_orns_glo:], axis=2)
+            mu1 = X1.mean(axis=1)
+            sigma1 = X1.std(axis=1)
+            ax_orn.plot(orn_sdf_time-t_on, mu1, 
+                        color=recep_clrs[ll], linewidth=lw-1, )
+            ax_orn.fill_between(orn_sdf_time-t_on, mu1+sigma1, mu1-sigma1, 
+                                facecolor=recep_clrs[ll], alpha=trsp)
+                    
+            ax_pn.plot(t-t_on, 
+                       u_orn[:, recep_id*n_pns_recep:((recep_id+1)*n_pns_recep)], '--', #pn_sdf
+                       color=recep_clrs[ll], linewidth=lw,)
+            # ax_pn.plot(pn_sdf_time-t_on, 
+                       # u_orn[:, recep_id*n_pns_recep:((recep_id+1)*n_pns_recep)], '--', #pn_sdf
+                       # color=recep_clrs[ll], linewidth=lw,)
             
-            ax_pn.plot(pn_sdf_time-t_on[0], pn_sdf[:, 
-                        glo_id*num_pns_glo:((glo_id+1)*num_pns_glo)], 
-                       '--', color=fig_color[ll], linewidth=lw, label='PN')
+            ax_ln.plot(ln_sdf_time-t_on, 
+                       ln_sdf[:,recep_id*n_lns_recep:((recep_id+1)*n_lns_recep)], '--',
+                       color=recep_clrs[ll], linewidth=lw, )
             
-            ax_ln.plot(ln_sdf_time-t_on[0], ln_sdf[:,glo_id*num_lns_glo:((glo_id+1)*num_lns_glo)], '--',color=fig_color[ll], 
-                                  linewidth=lw, label='LN')
-            glo_id = glo_id+1
+            recep_id = recep_id+1
             
         ax_conc.set_xlim(t2plot)
         ax_orn.set_xlim(t2plot)
@@ -516,7 +567,7 @@ if al_dyn & al_fig:
         ax_ln.set_xlim(t2plot)
         
         ax_orn.set_ylim((0, 150))
-        ax_pn.set_ylim((0, 180))
+        # ax_pn.set_ylim((0, 180))
         ax_ln.set_ylim((0, 230))
 
         ax_conc.tick_params(axis='both', labelsize=label_fs)
@@ -533,7 +584,6 @@ if al_dyn & al_fig:
         ax_pn.set_ylabel(r' PN  (Hz)', fontsize=label_fs)
         ax_ln.set_ylabel(r' LN  (Hz)', fontsize=label_fs)
         ax_ln.set_xlabel('Time  (ms)', fontsize=label_fs)
-        
         if stim_type == 'pl':
             ax_orn.set_ylim((0, 150))
             ax_pn.set_ylim((0, 180))
@@ -552,15 +602,15 @@ if al_dyn & al_fig:
             ax_ln.text(-.15, 1.15, 'd.', transform=ax_ln.transAxes,
                 color=blue, fontsize=panel_fs, fontweight='bold', va='top', ha='right')
 
-        # # tmp
-        # if not(stim_type == 'pl'):
-        #     title_fs = 30
-        #     if (params2an[1] ==0) & (params2an[1] ==0):
-        #         ax_conc.set_title('a. Independent', fontsize=title_fs)
-        #     elif (params2an[1] >0):
-        #         ax_conc.set_title('b. LN inhib.', fontsize=title_fs)
-        #     else:
-        #          ax_conc.set_title('c. NSI', fontsize=title_fs)   
+        # tmp
+        if not(stim_type == 'pl'):
+            title_fs = 30
+            # if (params2an[1] ==0) & (params2an[1] ==0):
+            #     ax_conc.set_title('a. Independent', fontsize=title_fs)
+            # elif (params2an[1] >0):
+            #     ax_conc.set_title('b. LN inhib.', fontsize=title_fs)
+            # else:
+            #      ax_conc.set_title('c. NSI', fontsize=title_fs)   
              
         ax_conc.spines['right'].set_color('none')
         ax_conc.spines['top'].set_color('none')
@@ -571,8 +621,6 @@ if al_dyn & al_fig:
         ax_ln.spines['right'].set_color('none')
         ax_ln.spines['top'].set_color('none')
         
-        
-        # Manual positioning of subplot
         if (stim_type == 'pl'):
             dx = 0
         else:
@@ -587,4 +635,283 @@ if al_dyn & al_fig:
         ax_orn.set_position([ll+.05, bb+dy, ww, hh])
         ll, bb, ww, hh = ax_ln.get_position().bounds
         ax_ln.set_position([ll+.05, bb+dy, ww, hh])
+            
+#%% ORN FIGURE
+
+orn_fig = 0
+pts_ms  = stim_params['pts_ms']
+vrest   = orn_params['vrest']
+vrev    = orn_params['vrev']
+
+if orn_fig:            
     
+    
+    # One figure per each sensilla type
+    for st in range(n_sens_type):
+        n_neu   = orn_layer[st]['n_neu'] # TEMP: THIS SHOULD CHANGE PER EACH TYPE OF SENSILLA
+        
+        rs = 3 # number of rows
+        cs = n_neu # number of cols
+                        
+        fig_orn, ax_orn = plt.subplots(rs, cs, figsize=[8.5, 6.5])
+        fig_orn.tight_layout()
+        
+        
+        # Create Transduction Matrix to plot odour 
+        transd_mat = np.zeros((n_neu, n_od))
+        for pp in range(n_neu):
+            transd_mat[pp,:] = orn_layer[st]['od_pref'][pp,:]
+        
+        
+        if n_neu == 1:
+            ax_orn2a = ax_orn[0].twinx()
+            ax_orn4a = ax_orn[1].twinx()
+            weight_od = u_od*transd_mat[0,:]
+            ax_orn[0].plot(t-t_on, weight_od, linewidth=lw+1, color=black,)
+            ax_orn2a.plot(t-t_on, r_orn[:, 0], linewidth=lw+1, color=blue,)
+            ax_orn4a.plot(t-t_on, y_orn[:, 0], linewidth=lw+1, color=blue,)
+            ax_orn[1].plot(t-t_on, v_orn[:, 0], linewidth=lw+1, color=black,)
+            ax_orn[1].plot([t[0]-t_on, t[-1]-t_on], [vrest, vrest], '--', linewidth=lw, color=red,)
+            ax_orn[1].plot([t[0]-t_on, t[-1]-t_on], [vrev, vrev], '-.', linewidth=lw, color=red,)
+            ax_orn[2].plot(orn_sdf_time-t_on, orn_sdf[:, 0], color=green, linewidth=lw+1, 
+                                  label='\nu')
+            ax_orn[0].tick_params(axis='both', which='major', labelsize=ticks_fs)
+            ax_orn2a.tick_params(axis='both', which='major', labelsize=ticks_fs)
+            ax_orn4a.tick_params(axis='both', which='major', labelsize=ticks_fs)
+            ax_orn[1].tick_params(axis='both', which='major', labelsize=ticks_fs)
+            ax_orn[2].tick_params(axis='both', which='major', labelsize=ticks_fs)
+            ax_orn[0].set_xticklabels('')
+            ax_orn[1].set_xticklabels('')
+            ax_orn2a.set_xticklabels('')
+            ax_orn4a.set_xticklabels('')
+            ax_orn2a.set_yticklabels('')        
+            ax_orn4a.set_yticklabels('')   
+            ax_orn[0].set_ylabel('Input (a.u.)', fontsize=label_fs)
+            ax_orn[1].set_ylabel(r'V (a.u.)', fontsize=label_fs)
+            ax_orn[2].set_ylabel('firing rates (Hz)', fontsize=label_fs)   
+            ax_orn2a.set_ylabel(r'r (a.u.) ', fontsize=label_fs, color=blue,)
+            ax_orn4a.set_ylabel(r'y adapt (a.u.)', fontsize=label_fs, color=blue,)
+            ax_orn[2].set_xlabel('Time  (ms)', fontsize=label_fs) 
+                # ax_orn_sc.set_ylabel('Neuron id', fontsize=label_fs)
+            
+            ax_orn[0].text(-.15, 1.25, panels_id[0], transform=ax_orn[0].transAxes, 
+                                 fontsize=panel_fs, fontweight='bold', va='top', ha='right')
+            ax_orn[1].text(-.15, 1.25, panels_id[2], transform=ax_orn[1].transAxes, 
+                                 fontsize=panel_fs, fontweight='bold', va='top', ha='right')
+            ax_orn[2].text(-.15, 1.25, panels_id[4], transform=ax_orn[2].transAxes, 
+                                 fontsize=panel_fs, fontweight='bold', va='top', ha='right')
+            
+            ax_orn[0].spines['top'].set_color('none')
+            ax_orn2a.spines['top'].set_color('none')
+            ax_orn4a.spines['top'].set_color('none')
+            
+            ax_orn[1].spines['top'].set_color('none')
+            # ax_orn_sc.spines['right'].set_color('none')
+            # ax_orn_sc.spines['top'].set_color('none')
+            ax_orn[2].spines['right'].set_color('none')
+            ax_orn[2].spines['top'].set_color('none')
+            
+            ll, bb, ww, hh = ax_orn[0].get_position().bounds
+            ww_new = ww - 0.08
+            bb_plus = 0.015
+            ll_new = ll + 0.075
+            hh_new = hh - 0.05
+            ax_orn[0].set_position([ll_new, bb+2*bb_plus, ww_new, hh_new])
+            ll, bb, ww, hh = ax_orn[1].get_position().bounds
+            ax_orn[1].set_position([ll_new, bb+1.5*bb_plus, ww_new, hh])
+            # ll, bb, ww, hh = ax_orn_sc.get_position().bounds
+            # ax_orn_sc.set_position([ll_new, bb+bb_plus, ww_new, hh])
+            ll, bb, ww, hh = ax_orn[2].get_position().bounds
+            ax_orn[2].set_position([ll_new, bb-bb_plus, ww_new, hh])
+            
+            ax_orn[0].set_xlim((t2plot))
+            ax_orn2a.set_xlim((t2plot))
+            ax_orn4a.set_xlim((t2plot))
+            ax_orn[1].set_xlim((t2plot))
+            # ax_orn_sc.set_xlim((t2plot))
+            ax_orn[2].set_xlim((t2plot))
+            
+            plt.show()
+            
+        else:
+            ax_orn2a = ax_orn[0,0].twinx()
+            ax_orn4a = ax_orn[1,0].twinx()
+            if n_neu > 1:
+                ax_orn2b = ax_orn[0,1].twinx()
+                ax_orn4b = ax_orn[1,1].twinx()
+                if n_neu > 2:
+                    ax_orn2c = ax_orn[0,2].twinx()
+                    ax_orn4c = ax_orn[1,2].twinx()
+                    if n_neu > 3:
+                        ax_orn2d = ax_orn[0,3].twinx()
+                        ax_orn4d = ax_orn[1,3].twinx()
+            
+            #weight_od = u_od*transd_mat
+            for id_neu in range(n_neu):
+                # PLOT
+                weight_od = u_od*transd_mat[id_neu,:]
+                ax_orn[0, id_neu].plot(t-t_on, weight_od, linewidth=lw+1, 
+                                       color=black,) 
+                if id_neu == 0:
+                    ax_orn2a.plot(t-t_on, r_orn[:, id_neu*n_orns_recep], 
+                                  linewidth=lw+1, color=blue,)
+                    ax_orn4a.plot(t-t_on, y_orn[:, id_neu*n_orns_recep], linewidth=lw+1, color=blue,)
+                elif id_neu == 1:        
+                    ax_orn2b.plot(t-t_on, r_orn[:, id_neu*n_orns_recep], 
+                                  linewidth=lw+1, color=blue,)
+                    ax_orn4b.plot(t-t_on, y_orn[:, id_neu*n_orns_recep], linewidth=lw+1, color=blue,)
+                elif id_neu == 2:
+                    ax_orn2c.plot(t-t_on, r_orn[:, id_neu*n_orns_recep], 
+                                  linewidth=lw+1, color=blue,)
+                    ax_orn4c.plot(t-t_on, y_orn[:, id_neu*n_orns_recep], linewidth=lw+1, color=blue,)
+                elif id_neu == 3:
+                    ax_orn2d.plot(t-t_on, r_orn[:, id_neu*n_orns_recep], 
+                                  linewidth=lw+1, color=blue,)
+                    ax_orn4d.plot(t-t_on, y_orn[:, id_neu*n_orns_recep], linewidth=lw+1, color=blue,)
+                    
+                ax_orn[1, id_neu].plot(t-t_on, v_orn[:, id_neu*n_orns_recep], linewidth=lw+1, color=black,)
+                ax_orn[1, id_neu].plot([t[0]-t_on, t[-1]-t_on], [vrest, vrest], '--', linewidth=lw, color=red,)
+                ax_orn[1, id_neu].plot([t[0]-t_on, t[-1]-t_on], [vrev, vrev], '-.', linewidth=lw, color=red,)
+                ax_orn[2, id_neu].plot(orn_sdf_time-t_on, orn_sdf[:, id_neu*n_orns_recep], color=green, linewidth=lw+1, 
+                                  label='\nu')
+            
+                spikes_orn_0 = np.argwhere(orn_spikes_t)        
+                # ax_orn_sc.scatter(spikes_orn_0[:,0]/pts_ms-t_on, 
+                #                 spikes_orn_0[:,1], color=purple, s=10)
+            
+                # FIGURE SETTINGS
+                ax_orn[0, id_neu].tick_params(axis='both', which='major', labelsize=ticks_fs)
+                if id_neu == 0:
+                    ax_orn2a.tick_params(axis='both', which='major', labelsize=ticks_fs)
+                    ax_orn4a.tick_params(axis='both', which='major', labelsize=ticks_fs)
+                elif id_neu == 1:
+                    ax_orn2b.tick_params(axis='both', which='major', labelsize=ticks_fs)
+                    ax_orn4b.tick_params(axis='both', which='major', labelsize=ticks_fs)   
+                elif id_neu == 2:
+                    ax_orn2c.tick_params(axis='both', which='major', labelsize=ticks_fs)
+                    ax_orn4c.tick_params(axis='both', which='major', labelsize=ticks_fs)  
+                elif id_neu == 3:
+                    ax_orn2d.tick_params(axis='both', which='major', labelsize=ticks_fs)
+                    ax_orn4d.tick_params(axis='both', which='major', labelsize=ticks_fs)  
+                    
+                ax_orn[1, id_neu].tick_params(axis='both', which='major', labelsize=ticks_fs)
+                ax_orn[2, id_neu].tick_params(axis='both', which='major', labelsize=ticks_fs)
+                # ax_orn_sc.tick_params(axis='both', which='major', labelsize=ticks_fs)
+                
+                ax_orn[0, id_neu].set_xticklabels('')
+                ax_orn[1, id_neu].set_xticklabels('')
+               
+                if id_neu == 0:
+                    ax_orn2a.set_xticklabels('')
+                    ax_orn4a.set_xticklabels('')
+                    ax_orn2a.set_yticklabels('')        
+                    ax_orn4a.set_yticklabels('')        
+                elif id_neu == 1 :
+                    ax_orn2b.set_xticklabels('')
+                    ax_orn4b.set_xticklabels('')        
+                    ax_orn2b.set_yticklabels('')
+                    ax_orn4b.set_yticklabels('')
+                    # ax_orn[2, id_neu].set_yticklabels('')  
+                elif id_neu == 2:
+                    ax_orn2c.set_xticklabels('')
+                    ax_orn4c.set_xticklabels('')        
+                    ax_orn2c.set_yticklabels('')
+                    ax_orn4c.set_yticklabels('')
+                elif id_neu == 3:
+                    ax_orn2d.set_xticklabels('')
+                    ax_orn4d.set_xticklabels('')        
+                    ax_orn2d.set_yticklabels('')
+                    ax_orn4d.set_yticklabels('')
+                # ax_orn_sc.set_xticklabels('')        
+                # if n_neu = 1 if n_neu = 2 if n_neu = 3 if n_neu = 4
+                if id_neu == 0:
+                    ax_orn[0, id_neu].set_ylabel('Input (a.u.)', fontsize=label_fs)
+                    ax_orn[1, id_neu].set_ylabel(r'V (a.u.)', fontsize=label_fs)
+                    ax_orn[2, id_neu].set_ylabel('firing rates (Hz)', fontsize=label_fs)        
+                elif id_neu == n_neu-1:
+                    if id_neu == 1:
+                        ax_orn2b.set_ylabel(r'r (a.u.) ', fontsize=label_fs, color=blue,)
+                        ax_orn4b.set_ylabel(r'y adapt (a.u.)', fontsize=label_fs, color=blue,)
+                    elif id_neu == 2:
+                        ax_orn2c.set_ylabel(r'r (a.u.) ', fontsize=label_fs, color=blue,)
+                        ax_orn4c.set_ylabel(r'y adapt (a.u.)', fontsize=label_fs, color=blue,)
+                    elif id_neu == 3:
+                        ax_orn2d.set_ylabel(r'r (a.u.) ', fontsize=label_fs, color=blue,)
+                        ax_orn4d.set_ylabel(r'y adapt (a.u.)', fontsize=label_fs, color=blue,)
+        
+                         
+                ax_orn[2, id_neu].set_xlabel('Time  (ms)', fontsize=label_fs) 
+                # ax_orn_sc.set_ylabel('Neuron id', fontsize=label_fs)
+            
+                ax_orn[0, id_neu].text(-.15, 1.25, panels_id[0+id_neu], transform=ax_orn[0, id_neu].transAxes, 
+                                  fontsize=panel_fs, fontweight='bold', va='top', ha='right')
+                ax_orn[1, id_neu].text(-.15, 1.25, panels_id[n_neu+id_neu], transform=ax_orn[1, id_neu].transAxes, 
+                                  fontsize=panel_fs, fontweight='bold', va='top', ha='right')
+                ax_orn[2, id_neu].text(-.15, 1.25, panels_id[(n_neu*2)+id_neu], transform=ax_orn[2, id_neu].transAxes, 
+                                  fontsize=panel_fs, fontweight='bold', va='top', ha='right')
+                
+                ax_orn[0, id_neu].spines['top'].set_color('none')
+                if id_neu == 0:
+                    ax_orn2a.spines['top'].set_color('none')
+                    ax_orn4a.spines['top'].set_color('none')
+                elif id_neu == 1:
+                    ax_orn2b.spines['top'].set_color('none')
+                    ax_orn4b.spines['top'].set_color('none')
+                elif id_neu == 2:
+                    ax_orn2c.spines['top'].set_color('none')
+                    ax_orn4c.spines['top'].set_color('none')
+                elif id_neu == 3:
+                    ax_orn2d.spines['top'].set_color('none')
+                    ax_orn4d.spines['top'].set_color('none')
+                
+                ax_orn[1, id_neu].spines['top'].set_color('none')
+                # ax_orn_sc.spines['right'].set_color('none')
+                # ax_orn_sc.spines['top'].set_color('none')
+                ax_orn[2, id_neu].spines['right'].set_color('none')
+                ax_orn[2, id_neu].spines['top'].set_color('none')
+                
+                if id_neu == 0:
+                    ll, bb, ww, hh = ax_orn[0, id_neu].get_position().bounds
+                    ww_new = ww - 0.08
+                    bb_plus = 0.015
+                    ll_new = ll + 0.075
+                    hh_new = hh - 0.05
+                    ax_orn[0, id_neu].set_position([ll_new, bb+2*bb_plus, ww_new, hh_new])
+                    ll, bb, ww, hh = ax_orn[1, id_neu].get_position().bounds
+                    ax_orn[1, id_neu].set_position([ll_new, bb+1.5*bb_plus, ww_new, hh])
+                    # ll, bb, ww, hh = ax_orn_sc.get_position().bounds
+                    # ax_orn_sc.set_position([ll_new, bb+bb_plus, ww_new, hh])
+                    ll, bb, ww, hh = ax_orn[2, id_neu].get_position().bounds
+                    ax_orn[2, id_neu].set_position([ll_new, bb-bb_plus, ww_new, hh])
+                else:
+                    ll, bb, ww, hh = ax_orn[0, id_neu].get_position().bounds
+                    ww_new = ww - 0.08
+                    bb_plus = 0.015
+                    ll_new = ll + (0.075-(0.08*id_neu))
+                    hh_new = hh - 0.05
+                    ax_orn[0, id_neu].set_position([ll_new, bb+2*bb_plus, ww_new, hh_new])
+                    ll, bb, ww, hh = ax_orn[1, id_neu].get_position().bounds
+                    ax_orn[1, id_neu].set_position([ll_new, bb+1.5*bb_plus, ww_new, hh])
+                    # ll, bb, ww, hh = ax_orn_sc.get_position().bounds
+                    # ax_orn_sc.set_position([ll_new, bb+bb_plus, ww_new, hh])
+                    ll, bb, ww, hh = ax_orn[2, id_neu].get_position().bounds
+                    ax_orn[2, id_neu].set_position([ll_new, bb-bb_plus, ww_new, hh])
+                    
+                ax_orn[0, id_neu].set_xlim((t2plot))
+                if id_neu == 0:
+                    ax_orn2a.set_xlim((t2plot))
+                    ax_orn4a.set_xlim((t2plot))
+                elif id_neu == 1:
+                    ax_orn2b.set_xlim((t2plot))
+                    ax_orn4b.set_xlim((t2plot))
+                elif id_neu == 2:
+                    ax_orn2c.set_xlim((t2plot))
+                    ax_orn4c.set_xlim((t2plot))
+                elif id_neu == 3:
+                    ax_orn2d.set_xlim((t2plot))
+                    ax_orn4d.set_xlim((t2plot))
+                ax_orn[1, id_neu].set_xlim((t2plot))
+                # ax_orn_sc.set_xlim((t2plot))
+                ax_orn[2, id_neu].set_xlim((t2plot))
+        
+            plt.show()

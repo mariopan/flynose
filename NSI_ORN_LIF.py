@@ -330,10 +330,6 @@ def main(orn_params, stim_params, sdf_params, sens_params):
 if __name__ == '__main__':
     print('run directly')
     
-    # output params 
-    stim_data_fld = ''
-    fld_analysis    = 'NSI_analysis/trials'
-   
     # stimulus params
     stim_params     = dict([
                         ('stim_type' , 'ss'),   # 'ts'  # 'ss' # 'pl'
@@ -361,16 +357,16 @@ if __name__ == '__main__':
     stim_params.update(concs_params)
         
     # Sensilla/network parameters
-    n_sens              = 3
-    n_neu               = 2
+    n_sens              = 3         # number of identical sensilla 
+    n_neu               = 2         # number of ORN cohoused in the sensillum
     
     # Transduction parameters
-    od_pref = np.array([[1,0], [0,1], [0, 1], [1,0], 
-                        [0,0], [1,0], [0,1], [1,0]])
+    od_pref = np.array([[1,0], [0,1],]) # ORNs' sensibilities to each odours
          
     transd_vect_3A = od_pref[0,:]
     transd_vect_3B = od_pref[1,:]
     
+    # TEMP: Each ORN will have its transduction properties based on DoOR
     ab3A_params = dict([
         # Transduction params
                         ('n', .822066870*transd_vect_3A), 
@@ -387,6 +383,7 @@ if __name__ == '__main__':
     
     transd_params = (ab3A_params, ab3B_params)
     
+    # TEMP: Each sensillum will have its properties based on DoOR
     sens_params     = dict([
                         ('n_neu', n_neu),
                         ('n_sens', n_sens),
@@ -421,7 +418,7 @@ if __name__ == '__main__':
     #*********************************************************************
     # ORN LIF SIMULATION
     tic = timeit.default_timer()
-    orn_lif_out         = main(orn_params, stim_params, sdf_params, sens_params)
+    orn_lif_out = main(orn_params, stim_params, sdf_params, sens_params)
     toc = timeit.default_timer()
     
     print('sim run time: %.2f s' %(toc-tic))
