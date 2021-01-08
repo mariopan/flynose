@@ -5,8 +5,8 @@ Created on Tue Nov 17 18:33:34 2020
 
 sens_to_flynose.py
 
-This script converts the output from NSI_ORN_LIF.py to 
-the AL dynamics of flynose.py
+This script is the raw model for flynose2.0. It runs NSI_ORN_LIF.py to 
+generate ORN activity and then run the AL dynamics.
 
 @author: mario
 """
