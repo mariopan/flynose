@@ -31,7 +31,7 @@ import stats_for_plumes as stats
 
 # *****************************************************************
 # FUNCTIONS
-def depalo_eq2(z,t,u,orn_params,num_glo):
+def depalo_eq2(z,t,u,orn_params,num_recep):
     a_y = orn_params[0]
     c_x = orn_params[1]
     b_y = orn_params[2]
@@ -45,10 +45,10 @@ def depalo_eq2(z,t,u,orn_params,num_glo):
     n = orn_params[8]
     omega_nsi = orn_params[9]
     
-    if num_glo == 0 or num_glo > 4:
+    if num_recep == 0 or num_recep > 4:
         print('Error: number of glomeruli has to be non-zero and not greater than 4')
     
-    elif num_glo == 1:
+    elif num_recep == 1:
             r = z[0]
             x = z[1]
             y = z[2]
@@ -59,7 +59,7 @@ def depalo_eq2(z,t,u,orn_params,num_glo):
             dxdt = a_y*y - b_y*x
             dzdt = [drdt,dxdt,dydt]
             
-    elif num_glo == 2:
+    elif num_recep == 2:
             r = z[0]
             x = z[1]
             y = z[2]
@@ -79,7 +79,7 @@ def depalo_eq2(z,t,u,orn_params,num_glo):
             
             dzdt = [drdt,dxdt,dydt,dsdt,dqdt,dwdt]
             
-    elif num_glo == 3:
+    elif num_recep == 3:
             r = z[0]
             x = z[1]
             y = z[2]
@@ -107,7 +107,7 @@ def depalo_eq2(z,t,u,orn_params,num_glo):
             
             dzdt = [drdt,dxdt,dydt,dsdt,dqdt,dwdt,dfdt,dpdt,dmdt] 
             
-    elif num_glo == 4:
+    elif num_recep == 4:
             r = z[0]
             x = z[1]
             y = z[2]
@@ -296,7 +296,7 @@ def main(params2an, fig_opts):
 
     # initialize output vectors
     num_glo_list    = [2]#[4,3,2,1]     # number of glomeruli per sensilla
-    num_sens        = len(num_glo_list)  # number of sensilla
+    n_sens_type        = len(num_glo_list)  # number of sensilla
     num_glo_tot     = sum(num_glo_list) # number of glomeruli in total
     # TEMPORARY FIX U_OD SCALING
     u_od            = np.zeros((n2sim, 2))
@@ -424,13 +424,13 @@ def main(params2an, fig_opts):
     
     # *****************************************************************
     # NETWORK PARAMETERS 
-    num_orns_pn         = 18    # number of ORNs per each PN in each glomerulus
-    num_orns_glo        = 40    # number of ORNs per each glomerulus
-    num_orns_tot        = num_orns_glo*num_glo_tot  # total number of ORNs 
-    num_pns_glo         = 5     # number of PNs per each glomerulus
-    num_lns_glo         = 3     # number of LNs per each glomerulus
-    num_pns_tot         = num_pns_glo*num_glo_tot # number of total PNs
-    num_lns_tot         = num_lns_glo*num_glo_tot # number of total LNs 
+    n_orns_pn         = 18    # number of ORNs per each PN in each glomerulus
+    n_orns_recep        = 40    # number of ORNs per each glomerulus
+    n_orns_tot        = n_orns_recep*num_glo_tot  # total number of ORNs 
+    n_pns_recep         = 5     # number of PNs per each glomerulus
+    n_lns_recep         = 3     # number of LNs per each glomerulus
+    n_pns_tot         = n_pns_recep*num_glo_tot # number of total PNs
+    n_lns_tot         = n_lns_recep*num_glo_tot # number of total LNs 
     
     # *****************************************************************
     # ORN PARAMETERS 
@@ -474,78 +474,78 @@ def main(params2an, fig_opts):
     # GENERATION OF THE CONNECTIVITY MATRIX
     
     # Each ORN belongs to ONLY one of the glomeruli
-    ids_orn_glo     = np.zeros((num_orns_tot, num_glo_tot), dtype=int)
+    ids_orn_glo     = np.zeros((n_orns_tot, num_glo_tot), dtype=int)
     for pp in range (int(num_glo_tot)):
-        ids_orn_glo[pp*num_orns_glo:(pp+1)*num_orns_glo,pp] = 1
+        ids_orn_glo[pp*n_orns_recep:(pp+1)*n_orns_recep,pp] = 1
     
     # Correlation is high only on the same glomerulus ORNs
-    mv_mean     = np.zeros(num_orns_tot)
-    mv_cov      = np.zeros((num_orns_tot,num_orns_tot))
-    mv_cov_tmp  = ((1-cov_hom)*np.identity(num_orns_glo) +
-                 cov_hom*np.ones((num_orns_glo, num_orns_glo))) # diagonal covariance
+    mv_mean     = np.zeros(n_orns_tot)
+    mv_cov      = np.zeros((n_orns_tot,n_orns_tot))
+    mv_cov_tmp  = ((1-cov_hom)*np.identity(n_orns_recep) +
+                 cov_hom*np.ones((n_orns_recep, n_orns_recep))) # diagonal covariance
     for pp in range(int(num_glo_tot)):
-        mv_cov[pp*num_orns_glo:(pp+1)*num_orns_glo,
-               pp*num_orns_glo:(pp+1)*num_orns_glo] = mv_cov_tmp
+        mv_cov[pp*n_orns_recep:(pp+1)*n_orns_recep,
+               pp*n_orns_recep:(pp+1)*n_orns_recep] = mv_cov_tmp
         
     # Each PN belongs to ONLY one of the glomeruli
-    ids_pn_glo     = np.zeros((num_pns_tot), dtype=int)
+    ids_pn_glo     = np.zeros((n_pns_tot), dtype=int)
     for pp in range (int(num_glo_tot)):
-        ids_pn_glo[pp*num_pns_glo:(pp+1)*num_pns_glo] = pp
+        ids_pn_glo[pp*n_pns_recep:(pp+1)*n_pns_recep] = pp
         
     # Each LN belongs to ONLY one of the glomeruli
-    ids_ln_glo     = np.zeros((num_lns_tot, num_glo_tot), dtype=int)
+    ids_ln_glo     = np.zeros((n_lns_tot, num_glo_tot), dtype=int)
     for pp in range (int(num_glo_tot)):
-        ids_ln_glo[pp*num_lns_glo:(pp+1)*num_lns_glo,pp] = 1
+        ids_ln_glo[pp*n_lns_recep:(pp+1)*n_lns_recep,pp] = 1
     
     # Each PN is connected randomly with a sub-sample of ORNs
-    ids_orn_pn          = np.zeros((num_pns_tot, num_orns_pn), dtype=int)
+    ids_orn_pn          = np.zeros((n_pns_tot, n_orns_pn), dtype=int)
     
     # Connectivity matrices between ORNs and PNs 
-    orn_pn_mat          = np.zeros((num_orns_tot, num_pns_tot))
+    orn_pn_mat          = np.zeros((n_orns_tot, n_pns_tot))
    
-    for pp in range(num_pns_tot):
-        rnd_ids         = np.random.permutation(num_orns_glo) 
-        tmp_ids          = rnd_ids[:num_orns_pn] + num_orns_glo*ids_pn_glo[pp]
+    for pp in range(n_pns_tot):
+        rnd_ids         = np.random.permutation(n_orns_recep) 
+        tmp_ids          = rnd_ids[:n_orns_pn] + n_orns_recep*ids_pn_glo[pp]
         ids_orn_pn[pp,:] = tmp_ids
         orn_pn_mat[tmp_ids, pp] = orn_spike_height
     
     # Connectivity matrices between PNs and LNs
-    pn_ln_mat           = np.zeros((num_pns_tot, num_lns_tot))
+    pn_ln_mat           = np.zeros((n_pns_tot, n_lns_tot))
     for pp in range(num_glo_tot):
-        pn_ln_mat[pp*num_pns_glo:(pp+1)*num_pns_glo,
-                  pp*num_lns_glo:(pp+1)*num_lns_glo] = pn_spike_height
+        pn_ln_mat[pp*n_pns_recep:(pp+1)*n_pns_recep,
+                  pp*n_lns_recep:(pp+1)*n_lns_recep] = pn_spike_height
     
-    glo_id = 0        
-    ln_pn_mat           = np.zeros((num_lns_tot,num_pns_tot))
-    for pp in range(num_sens):
-        num_glo = num_glo_list[pp]
+    recep_id = 0        
+    ln_pn_mat           = np.zeros((n_lns_tot,n_pns_tot))
+    for pp in range(n_sens_type):
+        num_recep = num_glo_list[pp]
         # Inhibitory LN connectivity within glomeruli cluster
-        ln_pn_mat[(glo_id*num_lns_glo):((glo_id+num_glo)*num_lns_glo),
-                  (glo_id*num_pns_glo):((glo_id+num_glo)*num_pns_glo)] = ln_spike_height
-        for qq in range(num_glo):
+        ln_pn_mat[(recep_id*n_lns_recep):((recep_id+num_recep)*n_lns_recep),
+                  (recep_id*n_pns_recep):((recep_id+num_recep)*n_pns_recep)] = ln_spike_height
+        for qq in range(num_recep):
             # PN innervating LN are not inhibited
-            ln_pn_mat[((glo_id+qq)*num_lns_glo):((glo_id+qq+1)*num_lns_glo),
-                      ((glo_id+qq)*num_pns_glo):((glo_id+qq+1)*num_pns_glo)] = 0
-        glo_id = glo_id + num_glo
+            ln_pn_mat[((recep_id+qq)*n_lns_recep):((recep_id+qq+1)*n_lns_recep),
+                      ((recep_id+qq)*n_pns_recep):((recep_id+qq+1)*n_pns_recep)] = 0
+        recep_id = recep_id + num_recep
     
     # *****************************************************************
     # GENERATE ORN RESPONSE TO ODOR INPUT 
-    # num_spike_orn       = np.zeros((n2sim, num_glo))
-    # r_orn               = np.zeros((n2sim, num_glo))
-    # x_orn               = np.zeros((n2sim, num_glo))
-    # y_orn               = np.zeros((n2sim, num_glo))
-    # nu_orn              = np.zeros((n2sim, num_glo))   
+    # num_spike_orn       = np.zeros((n2sim, num_recep))
+    # r_orn               = np.zeros((n2sim, num_recep))
+    # x_orn               = np.zeros((n2sim, num_recep))
+    # y_orn               = np.zeros((n2sim, num_recep))
+    # nu_orn              = np.zeros((n2sim, num_recep))   
     tnu_orn             = np.zeros((n2sim, num_glo_tot))
     tr_orn              = np.zeros((n2sim, num_glo_tot))
     tx_orn              = np.zeros((n2sim, num_glo_tot))
     ty_orn              = np.zeros((n2sim, num_glo_tot))
     
     # initial conditions
-    # z_orn0          = np.ones((num_glo, 3))*[0, 0, 0]
+    # z_orn0          = np.ones((num_recep, 3))*[0, 0, 0]
     # r_orn[0,:]        = z_orn0[:, 0]
     # x_orn[0,:]        = z_orn0[:, 1]
     # y_orn[0,:]        = z_orn0[:, 2]
-    # tot_od            = np.zeros([n2sim, num_glo])
+    # tot_od            = np.zeros([n2sim, num_recep])
     
     # ODOUR PREFERENCE
     od_pref = np.array([[1,0],
@@ -558,38 +558,38 @@ def main(params2an, fig_opts):
                         # [1,0],
                         # [0,0],
                         # [0,1]])
-    glo_id = 0
+    recep_id = 0
     sen_id = 0
-    for pp in range(num_sens):     
-        num_glo = num_glo_list[pp]
+    for pp in range(n_sens_type):     
+        num_recep = num_glo_list[pp]
         # GENERATE ORN RESPONSE TO ODOR INPUT
-        num_spike_orn       = np.zeros((n2sim, num_glo))
-        r_orn               = np.zeros((n2sim, num_glo))
-        x_orn               = np.zeros((n2sim, num_glo))
-        y_orn               = np.zeros((n2sim, num_glo))
-        nu_orn              = np.zeros((n2sim, num_glo))  
+        num_spike_orn       = np.zeros((n2sim, num_recep))
+        r_orn               = np.zeros((n2sim, num_recep))
+        x_orn               = np.zeros((n2sim, num_recep))
+        y_orn               = np.zeros((n2sim, num_recep))
+        nu_orn              = np.zeros((n2sim, num_recep))  
         # initial conditions
-        z_orn0            = np.ones((num_glo, 3))*[0, 0, 0]
+        z_orn0            = np.ones((num_recep, 3))*[0, 0, 0]
         r_orn[0,:]        = z_orn0[:, 0]
         x_orn[0,:]        = z_orn0[:, 1]
         y_orn[0,:]        = z_orn0[:, 2]
-        tot_od            = np.zeros([n2sim, num_glo])
-        for qq in range(num_glo):
-            temp_od_pref = u_od*od_pref[glo_id,:]
+        tot_od            = np.zeros([n2sim, num_recep])
+        for qq in range(num_recep):
+            temp_od_pref = u_od*od_pref[recep_id,:]
             tot_od[:,qq] = np.sum(temp_od_pref, axis=1)
-            glo_id = glo_id+1
+            recep_id = recep_id+1
 
         for tt in range(1, n2sim-t_ref-1):
             # span for next time step
             tspan = [t[tt-1],t[tt]]
             
-            z0_unid = np.zeros(num_glo*3)
-            for zz in range(num_glo):
+            z0_unid = np.zeros(num_recep*3)
+            for zz in range(num_recep):
                 z0_unid[zz*3:(zz+1)*3] = z_orn0[zz,:]
 
             z_orn = odeint(depalo_eq2, z0_unid, tspan,
-                           args=(tot_od[tt,:], orn_params, num_glo))
-            for gg in range(num_glo):
+                           args=(tot_od[tt,:], orn_params, num_recep))
+            for gg in range(num_recep):
                 z_orn0[gg,0] = z_orn[1][0+gg*3]
                 z_orn0[gg,1] = z_orn[1][1+gg*3]
                 z_orn0[gg,2] = z_orn[1][2+gg*3]
@@ -599,35 +599,35 @@ def main(params2an, fig_opts):
                 y_orn[tt,gg] = z_orn[1][2+gg*3]
                 nu_orn[tt,gg] = rect_func(B0, y_orn[tt,gg])
                 
-        tnu_orn[:,sen_id:(sen_id+num_glo)] =  nu_orn
-        tr_orn[:,sen_id:(sen_id+num_glo)]  =  r_orn
-        tx_orn[:,sen_id:(sen_id+num_glo)]  =  x_orn
-        ty_orn[:,sen_id:(sen_id+num_glo)]  =  y_orn
-        sen_id = sen_id + num_glo
+        tnu_orn[:,sen_id:(sen_id+num_recep)] =  nu_orn
+        tr_orn[:,sen_id:(sen_id+num_recep)]  =  r_orn
+        tx_orn[:,sen_id:(sen_id+num_recep)]  =  x_orn
+        ty_orn[:,sen_id:(sen_id+num_recep)]  =  y_orn
+        sen_id = sen_id + num_recep
     
     # *****************************************************************
     # Transform the average nu_orn into a spiking 
-    # matrix n2sim by num_orns_tot of correlated spikes:
-    num_spike_orn   = np.zeros((n2sim, num_orns_tot))
-    u_orn           = np.zeros((n2sim, num_pns_tot))
+    # matrix n2sim by n_orns_tot of correlated spikes:
+    num_spike_orn   = np.zeros((n2sim, n_orns_tot))
+    u_orn           = np.zeros((n2sim, n_pns_tot))
     
-    # generate a matrix n2sim by num_orns_tot of correlated spikes:
+    # generate a matrix n2sim by n_orns_tot of correlated spikes:
     rnd     = np.random.multivariate_normal(mv_mean, mv_cov, n2sim)
     rnd     = spst.norm.cdf(rnd)
     
-    nu_tmp = np.zeros((n2sim,num_orns_tot))
+    nu_tmp = np.zeros((n2sim,n_orns_tot))
     
     orns_id = 0
-    glo_id  = 0
-    for pp in range(num_sens):
-        num_glo = num_glo_list[pp]
-        for qq in range(num_glo):
-            nu_tmp[:,orns_id:(orns_id+num_orns_glo)] = (np.tile(tnu_orn[
-                :,glo_id], (num_orns_glo,1))).transpose()
-            glo_id = glo_id +1
-            orns_id = orns_id + num_orns_glo
+    recep_id  = 0
+    for pp in range(n_sens_type):
+        num_recep = num_glo_list[pp]
+        for qq in range(num_recep):
+            nu_tmp[:,orns_id:(orns_id+n_orns_recep)] = (np.tile(tnu_orn[
+                :,recep_id], (n_orns_recep,1))).transpose()
+            recep_id = recep_id +1
+            orns_id = orns_id + n_orns_recep
     
-    t_zeros = np.zeros((1, num_pns_tot))
+    t_zeros = np.zeros((1, n_pns_tot))
     num_spike_orn = (rnd < nu_tmp/(pts_ms*1e3))*1.0
     orn_spike_all = num_spike_orn.dot(orn_pn_mat) 
     u_orn = u_orn + orn_spike_all
@@ -637,8 +637,8 @@ def main(params2an, fig_opts):
         
     # *****************************************************************
     # Per each PNs, add a noise signal coming from other PNs, LNs, ...
-    rnd_pn  = np.random.random_sample((n2sim,num_pns_tot))
-    rnd_ln  = np.random.random_sample((n2sim,num_pns_tot))    
+    rnd_pn  = np.random.random_sample((n2sim,n_pns_tot))
+    rnd_ln  = np.random.random_sample((n2sim,n_pns_tot))    
     pn_spike_all = (rnd_pn < nu_pn_noise/(pts_ms*1e3))*pn_spike_height
     ln_spike_all = (rnd_ln < nu_ln_noise/(pts_ms*1e3))*ln_spike_height
     u_orn = u_orn - ln_spike_all + pn_spike_all
@@ -683,7 +683,7 @@ def main(params2an, fig_opts):
             t2plot = 0, t_tot
         
         orn_id = 0
-        for pp in range(num_sens):
+        for pp in range(n_sens_type):
             panels_id = ['a', 'b', 'c', 'd']
             
             fig_orn = plt.figure(figsize=[8.5, 8])
@@ -708,21 +708,21 @@ def main(params2an, fig_opts):
                          label=r'Od, glom : %d'%(0))
             trsp = .3
             
-            fig_color = ['purple','green','cyan','red']
-            num_glo = num_glo_list[pp]
-            for qq in range(num_glo):
-                x1 = orn_sdf[:,orn_id:(orn_id+num_orns_glo)]
+            recep_clrs = ['purple','green','cyan','red']
+            num_recep = num_glo_list[pp]
+            for qq in range(num_recep):
+                x1 = orn_sdf[:,orn_id:(orn_id+n_orns_recep)]
                 mu1 = x1.mean(axis=1)
                 sigma1 = x1.std(axis=1)
-                ax_orn_fr.plot(orn_sdf_time-t_on, mu1, linewidth=lw+1, color=fig_color[qq])
+                ax_orn_fr.plot(orn_sdf_time-t_on, mu1, linewidth=lw+1, color=recep_clrs[qq])
                 ax_orn_fr.fill_between(orn_sdf_time-t_on, 
-                    mu1+sigma1, mu1-sigma1, facecolor=fig_color[qq], alpha=trsp,label='sdf glo '+str(qq))
+                    mu1+sigma1, mu1-sigma1, facecolor=recep_clrs[qq], alpha=trsp,label='sdf glo '+str(qq))
     
-                spikes_orn = np.argwhere(num_spike_orn[:,orn_id:(orn_id+num_orns_glo)])
+                spikes_orn = np.argwhere(num_spike_orn[:,orn_id:(orn_id+n_orns_recep)])
                 
                 ax_orn_sc.scatter(spikes_orn[:,0]/pts_ms-t_on, 
-                                (num_orns_glo*qq)+spikes_orn[:,1], color=fig_color[qq], s=10)
-                orn_id = orn_id + num_orns_glo
+                                (n_orns_recep*qq)+spikes_orn[:,1], color=recep_clrs[qq], s=10)
+                orn_id = orn_id + n_orns_recep
     
             # FIGURE SETTINGS
             ax_orn1.tick_params(axis='both', which='major', labelsize=ticks_fs)
@@ -843,7 +843,7 @@ def main(params2an, fig_opts):
     
     alpha_x             = 2.         # ORN input coeff for adaptation variable x_pn
     tau_x               = 600    # [ms] time scale for dynamics of adaptation variable x_pn
-    x_pn0               = 0.48*np.ones(num_pns_tot)     # 0.27
+    x_pn0               = 0.48*np.ones(n_pns_tot)     # 0.27
     
     pn_params  = np.array([tau_s, tau_v, a_s_pn, vrev_pn, vrest_pn])
     
@@ -855,34 +855,34 @@ def main(params2an, fig_opts):
     
 
     tau_y               = 600    # [ms] time scale for dynamics of adaptation variable y_ln
-    y_ln0               = 0.025*np.ones(num_pns_tot) # 0.2
+    y_ln0               = 0.025*np.ones(n_pns_tot) # 0.2
     ln_params = np.array([tau_s, tau_v, a_s_ln, vrev_ln, vrest_ln])
     #**************************************
     
     # INITIALIZE LN to PN output vectors
-    x_pn            = np.zeros((n2sim, num_pns_tot))
-    u_pn            = np.zeros((n2sim, num_lns_tot))
-    u_ln            = np.zeros((n2sim, num_pns_tot))
-    y_ln            = np.zeros((n2sim, num_pns_tot))
+    x_pn            = np.zeros((n2sim, n_pns_tot))
+    u_pn            = np.zeros((n2sim, n_lns_tot))
+    u_ln            = np.zeros((n2sim, n_pns_tot))
+    y_ln            = np.zeros((n2sim, n_pns_tot))
     
     # INITIALIZE PN output vectors
-    num_spike_pn    = np.zeros((n2sim, num_pns_tot))
+    num_spike_pn    = np.zeros((n2sim, n_pns_tot))
     
     # INITIALIZE LN output vectors
-    s_ln            = np.zeros((n2sim, num_lns_tot))
-    v_ln            = np.zeros((n2sim, num_lns_tot))
-    num_spike_ln    = np.zeros((n2sim, num_lns_tot))  
+    s_ln            = np.zeros((n2sim, n_lns_tot))
+    v_ln            = np.zeros((n2sim, n_lns_tot))
+    num_spike_ln    = np.zeros((n2sim, n_lns_tot))  
     
     # PN and LN params initial conditions
     x_pn[0, :]      = x_pn0
-    s_pn            = np.zeros((n2sim, num_pns_tot))
-    v_pn            = np.ones((n2sim, num_pns_tot))*vrest_pn
-    pn_ref_cnt      = np.zeros(num_pns_tot) # Refractory period counter starts from 0
+    s_pn            = np.zeros((n2sim, n_pns_tot))
+    v_pn            = np.ones((n2sim, n_pns_tot))*vrest_pn
+    pn_ref_cnt      = np.zeros(n_pns_tot) # Refractory period counter starts from 0
     
     y_ln[0, :]      = y_ln0
-    s_ln            = np.zeros((n2sim, num_lns_tot))
-    v_ln            = np.ones((n2sim, num_lns_tot))*vrest_ln
-    ln_ref_cnt      = np.zeros(num_lns_tot) # initially the ref period cnter is equal to 0
+    s_ln            = np.zeros((n2sim, n_lns_tot))
+    v_ln            = np.ones((n2sim, n_lns_tot))*vrest_ln
+    ln_ref_cnt      = np.zeros(n_lns_tot) # initially the ref period cnter is equal to 0
             
     
     
@@ -893,7 +893,7 @@ def main(params2an, fig_opts):
             # span for next time step
             tspan = [t[tt-1],t[tt]]
             
-            pp_rnd = np.arange(num_pns_tot) # np.random.permutation(num_pns_tot)
+            pp_rnd = np.arange(n_pns_tot) # np.random.permutation(n_pns_tot)
             
             # ******************************************************************
             # Vectorized and fast UPDATE PNS 
@@ -984,42 +984,56 @@ def main(params2an, fig_opts):
                                                      tau_sdf, dt_sdf)  # (Hz, ms)
         ln_sdf= ln_sdf*1e3
         
-        t2plot = -100, 300#t_tot 
+        t2plot = -300, t_tot-300
         rs = 4 # number of rows
         cs = 1 # number of cols
         fig_size = [7, 8] 
-        fig_color = ['purple','green','cyan','red']
+        recep_clrs = ['purple','green','cyan','red']
+        trsp = 0.3 # level of transparency in hose plot
         
         if stim_type == 'pl':
-            #lw = 1.1
             t2plot = 0, 4000
             rs = 2 # number of rows
             cs = 2 # number of cols
             fig_size = [10, 5]
 
-        glo_id = 0
-        for qq in range(num_sens):
-            num_glo = num_glo_list[qq]
+        recep_id = 0
+        for qq in range(n_sens_type):
+            num_recep = num_glo_list[qq]
+            
+            fig_pn = plt.figure(figsize=fig_size)
+            
             ax_conc = plt.subplot(rs, cs, 1)
             ax_orn = plt.subplot(rs, cs, 2)
             ax_pn = plt.subplot(rs, cs, 3)
             ax_ln = plt.subplot(rs, cs, 4)
-            fig_pn = plt.figure(figsize=fig_size)
-            ax_conc.plot(t-t_on, 100*u_od[:,0], color=green, linewidth=lw+2, 
+            
+            ax_conc.plot(t-t_on, 100*u_od[:,0], color=purple, linewidth=lw+2, 
                               label='glom : '+'%d'%(1))
-            ax_conc.plot(t-t_on, 100*u_od[:,1], '--',color=purple, linewidth=lw+1, 
+            ax_conc.plot(t-t_on, 100*u_od[:,1], '--',color=green, linewidth=lw+1, 
                               label='glom : '+'%d'%(2))
             
-            for ll in range(num_glo):
-                ax_orn.plot(orn_sdf_time-t_on, np.mean(orn_sdf[:,glo_id*num_orns_glo:((glo_id+1)*num_orns_glo)], axis=1),
-                                                      color=fig_color[ll], linewidth=lw+1,label='sdf glo')
+            for ll in range(num_recep):
+                X1 = orn_sdf[:, recep_id*n_orns_recep:((recep_id+1)*n_orns_recep)] # np.mean(orn_sdf_norm[:,:,n_orns_recep:], axis=2)
+                mu1 = X1.mean(axis=1)
+                sigma1 = X1.std(axis=1)
+                ax_orn.plot(orn_sdf_time-t_on, mu1, 
+                            color=recep_clrs[ll], linewidth=lw-1, )
+                ax_orn.fill_between(orn_sdf_time-t_on, mu1+sigma1, mu1-sigma1, 
+                                facecolor=recep_clrs[ll], alpha=trsp)
                 
-                ax_pn.plot(pn_sdf_time-t_on, pn_sdf[:,glo_id*num_pns_glo:((glo_id+1)*num_pns_glo)], '--',color=fig_color[ll], 
+                ax_orn.plot(orn_sdf_time-t_on, np.mean(orn_sdf[:,recep_id*n_orns_recep:((recep_id+1)*n_orns_recep)], axis=1),
+                                                      color=recep_clrs[ll], linewidth=lw+1,label='sdf glo')
+                
+                ax_pn.plot(pn_sdf_time-t_on, pn_sdf[:,recep_id*n_pns_recep:((recep_id+1)*n_pns_recep)], '--',color=recep_clrs[ll], 
                                       linewidth=lw, label='PN')
                 
-                ax_ln.plot(ln_sdf_time-t_on, ln_sdf[:,glo_id*num_lns_glo:((glo_id+1)*num_lns_glo)], '--',color=fig_color[ll], 
+                ax_ln.plot(ln_sdf_time-t_on, ln_sdf[:,recep_id*n_lns_recep:((recep_id+1)*n_lns_recep)], '--',color=recep_clrs[ll], 
                                       linewidth=lw, label='LN')
-                glo_id = glo_id+1
+                ax_ln.plot(pn_sdf_time-t_on, 
+                        pn_sdf[:, recep_id*n_pns_recep:((recep_id+1)*n_pns_recep)], '--', #pn_sdf
+                        color=recep_clrs[ll], linewidth=lw,)
+                recep_id = recep_id+1
                 
             ax_conc.set_xlim(t2plot)
             ax_orn.set_xlim(t2plot)
@@ -1121,7 +1135,7 @@ def main(params2an, fig_opts):
                             '.png')
         if fig_opts[2]==False:
             plt.close()
-            
+        plt.show()    
     # *************************************************************************
 
     flynose_out = [t, u_od, orn_spike_matrix, pn_spike_matrix, ln_spike_matrix, ]
@@ -1135,12 +1149,12 @@ if __name__ == '__main__':
     
     #***********************************************
     # analysis params
-    tau_sdf         = 20
+    tau_sdf         = 41
     dt_sdf          = 5
 
     # ORN NSI params
     alpha_ln        = 0#16.6  # 13.3 #10.0 # 0.0 # ln spike h=0.4
-    nsi_str         = 0.2   # 0.3 # 0.0
+    nsi_str         = 0.0   # 0.3 # 0.0
     
     # Trials and errors 
 
@@ -1149,14 +1163,14 @@ if __name__ == '__main__':
    
     # #***********************************************
     # # stimulus params
-    stim_dur        = 50
+    stim_dur        = 500
     delay           = 0    
-    stim_type       = 'ts'          # 'ts'  # 'ss' # 'pl'
+    stim_type       = 'ss'          # 'ts'  # 'ss' # 'pl'
     pts_ms          = 1
-    t_tot           = 420        # ms 
+    t_tot           = 2000        # ms 
     t_on            = [300, 300+delay]    # ms
     t_off           = np.array(t_on)+stim_dur # ms
-    concs           = [4.4, 1.4]
+    concs           = [.7, .7]
     sdf_size        = int(t_tot/dt_sdf)
     # real plumes params
     b_max           = np.nan # 3, 50, 150
@@ -1240,13 +1254,13 @@ if __name__ == '__main__':
                                                          tau_sdf, dt_sdf)  # (Hz, ms)
             ln_sdf = ln_sdf*1e3
              
-            num_pns_glo         = 5     # number of PNs per each glomerulus
+            n_pns_recep         = 5     # number of PNs per each glomerulus
             id_stim_w = np.flatnonzero((pn_sdf_time>t_on[0]) & (pn_sdf_time<t_on[0]+100))
             id_stim_s = np.flatnonzero((pn_sdf_time>t_on[1]) & (pn_sdf_time<t_on[1]+100))
-            pn_peak_w[id_loop]  = np.max(np.mean(pn_sdf[id_stim_w, :num_pns_glo], axis=1)) # using average PN
-            pn_peak_s[id_loop]  = np.max(np.mean(pn_sdf[id_stim_s, num_pns_glo:], axis=1)) # using average PN
-            pn_avg_w  = np.mean(pn_sdf[id_stim_w, :num_pns_glo])
-            pn_avg_s  = np.mean(pn_sdf[id_stim_s, num_pns_glo:])
+            pn_peak_w[id_loop]  = np.max(np.mean(pn_sdf[id_stim_w, :n_pns_recep], axis=1)) # using average PN
+            pn_peak_s[id_loop]  = np.max(np.mean(pn_sdf[id_stim_s, n_pns_recep:], axis=1)) # using average PN
+            pn_avg_w  = np.mean(pn_sdf[id_stim_w, :n_pns_recep])
+            pn_avg_s  = np.mean(pn_sdf[id_stim_s, n_pns_recep:])
             
             # Calculate the ratio for PN responses
             pn_avg_dif[id_loop] = pn_avg_w-pn_avg_s
@@ -1258,8 +1272,8 @@ if __name__ == '__main__':
                 pn_sdf_dt = pn_sdf_time[1]-pn_sdf_time[0]
                 pn_tmp = np.zeros((np.size(id_stim_w),2))
                 
-                pn_tmp[:,0] = np.mean(pn_sdf[id_stim_w, :num_pns_glo], axis=1)
-                pn_tmp[:,1] = np.mean(pn_sdf[id_stim_w, num_pns_glo:], axis=1)
+                pn_tmp[:,0] = np.mean(pn_sdf[id_stim_w, :n_pns_recep], axis=1)
+                pn_tmp[:,1] = np.mean(pn_sdf[id_stim_w, n_pns_recep:], axis=1)
                 perf_time = np.zeros((2, 3))
                 perf_avg = np.zeros((2, 3))
                 id_glo = None
