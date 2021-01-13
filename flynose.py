@@ -435,7 +435,7 @@ def main(params2an, fig_opts):
     # *****************************************************************
     # ORN PARAMETERS 
     
-    cov_hom         = 0.4 # Covariance value homotypic ORNs
+    cov_hom         = 0.004 # Covariance value homotypic ORNs
     nu_pn_noise     = 200 # Hz  - PNs Noise into each PNs
     nu_ln_noise     = 0 # Hz    - LNs Noise into each PNs
 
@@ -668,7 +668,7 @@ def main(params2an, fig_opts):
     
     # *****************************************************************
     # FIGURE ORN dynamics
-
+    orn_fig=1
     if orn_fig:  
         t2plot = -200, 1000 #t_tot #-t_on, t_tot-t_on
         rs = 4 # number of rows
@@ -698,6 +698,7 @@ def main(params2an, fig_opts):
             ax_orn_sc = plt.subplot(rs, cs, 3)
             ax_orn_fr = plt.subplot(rs, cs, 4)
             
+            # PLOT
             ax_orn1.plot(t-t_on, u_od[:,0], linewidth=lw+1, color=black, 
                          label=r'Glom %d'%(1))
             ax_orn2.plot(t-t_on, r_orn[:,0], linestyle='--',color=black,  linewidth=lw+1, 
