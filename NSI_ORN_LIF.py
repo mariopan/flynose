@@ -78,8 +78,8 @@ def tictoc():
 def stim_fcn(stim_params):
     
     tmp_ks = \
-        ['stim_type', 'stim_dur', 'pts_ms', 't_tot', 't_on', 'concs', 'conc0',]    
-    [stim_type, stim_dur, pts_ms, t_tot, t_on, concs, conc0] = [
+        ['stim_type', 'stim_dur', 'pts_ms', 't_tot', 't_on', 'concs', 'conc0', 'od_noise']    
+    [stim_type, stim_dur, pts_ms, t_tot, t_on, concs, conc0, od_noise] = [
         stim_params[x] for x in tmp_ks]  
     
     # Stimulus params    
@@ -88,7 +88,7 @@ def stim_fcn(stim_params):
     
     n2sim           = pts_ms*t_tot       # number of time points
     
-    u_od            = np.ones((n2sim, n_od)) * conc0
+    u_od            = np.ones((n2sim, n_od)) * conc0*(1 + od_noise*np.random.standard_normal((n2sim, n_od)))
     
     if (stim_type == 'ss'):
         # Single Step Stimuli
@@ -97,20 +97,22 @@ def stim_fcn(stim_params):
         for nn in range(n_od):
             stim_on         = t_on[nn]*pts_ms   # [num. of samples]
             stim_off        = t_off[nn]*pts_ms    
+            
             # stimulus onset
             t_tmp           = \
                 np.linspace(0, t_off[nn]-t_on[nn], stim_off-stim_on)
             
-            u_od[stim_on:stim_off, nn] = \
-                conc0 + concs[nn]*(1 - np.exp(-t_tmp/tau_on))
+            u_od[stim_on:stim_off, nn] += \
+                + concs[nn]*(1 - np.exp(-t_tmp/tau_on)) # conc0
             
             # stimulus offset
             t_tmp           = \
                 np.linspace(0, t_tot-t_off[nn], t_tot*pts_ms-stim_off)    
             
-            u_od[stim_off:, nn] = conc0 + \
+            u_od[stim_off:, nn]  += \
                 (u_od[stim_off-1, nn]-conc0)*np.exp(-t_tmp/tau_on)
  
+    u_od[u_od<0] = 0
     return u_od
 
 
@@ -248,7 +250,7 @@ def main(orn_params, stim_params, sdf_params, sens_params):
     num_spikes      = np.zeros((n2sim, n_neu_tot))
     orn_ref         = np.zeros(n_neu_tot)
     
-    #%% ODOUR STIMULUS/I
+    # ODOUR STIMULUS/I
     u_od            = stim_fcn(stim_params)
     
     # Transduction for different ORNs and odours
@@ -269,7 +271,6 @@ def main(orn_params, stim_params, sdf_params, sens_params):
             r_orn[:, ss+nn*n_orns_recep] = r_tmp[:, nn] * \
                 (1+ r_noise*np.random.standard_normal((1,n2sim)))
     
-    #%%
     # ********************************************************
     # LIF ORN DYNAMICS
     for tt in range(1, n2sim-t_ref-1):
@@ -312,7 +313,7 @@ def main(orn_params, stim_params, sdf_params, sens_params):
     # SDF extraction from the spike matrix
     sdf_size    = int(stim_params['t_tot']/dt_sdf)
     t_sdf = np.linspace(0, dt_sdf*sdf_size, sdf_size)
-    orn_sdf = np.zeros_like(t_sdf)
+    orn_sdf = np.zeros((sdf_size, n_neu_tot))
     
     if ~(np.sum(spike_matrix) == 0):
         orn_sdf, t_sdf = sdf_krofczik.main(spike_matrix, sdf_size,
@@ -335,9 +336,10 @@ if __name__ == '__main__':
                         ('stim_type' , 'ss'),   # 'ts'  # 'ss' # 'pl'
                         ('pts_ms' , 5),         # simulated pts per ms 
                         ('n_od', 2), 
-                        ('t_tot', 2000),        # ms 
-                        ('conc0', [2.853669391e-04]),
-                        ('r_noise', 0.1),
+                        ('t_tot', 1200),        # ms 
+                        ('conc0', [0.5e-04]),    # 2.853669391e-04
+                        ('r_noise', .25),
+                        ('od_noise', 15),
                         ])
     
     n_od = stim_params['n_od']
@@ -349,8 +351,8 @@ if __name__ == '__main__':
                         ])
     elif n_od == 2:
         concs_params    = dict([
-                        ('stim_dur' , np.array([500, 500])),
-                        ('t_on', np.array([800, 800])),          # ms
+                        ('stim_dur' , np.array([50, 50])),
+                        ('t_on', np.array([1000, 1000])),          # ms
                         ('concs', np.array([.003, .003])),
                         ])
     
@@ -365,14 +367,12 @@ if __name__ == '__main__':
     
     # TEMP: Each ORN will have its transduction properties based on DoOR
     ab3A_params = dict([
-        # Transduction params
                         ('n', .822066870*transd_vect_3A), 
                         ('alpha_r', 12.6228808*transd_vect_3A), 
                         ('beta_r', 7.6758436748e-02*transd_vect_3A),
                         ])
     
     ab3B_params = dict([
-        # Transduction params
                         ('n', .822066870*transd_vect_3B), 
                         ('alpha_r', 12.6228808*transd_vect_3B), 
                         ('beta_r', 7.6758436748e-02*transd_vect_3B),
@@ -380,7 +380,7 @@ if __name__ == '__main__':
     
     # Sensilla/network parameters
     transd_params       = (ab3A_params, ab3B_params)
-    # Sensilla/network parameters
+    
     n_orns_recep        = 40         # number of ORNs per each receptor
     n_neu               = transd_params.__len__()         # number of ORN cohoused in the sensillum
     
@@ -428,9 +428,9 @@ if __name__ == '__main__':
     
     [t, u_od, r_orn, v_orn, y_orn, num_spikes, spike_matrix, orn_sdf,
      orn_sdf_time,]  = orn_lif_out
-      
-    #%% *****************************************************************
-    # FIGURE ORN dynamics
+    
+    
+    #%% FIGURE ORN dynamics
 
     # Create Transduction Matrix to plot odour 
     transd_mat = np.zeros((n_neu, n_od))
@@ -438,12 +438,13 @@ if __name__ == '__main__':
         transd_mat[pp,:] = sens_params['od_pref'][pp,:]
     
     t_on    = np.min(stim_params['t_on'])
+    t_tot   = stim_params['t_tot']
     pts_ms  = stim_params['pts_ms']
     vrest   = orn_params['vrest']
     vrev    = orn_params['vrev']
     n_neu   = sens_params['n_neu']
 
-    t2plot = -t_on, 1000 #t_tot #-t_on, t_tot-t_on
+    t2plot = -t_on, t_tot-t_on 
     panels_id = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l']
     
     rs = 5      # number of rows
@@ -452,7 +453,7 @@ if __name__ == '__main__':
     fig_orn, ax_orn = plt.subplots(rs, cs, figsize=[8.5, 9])
     fig_orn.tight_layout()
     recep_clrs = ['purple','green','cyan','red']    
-    trsp = .1
+    
         
     if n_neu == 1:
         weight_od = u_od*transd_mat[0,:]
@@ -461,16 +462,18 @@ if __name__ == '__main__':
         ax_orn[0].plot(t-t_on, weight_od, linewidth=lw+1, )
         for rr in range(1, rs):
             X0 = t-t_on
+            trsp = .1
             if rr == 1:
                 X1 = r_orn
+                trsp = .01            
             elif rr == 2:
                 X1 = y_orn
             elif rr == 3:
                 X1 = v_orn
                 ax_orn[3].plot([t[0]-t_on, t[-1]-t_on], [vrest, vrest], 
-                               '--', linewidth=lw, color=red,)
+                               '--', linewidth=lw, color=black,)
                 ax_orn[3].plot([t[0]-t_on, t[-1]-t_on], [vrev, vrev], 
-                               '-.', linewidth=lw, color=red,)
+                               '-.', linewidth=lw, color=black,)
             elif rr == 4:
                 X1 = orn_sdf
                 X0 = orn_sdf_time-t_on
@@ -533,9 +536,11 @@ if __name__ == '__main__':
             
             for rr in range(1, rs):
                 X0 = t-t_on
+                trsp = .1
                 if rr == 1:
                     X1 = r_orn[:, id_neu*n_orns_recep:((id_neu+1)*n_orns_recep)]
                 elif rr == 2:
+                    trsp = .01
                     X1 = y_orn[:, id_neu*n_orns_recep:((id_neu+1)*n_orns_recep)]
                 elif rr == 3:
                     X1 = v_orn[:, id_neu*n_orns_recep:((id_neu+1)*n_orns_recep)]
