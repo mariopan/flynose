@@ -127,7 +127,9 @@ stim_params     = dict([
                     ('n_od', 2),            # number of odours
                     ('t_tot', 1500),        # ms 
                     ('conc0', [2.853669391e-04]),
-                    ('r_noise', 0.25),
+                    ('r_noise', 15), 
+                    ('od_noise', 00), 
+                    ('filter_frq', 0.001),#0.001
                     ])
 
 n_od = stim_params['n_od']
