@@ -102,7 +102,10 @@ def stim_fcn(stim_params):
 
     u_od            = np.ones((n2sim, n_od)) * conc0*(1 + filt_ts)#od_noise*np.random.standard_normal((n2sim, n_od)))
     
-    if (stim_type == 'ss'):
+    if (stim_type == 'rs'):
+        # baseline stimuli
+        print('u_od is constant')
+    elif (stim_type == 'ss'):
         # Single Step Stimuli
         
         tau_on          = 50
@@ -129,17 +132,18 @@ def stim_fcn(stim_params):
 
 
 # transduction function
-def transd(r0,t,u, transd_params,):
+def transd(r_0,t,u, transd_params,):
 
     alpha_r     = transd_params['alpha_r']
     alpha_r[alpha_r==0] = 1e-16
     beta_r      = transd_params['beta_r']
+    beta_r[beta_r==0] = 1e16
     n           = transd_params['n']
     
     dt = t[1]-t[0]
     b = -alpha_r * u**n - beta_r
     a = alpha_r * u**n 
-    r = (r0 + a/b)*np.exp(b*dt)-a/b
+    r = (r_0 + a/b)*np.exp(b*dt)-a/b
     # drdt = alpha_r*u**n*(1-r) - beta_r*r
     return r    
 
@@ -247,6 +251,8 @@ def main(orn_params, stim_params, sdf_params, sens_params):
     alpha_y         = orn_params['alpha_y']
     vrest           = orn_params['vrest']
     vrev            = orn_params['vrev']
+    y0              = orn_params['y0']
+    r0              = orn_params['r0']
     
     # INITIALIZE OUTPUT VECTORS
     n2sim           = pts_ms*t_tot      # number of time points
@@ -257,9 +263,10 @@ def main(orn_params, stim_params, sdf_params, sens_params):
     
     r_orn_od        = np.zeros((n2sim, n_neu, n_od)) 
     v_orn           = np.zeros((n2sim, n_neu_tot)) 
-    # v_orn[0,:]      = np.random.standard_normal((1, n_neu_tot)) 
+    r_orn_od[0,:,:] = r0*np.ones((1, n_neu, n_od)) #+ np.random.standard_normal((1, n_neu, n_od)) 
+    v_orn[0,:]      = .5*(np.ones((1, n_neu_tot)) + .01*np.random.standard_normal((1, n_neu_tot))) 
     y_orn           = np.zeros((n2sim, n_neu_tot))
-    # y_orn[0,:]      = np.random.standard_normal((1, n_neu_tot)) 
+    y_orn[0,:]      = y0*(np.ones((1, n_neu_tot)) +.01*np.random.standard_normal((1, n_neu_tot))) 
     
     vrev_t          = np.ones(n_neu_tot)*vrev
     num_spikes      = np.zeros((n2sim, n_neu_tot))
@@ -270,7 +277,7 @@ def main(orn_params, stim_params, sdf_params, sens_params):
     
     
     # Transduction for different ORNs and odours
-    for tt in range(1, n2sim-1):
+    for tt in range(1, n2sim):
         # span for next time step
         tspan = [t[tt-1],t[tt]] 
         for id_neu in range(n_neu):
@@ -357,27 +364,27 @@ if __name__ == '__main__':
     
     # stimulus params
     stim_params     = dict([
-                        ('stim_type' , 'ss'),   # 'ts'  # 'ss' # 'pl'
+                        ('stim_type' , 'rs'),   # 'rs' # 'ts'  # 'ss' # 'pl'
                         ('pts_ms' , 5),         # simulated pts per ms 
                         ('n_od', 2), 
-                        ('t_tot', 20000),        # ms  
-                        ('conc0', [2.5e-04]),    # 2.854e-04
-                        ('r_noise', 5), 
+                        ('t_tot', 4000),        # ms  
+                        ('conc0', [2.85e-04]),    # 2.854e-04
                         ('od_noise', 00), 
-                        ('filter_frq', 0.002),#0.001
+                        ('r_noise', 2.0), 
+                        ('filter_frq', 0.006),#0.001
                         ])
     
     n_od = stim_params['n_od']
     if n_od == 1:
         concs_params    = dict([
-                        ('stim_dur' , np.array([500])),
+                        ('stim_dur' , np.array([500])),     # ms
                         ('t_on', np.array([300])),          # ms
                         ('concs', np.array([0.003])),
                         ])
     elif n_od == 2:
         concs_params    = dict([
-                        ('stim_dur' , np.array([50, 50])),
-                        ('t_on', np.array([19000, 19000])),          # ms
+                        ('stim_dur' , np.array([50, 50])),  # ms
+                        ('t_on', np.array([1900, 1900])), # ms
                         ('concs', np.array([.003, .003])),
                         ])
     
@@ -406,7 +413,7 @@ if __name__ == '__main__':
     # Sensilla/network parameters
     transd_params       = (ab3A_params, ab3B_params)
     
-    n_orns_recep        = 3         # number of ORNs per each receptor
+    n_orns_recep        = 20         # number of ORNs per each receptor
     n_neu               = transd_params.__len__()         # number of ORN cohoused in the sensillum
     
     
@@ -425,13 +432,17 @@ if __name__ == '__main__':
     orn_params  = dict([
         # LIF params
                         ('t_ref', 2*stim_params['pts_ms']), # ms; refractory period 
-                        ('theta', 1),                 # [mV] firing threshold
-                        ('tau_v', 2.26183540),        # [ms]
-                        ('vrest', -0.969461053),      # [mV] resting potential
-                        ('vrev', 21.1784081),  # [mV] reversal potential
+                        ('theta', 1),                   # [mV] firing threshold
+                        # fitted values
+                        ('tau_v', 2.26183540),          # [ms]
+                        ('vrest', -0.969461053),        # [mV] resting potential
+                        ('vrev', 21.1784081),           # [mV] reversal potential
                         # ('v_k', vrest),
                         ('g_y', .5853575783),       
-                        ('g_r', .864162073),       
+                        ('g_r', .864162073), 
+                        # initial values of y anr r
+                        ('r0', 0.15), 
+                        ('y0', 1), 
         # Adaptation params
                         ('alpha_y', .45310619), 
                         ('beta_y', 3.467184e-03), 
@@ -489,11 +500,11 @@ if __name__ == '__main__':
                     orientation='horizontal')
     
     fr_mean_rs = 1000/np.mean(isi)
-    print('average freq. baseline: %.2f Hz' %fr_mean_rs)
+    print('ORN avg freq. baseline: %.2f Hz' %fr_mean_rs)
     
-    t_tmp = np.linspace(0, np.max(isi),100)
-    # isi_th = fr_mean_rs*np.exp(-fr_mean_rs*t_tmp*1e-3) # poisson    
-    # axs[1].plot(isi_th, t_tmp, 'k.-')
+    # t_tmp = np.linspace(0, np.max(isi),100)
+    # isi_pois = fr_mean_rs*np.exp(-fr_mean_rs*t_tmp*1e-3) # poisson    
+    # axs[1].plot(isi_pois, t_tmp, 'k.-')
     
     dbb = 1.5
     ll, bb, ww, hh = axs[0].get_position().bounds
@@ -507,16 +518,37 @@ if __name__ == '__main__':
     #%% correlation analysis
     tic = tictoc()
     corr_orn = np.zeros((n_neu_tot,n_neu_tot))
+    corr_vorn = np.zeros((n_neu_tot,n_neu_tot))
     for nn1 in range(n_neu_tot):
         for nn2 in range(n_neu_tot):
             if nn2>nn1:
-                pip1 = v_orn[500:250000:5, nn1]
-                pip2 = v_orn[500:250000:5, nn2]
-                corr_orn[nn1, nn2] = np.corrcoef((pip1,pip2))[0,1]
+                pip1 = v_orn[::5, nn1]
+                pip2 = v_orn[::5, nn2]
+                corr_vorn[nn1, nn2] = np.corrcoef((pip1,pip2))[0,1]
+                corr_vorn[nn2, nn1] = corr_vorn[nn1, nn2]
                 
-    toc = tictoc()
-    print('correlation analysis time: %.4f s' %(toc-tic))
-    print(corr_orn)
+                pip1 = np.zeros(t_tot)
+                pip2 = np.zeros(t_tot)
+                pip1[spike_matrix[spike_matrix[:,1] == nn1, 0]] = 1
+                pip2[spike_matrix[spike_matrix[:,1] == nn2, 0]] = 1
+                corr_orn[nn1, nn2] = np.corrcoef((pip1,pip2))[0,1]
+                corr_orn[nn2, nn1] = corr_orn[nn1, nn2]
+                
+    tmp_corr = corr_vorn[:n_orns_recep, :n_orns_recep]
+    tmp_corr[tmp_corr!=0]
+    corr_orn_hom = np.mean(tmp_corr[tmp_corr!=0])
+    corr_orn_het = np.mean(corr_vorn[:n_orns_recep, n_orns_recep:]) # corr_pn[0,-1]
+    print('Hom and Het Potent corr ORNs: %.3f and %.3f' 
+          %(corr_orn_hom, corr_orn_het))
+    
+    tmp_corr = corr_orn[:n_orns_recep, :n_orns_recep]
+    tmp_corr[tmp_corr!=0]
+    corr_orn_hom = np.mean(tmp_corr[tmp_corr!=0])
+    corr_orn_het = np.mean(corr_orn[:n_orns_recep, n_orns_recep:]) # corr_pn[0,-1]
+    print('Hom and Het spk cnt corr ORNs: %.3f and %.3f' 
+          %(corr_orn_hom, corr_orn_het))
+    
+    
     
     #%% FIGURE ORN dynamics
     # Create Transduction Matrix to plot odour 
@@ -532,7 +564,7 @@ if __name__ == '__main__':
             transd_mat[pp,:] = sens_params['od_pref'][pp,:]
         
     
-        t2plot = -t_on, np.min([1000-t_on, t_tot-t_on])
+        t2plot = -t_on, t_tot-t_on#np.min([1000-t_on, t_tot-t_on])
         panels_id = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l']
         
         rs = 5      # number of rows
@@ -550,10 +582,10 @@ if __name__ == '__main__':
             ax_orn[0].plot(t-t_on, weight_od, linewidth=lw+1, )
             for rr in range(1, rs):
                 X0 = t-t_on
-                trsp = .7
+                trsp = .3
                 if rr == 1:
                     X1 = r_orn
-                    trsp = .7            
+                    trsp = .3            
                 elif rr == 2:
                     X1 = y_orn
                 elif rr == 3:
@@ -568,13 +600,14 @@ if __name__ == '__main__':
                 mu1 = X1.mean(axis=1)
                 sigma1 = X1.std(axis=1)
                 
-                # ax_orn[rr].plot(X0, mu1,  
-                #               linewidth=lw+1, color=recep_clrs[0],)
+                ax_orn[rr].plot(X0, mu1,  
+                              linewidth=lw+1, color=recep_clrs[0],)
                 for nn in range(n_orns_recep):
                     ax_orn[rr].plot(X0, X1[:, nn], 
                                     linewidth=lw-1, color=recep_clrs[0], alpha=trsp)
             
             # SETTINGS
+            ax_orn[4].set_ylim(0, 30)
             for rr in range(rs):
                 ax_orn[rr].tick_params(axis='both', which='major', labelsize=ticks_fs)
                 ax_orn[rr].text(-.15, 1.25, panels_id[rr], transform=ax_orn[0].transAxes, 
@@ -613,7 +646,7 @@ if __name__ == '__main__':
             ax_orn[4].set_position([ll_new, bb+1.7*bb_plus, ww_new, hh])
             
             plt.show()
-            
+        #%%    
         else:
             for id_neu in range(n_neu):
                 
@@ -624,29 +657,32 @@ if __name__ == '__main__':
                 
                 for rr in range(1, rs):
                     X0 = t-t_on
-                    trsp = .5
+                    trsp = .1
                     if rr == 1:
                         X1 = r_orn[:, id_neu*n_orns_recep:((id_neu+1)*n_orns_recep)]
                     elif rr == 2:
-                        trsp = .5
+                        trsp = .1
                         X1 = y_orn[:, id_neu*n_orns_recep:((id_neu+1)*n_orns_recep)]
                     elif rr == 3:
                         X1 = v_orn[:, id_neu*n_orns_recep:((id_neu+1)*n_orns_recep)]
                         ax_orn[3, id_neu].plot([t[0]-t_on, t[-1]-t_on], [vrest, vrest], 
                                        '--', linewidth=lw, color=red,)
-                        ax_orn[3, id_neu].plot([t[0]-t_on, t[-1]-t_on], [vrev, vrev], 
-                                       '-.', linewidth=lw, color=red,)
+                        # ax_orn[3, id_neu].plot([t[0]-t_on, t[-1]-t_on], [vrev, vrev], 
+                        #                '-.', linewidth=lw, color=red,)
                     elif rr == 4:
                         X1 = orn_sdf[:, id_neu*n_orns_recep:((id_neu+1)*n_orns_recep)] 
                         X0 = orn_sdf_time-t_on
                     mu1 = X1.mean(axis=1)
                     sigma1 = X1.std(axis=1)
                     
-                    # ax_orn[rr, id_neu].plot(X0, mu1,  
-                    #               linewidth=lw+1, color=recep_clrs[id_neu],)
-                    for nn in range(n_orns_recep):
-                        ax_orn[rr, id_neu].plot(X0, X1[:, nn], 
-                                  linewidth=lw-1, color=recep_clrs[id_neu], alpha=trsp)
+                    ax_orn[rr, id_neu].fill_between(X0, mu1+sigma1, mu1-sigma1, 
+                                facecolor=recep_clrs[id_neu], alpha=trsp)
+                    
+                    ax_orn[rr, id_neu].plot(X0, mu1,  
+                                   linewidth=lw+1, color=recep_clrs[id_neu],)
+                    # for nn in range(n_orns_recep):
+                        # ax_orn[rr, id_neu].plot(X0, X1[:, nn], 
+                                  # linewidth=lw-1, color=recep_clrs[id_neu], alpha=trsp)
                     
             
                 # FIGURE SETTINGS
@@ -658,6 +694,7 @@ if __name__ == '__main__':
                                 
                 ax_orn[4, id_neu].set_xlabel('Time  (ms)', fontsize=label_fs) 
             
+                ax_orn[4, id_neu].set_ylim(0, 30)
                 # LABELING THE PANELS
                 # ax_orn[0, id_neu].text(-.15, 1.25, panels_id[0+id_neu], 
                 #                        transform=ax_orn[0, id_neu].transAxes, 

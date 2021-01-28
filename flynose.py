@@ -31,6 +31,10 @@ import stats_for_plumes as stats
 
 # *****************************************************************
 # FUNCTIONS
+# tic toc
+def tictoc():
+    return timeit.default_timer()
+
 def depalo_eq2(z,t,u,orn_params,num_recep):
     a_y = orn_params[0]
     c_x = orn_params[1]
@@ -319,7 +323,10 @@ def main(params2an, fig_opts):
         
         u_od[stim_off:, 0] = u_od[stim_off-1, 0]*np.exp(-t_tmp/tau_on)
         u_od[stim_off2:, 1] = u_od[stim_off2-1, 1]*np.exp(-t_tmp2/tau_on)
-        
+    
+    elif stim_type == 'rs':
+        # baseline or rs stimuli
+        print('rs stimulus type, i.e. no stimulus at all')    
         
     elif stim_type == 'ts':
         # Single Step Stimuli
@@ -425,19 +432,19 @@ def main(params2an, fig_opts):
     # *****************************************************************
     # NETWORK PARAMETERS 
     n_orns_pn         = 18    # number of ORNs per each PN in each glomerulus
-    n_orns_recep        = 40    # number of ORNs per each glomerulus
+    n_orns_recep      = 18    # number of ORNs per each glomerulus
     n_orns_tot        = n_orns_recep*num_glo_tot  # total number of ORNs 
-    n_pns_recep         = 5     # number of PNs per each glomerulus
-    n_lns_recep         = 3     # number of LNs per each glomerulus
+    n_pns_recep       = 5     # number of PNs per each glomerulus
+    n_lns_recep       = 3     # number of LNs per each glomerulus
     n_pns_tot         = n_pns_recep*num_glo_tot # number of total PNs
     n_lns_tot         = n_lns_recep*num_glo_tot # number of total LNs 
     
     # *****************************************************************
     # ORN PARAMETERS 
     
-    cov_hom         = 0.004 # Covariance value homotypic ORNs
-    nu_pn_noise     = 200 # Hz  - PNs Noise into each PNs
-    nu_ln_noise     = 0 # Hz    - LNs Noise into each PNs
+    cov_hom         = 0.004 # 0.004 Covariance value homotypic ORNs
+    nu_pn_noise     = 200 # 200 Hz  - PNs Noise into each PNs
+    nu_ln_noise     = 0 # 0 Hz    - LNs Noise into each PNs
 
     # rectification params
     c_rect              = 1
@@ -668,9 +675,9 @@ def main(params2an, fig_opts):
     
     # *****************************************************************
     # FIGURE ORN dynamics
-    orn_fig=1
+    
     if orn_fig:  
-        t2plot = -200, 1000 #t_tot #-t_on, t_tot-t_on
+        t2plot = -t_on, t_tot-t_on
         rs = 4 # number of rows
         cs = 1 # number of cols
 
@@ -798,7 +805,7 @@ def main(params2an, fig_opts):
             if ext_stimulus:
                 orn_fig_name = '/ORN_' + params2an[7] + '.png'
             else:
-                #%%
+                
                 if stim_type == 'pl':
                     orn_fig_name = '/ORNdyn' + \
                                 '_stim_' + stim_type +\
@@ -823,6 +830,50 @@ def main(params2an, fig_opts):
                             '_peakratio_%.1f'%(peak1/peak2) +\
                             '.png'
             fig_orn.savefig(fld_analysis + orn_fig_name)
+            plt.show()
+        
+        #%% FIGURE ISI of ORNs
+    
+        n_neu = 2
+        n_neu_tot       = n_neu*n_orns_recep
+        n_isi = np.zeros((n_neu_tot,))
+        recep_clrs = ['purple','green','cyan','red']
+        fig, axs = plt.subplots(1, 2, figsize=(7,7))    
+        
+        for nn1 in range(n_neu):
+            isi = []
+            for nn2 in range(n_orns_recep):
+                nn = nn2+n_orns_recep*nn1     
+                min_isi = 10
+                spks_tmp = orn_spike_matrix[orn_spike_matrix[:,1]==nn][:,0]
+                spks_tmp = spks_tmp[spks_tmp>200]
+                spks_tmp = spks_tmp[spks_tmp<t_on]
+                n_isi[nn] = len(spks_tmp)-1
+                isi = np.append(isi, np.diff(spks_tmp))
+                if np.shape(isi)[0]>0:
+                    min_isi = np.min((np.min(isi), min_isi))
+                    
+                axs[0].plot(np.diff(spks_tmp), '.-', color=recep_clrs[nn1], alpha=.25)
+            
+            if len(isi)>3:
+                axs[1].hist(isi, bins=int(len(isi)/3), color=recep_clrs[nn1], alpha=.25, 
+                        orientation='horizontal')
+        
+        fr_mean_rs = 1000/np.mean(isi)
+        print('average freq. baseline: %.2f Hz' %fr_mean_rs)
+        
+        # t_tmp = np.linspace(0, np.max(isi),100)
+        # isi_pois = fr_mean_rs*np.exp(-fr_mean_rs*t_tmp*1e-3) # poisson    
+        # axs[1].plot(isi_pois, t_tmp, 'k.-')
+        
+        dbb = 1.5
+        ll, bb, ww, hh = axs[0].get_position().bounds
+        axs[0].set_position([ll, bb, ww*dbb , hh])
+        
+        ll, bb, ww, hh = axs[1].get_position().bounds
+        axs[1].set_position([ll+(dbb - 1)*ww, bb, ww*(2-dbb), hh])
+        
+        plt.show()
     # ******************************************************************
     
     # *****************************************************************
@@ -885,7 +936,8 @@ def main(params2an, fig_opts):
     v_ln            = np.ones((n2sim, n_lns_tot))*vrest_ln
     ln_ref_cnt      = np.zeros(n_lns_tot) # initially the ref period cnter is equal to 0
             
-    
+    # let s silence the ORN, and analyze the corr in PNs
+    # u_orn = u_orn*.999#np.zeros_like(u_orn)
     
     if al_dyn:
         # *****************************************************************
@@ -972,20 +1024,62 @@ def main(params2an, fig_opts):
         [pn_spike_matrix, ln_spike_matrix, ] = [np.nan, np.nan]
     
 
+    if al_dyn:
+        # correlation analysis of V_pn correlation
+        corr_vpn = np.zeros((n_pns_tot, n_pns_tot))
+        for nn1 in range(n_pns_tot):
+            for nn2 in range(n_pns_tot):
+                if nn2>nn1:
+                    pip1 = v_pn[::pts_ms, nn1]
+                    pip2 = v_pn[::pts_ms, nn2]
+                    corr_vpn[nn1, nn2] = np.corrcoef((pip1,pip2))[0,1]
+        
+        corr_pn_hom = corr_vpn[0,1]
+        corr_pn_het = corr_vpn[0,-1]
+        print('Hom and Het corr V PNs: %.3f and %.3f' 
+              %(corr_pn_hom, corr_pn_het))
+        
+        # correlation analysis of V_ln correlation
+        corr_vln = np.zeros((n_lns_tot, n_lns_tot))
+        for nn1 in range(n_lns_tot):
+            for nn2 in range(n_lns_tot):
+                if nn2>nn1:
+                    pip1 = v_ln[::pts_ms, nn1]
+                    pip2 = v_ln[::pts_ms, nn2]
+                    corr_vln[nn1, nn2] = np.corrcoef((pip1,pip2))[0,1]
+        
+        corr_ln_hom = corr_vln[0,1]
+        corr_ln_het = corr_vln[0,-1]
+        print('Hom and Het corr V PNs: %.3f and %.3f' 
+              %(corr_ln_hom, corr_ln_het))
+        
     # %******************************************
     # FIGURE ORN, PN, LN
     if al_dyn & al_fig:
+        
+        
+        
+        
         # *****************************************************************
         # Calculate the SDF for PNs and LNs
-        pn_sdf, pn_sdf_time = sdf_krofczik.main(pn_spike_matrix, sdf_size,
-                                                     tau_sdf, dt_sdf)  # (Hz, ms)
-        pn_sdf= pn_sdf*1e3
-    
-        ln_sdf, ln_sdf_time = sdf_krofczik.main(ln_spike_matrix, sdf_size,
-                                                     tau_sdf, dt_sdf)  # (Hz, ms)
-        ln_sdf= ln_sdf*1e3
         
-        t2plot = -300, t_tot-300
+        pn_sdf_time = np.linspace(0, dt_sdf*sdf_size, sdf_size)
+        ln_sdf_time = np.linspace(0, dt_sdf*sdf_size, sdf_size)
+        pn_sdf = np.zeros((sdf_size, n_pns_tot))
+        ln_sdf = np.zeros((sdf_size, n_lns_tot))
+        
+        if ~(np.sum(pn_spike_matrix) == 0):
+            pn_sdf, pn_sdf_time = sdf_krofczik.main(pn_spike_matrix, sdf_size,
+                                                     tau_sdf, dt_sdf)  # (Hz, ms)
+            pn_sdf= pn_sdf*1e3
+        
+        
+        if ~(np.sum(ln_spike_matrix) == 0):
+            ln_sdf, ln_sdf_time = sdf_krofczik.main(ln_spike_matrix, sdf_size,
+                                                         tau_sdf, dt_sdf)  # (Hz, ms)
+            ln_sdf= ln_sdf*1e3
+        
+        t2plot = -t_on, t_tot-t_on
         rs = 4 # number of rows
         cs = 1 # number of cols
         fig_size = [7, 8] 
@@ -1026,14 +1120,16 @@ def main(params2an, fig_opts):
                 ax_orn.plot(orn_sdf_time-t_on, np.mean(orn_sdf[:,recep_id*n_orns_recep:((recep_id+1)*n_orns_recep)], axis=1),
                                                       color=recep_clrs[ll], linewidth=lw+1,label='sdf glo')
                 
-                ax_pn.plot(pn_sdf_time-t_on, pn_sdf[:,recep_id*n_pns_recep:((recep_id+1)*n_pns_recep)], '--',color=recep_clrs[ll], 
-                                      linewidth=lw, label='PN')
+                ax_pn.plot(pn_sdf_time-t_on, 
+                           pn_sdf[:,recep_id*n_pns_recep:((recep_id+1)*n_pns_recep)], 
+                           '--', color=recep_clrs[ll], linewidth=lw, label='PN')
                 
-                ax_ln.plot(ln_sdf_time-t_on, ln_sdf[:,recep_id*n_lns_recep:((recep_id+1)*n_lns_recep)], '--',color=recep_clrs[ll], 
-                                      linewidth=lw, label='LN')
-                ax_ln.plot(pn_sdf_time-t_on, 
-                        pn_sdf[:, recep_id*n_pns_recep:((recep_id+1)*n_pns_recep)], '--', #pn_sdf
-                        color=recep_clrs[ll], linewidth=lw,)
+                ax_ln.plot(ln_sdf_time-t_on, 
+                           ln_sdf[:,recep_id*n_lns_recep:((recep_id+1)*n_lns_recep)], 
+                           '--', color=recep_clrs[ll], linewidth=lw, label='LN')
+                # ax_ln.plot(pn_sdf_time-t_on, 
+                #         pn_sdf[:, recep_id*n_pns_recep:((recep_id+1)*n_pns_recep)], '--', #pn_sdf
+                #         color=recep_clrs[ll], linewidth=lw,)
                 recep_id = recep_id+1
                 
             ax_conc.set_xlim(t2plot)
@@ -1045,6 +1141,11 @@ def main(params2an, fig_opts):
             ax_pn.set_ylim((0, 180))
             ax_ln.set_ylim((0, 230))
     
+        
+            ax_orn.set_ylim((0, 30))
+            ax_pn.set_ylim((0, 30))
+            ax_ln.set_ylim((0, 30))
+
             ax_conc.tick_params(axis='both', labelsize=label_fs)
             ax_orn.tick_params(axis='both', labelsize=label_fs)
             ax_pn.tick_params(axis='both', labelsize=label_fs)
@@ -1164,12 +1265,12 @@ if __name__ == '__main__':
    
     # #***********************************************
     # # stimulus params
-    stim_dur        = 500
+    stim_dur        = 50
     delay           = 0    
-    stim_type       = 'ss'          # 'ts'  # 'ss' # 'pl'
+    stim_type       = 'rs'          # 'rs' # 'ts'  # 'ss' # 'pl'
     pts_ms          = 1
-    t_tot           = 2000        # ms 
-    t_on            = [300, 300+delay]    # ms
+    t_tot           = 1500        # ms 
+    t_on            = [1300, 1300+delay]    # ms
     t_off           = np.array(t_on)+stim_dur # ms
     concs           = [.7, .7]
     sdf_size        = int(t_tot/dt_sdf)
@@ -1205,7 +1306,7 @@ if __name__ == '__main__':
     
     params2an = [nsi_str, alpha_ln, stim_params,]
     
-    orn_fig     = 0
+    orn_fig     = 1
     al_fig      = 1
     fig_ui      = 1        
     fig_save    = 1    
@@ -1290,7 +1391,52 @@ if __name__ == '__main__':
                 
                 print('mean time strong')
                 print(perf_time[1,:])
-            
+            elif stim_type == 'rs':
+                
+                # Calculate the mean for PNs and LNs                
+                pn_avg = np.mean(pn_sdf)
+                ln_avg = np.mean(ln_sdf)
+                print('mean PNs: %.2f Hz' %pn_avg)
+                print('mean LNs: %.2f Hz' %ln_avg)
+                
+                
+                #%% correlation analysis
+                #np.set_printoptions(precision=3)
+
+                tic = tictoc()
+                n_pn = np.max(pn_spike_matrix[:,1])+1
+                corr_pn = np.zeros((n_pn, n_pn))
+                for nn1 in range(n_pn):
+                    for nn2 in range(n_pn):
+                        if nn2>nn1:
+                            pip1 = np.zeros(t_tot)
+                            pip2 = np.zeros(t_tot)
+                            pip1[pn_spike_matrix[pn_spike_matrix[:,1] == nn1, 0]] = 1
+                            pip2[pn_spike_matrix[pn_spike_matrix[:,1] == nn2, 0]] = 1
+                            corr_pn[nn1, nn2] = np.corrcoef((pip1,pip2))[0,1]
+                            
+
+                n_orn = np.max(orn_spike_matrix[:,1])+1
+                corr_orn = np.zeros((n_orn, n_orn))
+                for nn1 in range(n_orn):
+                    for nn2 in range(n_orn):
+                        if nn2>nn1:
+                            pip1 = np.zeros(t_tot)
+                            pip2 = np.zeros(t_tot)
+                            pip1[orn_spike_matrix[orn_spike_matrix[:,1] == nn1, 0]] = 1
+                            pip2[orn_spike_matrix[orn_spike_matrix[:,1] == nn2, 0]] = 1
+                            corr_orn[nn1, nn2] = np.corrcoef((pip1,pip2))[0,1]
+                            
+                corr_pn_hom = corr_pn[0,1]
+                corr_pn_het = corr_pn[0,-1]
+                print('Hom and Het spike cound  corr PNs: %.3f and %.3f' 
+                      %(corr_pn_hom, corr_pn_het))
+                
+                corr_orn_hom = corr_orn[0,1]
+                corr_orn_het = corr_orn[0,-1]
+                print('Hom and Het spike cound corr ORNs: %.3f and %.3f' 
+                      %(corr_orn_hom, corr_orn_het))
+               #%%
             print('peak strong:%.1f Hz, peak weak:%.1f Hz'
                   %(np.mean(pn_peak_s), np.mean(pn_peak_w)))
             print('peak ratio:%.1f, avg ratio:%.1f, avg dif:%.1f Hz'

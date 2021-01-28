@@ -44,19 +44,20 @@ def tictoc():
     return timeit.default_timer()
 
 def pn2ln_v_ex(x0,t, s, ln_params, ):
-#    ln_params = np.array([tau_s, tau_v, a_s_ln, vrev_ln, vrest_ln])
+#    ln_params = np.array([tau_s, tau_v, a_s_ln, vrev_ln, vrest_ln, vln_noise])
     tau_v = ln_params[1]
     
     vrev = ln_params[3]
     vrest = ln_params[4]
+    vln_noise = ln_params[5]*1*(-.5+np.random.uniform(0, 1, size=np.shape(x0)))
     
     # PN -> LN equations:
     # ORN -> PN equations:
     dt = t[1]-t[0]
     b = -(1 + s)/tau_v
-    a = (vrest + s*vrev)/tau_v
+    a = (vrest + s*vrev + vln_noise)/tau_v
     y = (x0 + a/b)*np.exp(b*dt)-a/b
-    #dvdt = ((vrest-v) + s*(vrev-v) )/tau_v
+    #dvdt = ((vrest-v) + s*(vrev-v) + v_bckgnd)/tau_v
     return y
 
 def pn2ln_s_ex(x0,t, u_pn, ln_params, ):
@@ -93,18 +94,19 @@ def orn2pn_s_ex(x0,t, u_orn, x_pn,y_ln,pn_params,):
     return y
 
 def orn2pn_v_ex(x0,t, s, pn_params,):
-#    pn_params  = np.array([tau_s, tau_v, a_s_pn, vrev_pn, vrest_pn])
+#    pn_params  = np.array([tau_s, tau_v, a_s_pn, vrev_pn, vrest_pn, vpn_noise])
     tau_v = pn_params[1]
     
     vrev = pn_params[3]
     vrest = pn_params[4]
+    vpn_noise = pn_params[5]*(-.5+np.random.uniform(0, 1, size=np.shape(x0)))
     
     # ORN -> PN equations:
     dt = t[1]-t[0]
     b = -(1 + s)/tau_v
-    a = (vrest + s*vrev)/tau_v
+    a = (vrest + s*vrev + vpn_noise)/tau_v
     y = (x0 + a/b)*np.exp(b*dt)-a/b
-#    dvdt = (vrest + s*vrev)/tau_v  - v*(1 + g*s)/tau_v
+#    dvdt = (vrest + s*vrev + v_bckgnd)/tau_v  - v*(1 + g*s)/tau_v
     return y
 
 def x_adapt_ex(x0,t,u_orn, tau, a_ad,):
@@ -122,14 +124,14 @@ def x_adapt_ex(x0,t,u_orn, tau, a_ad,):
    
 # Stimulus params
 stim_params     = dict([
-                    ('stim_type' , 'ss'),   # 'ts'  # 'ss' # 'pl'
+                    ('stim_type' , 'rs'),   # 'ts'  # 'ss' # 'pl'
                     ('pts_ms' , 5),         # simulated pts per ms 
                     ('n_od', 2),            # number of odours
-                    ('t_tot', 1500),        # ms 
-                    ('conc0', [2.853669391e-04]),
-                    ('r_noise', 15), 
+                    ('t_tot', 4000),        # ms 
+                    ('conc0', [2.85e-04]),    # 2.854e-04
                     ('od_noise', 00), 
-                    ('filter_frq', 0.001),#0.001
+                    ('r_noise', 2.0), 
+                    ('filter_frq', 0.006),#0.001
                     ])
 
 n_od = stim_params['n_od']
@@ -141,8 +143,8 @@ if n_od == 1:
                     ])
 elif n_od == 2:
     concs_params    = dict([
-                    ('stim_dur' , np.array([500, 500])),
-                    ('t_on', np.array([300, 300])),          # ms
+                    ('stim_dur' , np.array([50, 50])),
+                    ('t_on', np.array([3900, 3900])),          # ms
                     ('concs', np.array([.003, .003])),
                     ])
 
@@ -158,7 +160,9 @@ orn_params  = dict([
                     ('vrev', 21.1784081),  # [mV] reversal potential
                     # ('v_k', vrest),
                     ('g_y', .5853575783),       
-                    ('g_r', .864162073),       
+                    ('g_r', .864162073),  
+                    ('r0', 0.15), 
+                    ('y0', 2), 
     # Adaptation params
                     ('alpha_y', .45310619), 
                     ('beta_y', 3.467184e-03), 
@@ -175,7 +179,7 @@ sdf_params          = [tau_sdf, dt_sdf, ]
 #       NOT THE TRANSDUCTION VECTORS
 
 # Sensilla/network parameters
-n_orns_recep        = 40         # number of ORNs per each receptor
+n_orns_recep        = 20         # number of ORNs per each receptor
 
 # Transduction parameters
 od_pref = np.array([[1,0], [0,1],]) # ORNs' sensibilities to each odours
@@ -251,7 +255,7 @@ for st in range(n_sens_type):
 n_recep_tot       = sum(n_recep_list) # number of receptors in total
 
 # AL + ORN layer network parameters
-n_orns_pn         = 18    # number of ORNs per each PN in each glomerulus
+n_orns_pn         = n_orns_recep    # number of ORNs per each PN in each glomerulus
 n_orns_tot        = n_orns_recep*n_recep_tot  # total number of ORNs 
 
 n_pns_recep       = 5     # number of PNs per each glomerulus
@@ -362,14 +366,14 @@ orn_spikes_all = None
 t_zeros = None 
 
 toc = tictoc()
-print('ORNs sim time: %.2f s' %(toc-tic,))
+# print('ORNs sim time: %.2f s' %(toc-tic,))
 
 
-# %%  AL SIMULATION 
+# %%  AL DYNAMICS SIMULATION 
 
 tic = tictoc()
 
-al_dyn = 0
+al_dyn = 1
   
 alpha_ln = 0.0#3                           
 
@@ -381,31 +385,37 @@ tau_s               = 10        # [ms]
 a_s_pn              = 2.5       #     
 vrest_pn            = -6.5      # [mV] resting potential
 vrev_pn             = 15.0      # [mV] reversal potential
+vpn_noise           = 6         # extra noise input to PNs
 
 alpha_x             = 2.         # ORN input coeff for adaptation variable x_pn
 tau_x               = 600    # [ms] time scale for dynamics of adaptation variable x_pn
 x_pn0               = 0.48*np.ones(n_pns_tot)     # 0.27
 
-pn_params  = np.array([tau_s, tau_v, a_s_pn, vrev_pn, vrest_pn])
+pn_params  = np.array([tau_s, tau_v, a_s_pn, vrev_pn, vrest_pn, vpn_noise])
 
 # LN PARAMETERS
 a_s_ln              = 2.5       #     
 vrest_ln            = -3.0      # -1.5 [mV] resting potential
 vrev_ln             = 15.0      # [mV] reversal potential
-
+vln_noise           = 1         # extra noise input to LNs
 
 tau_y               = 600    # [ms] time scale for dynamics of adaptation variable y_ln
 y_ln0               = 0.025*np.ones(n_pns_tot) # 0.2
-ln_params = np.array([tau_s, tau_v, a_s_ln, vrev_ln, vrest_ln])
+ln_params = np.array([tau_s, tau_v, a_s_ln, vrev_ln, vrest_ln, vln_noise])
 
 # Initialize LN to PN output vectors
 x_pn            = np.zeros((n2sim, n_pns_tot))
 u_pn            = np.zeros((n2sim, n_lns_tot))
+s_pn            = np.zeros((n2sim, n_pns_tot))
+v_pn            = np.ones((n2sim, n_pns_tot))*vrest_pn
+
 u_ln            = np.zeros((n2sim, n_pns_tot))
 y_ln            = np.zeros((n2sim, n_pns_tot))
 
 # Initialize PN output vectors
 num_spike_pn    = np.zeros((n2sim, n_pns_tot))
+
+pn_ref_cnt      = np.zeros(n_pns_tot) # Refractory period counter starts from 0
 
 # Initialize LN output vectors
 s_ln            = np.zeros((n2sim, n_lns_tot))
@@ -413,14 +423,16 @@ v_ln            = np.zeros((n2sim, n_lns_tot))
 num_spike_ln    = np.zeros((n2sim, n_lns_tot))  
 
 # PN and LN params initial conditions
-x_pn[0, :]      = x_pn0
-s_pn            = np.zeros((n2sim, n_pns_tot))
-v_pn            = np.ones((n2sim, n_pns_tot))*vrest_pn
-pn_ref_cnt      = np.zeros(n_pns_tot) # Refractory period counter starts from 0
+s_pn[0, :]      = 0.2*(1 + np.random.standard_normal((1, n_pns_tot)))
+x_pn[0, :]      = x_pn0*(1 + np.random.standard_normal((1, n_pns_tot)))
+v_pn[0,:]      = .5*np.ones((1, n_pns_tot)) \
+    + np.random.standard_normal((1, n_pns_tot)) 
 
-y_ln[0, :]      = y_ln0
-s_ln            = np.zeros((n2sim, n_lns_tot))
-v_ln            = np.ones((n2sim, n_lns_tot))*vrest_ln
+s_ln[0, :]      = 0.2*(1 + np.random.standard_normal((1, n_lns_tot)))
+y_ln[0, :]      = y_ln0*(1 + np.random.standard_normal((1, n_pns_tot)))
+v_ln[0,:]      = .5*np.ones((1, n_lns_tot)) \
+    + np.random.standard_normal((1, n_lns_tot)) 
+
 ln_ref_cnt      = np.zeros(n_lns_tot) # initially the ref period cnter is equal to 0
 
 if al_dyn:
@@ -462,7 +474,7 @@ if al_dyn:
         pn_ref_cnt[pn_above_thr] = t_ref
         
         # PN -> LN synapses        
-        
+            
         # LNs whose ref_cnt is equal to zero:
         ln_ref_0 = ln_ref_cnt==0
         s_ln[tt, ln_ref_0] = pn2ln_s_ex(s_ln[tt-1, ln_ref_0], tspan, 
@@ -492,19 +504,124 @@ if al_dyn:
     ln_spike_matrix = np.transpose(ln_spike_matrix)
     toc = tictoc()
 
-    print('AL sim time: %.2f s' %(toc-tic,))
+    # print('AL sim time: %.2f s' %(toc-tic,))
 
 else:
     # output values w/o simulations
     [pn_spike_matrix, ln_spike_matrix, ] = [np.nan, np.nan]
     print('No AL dynamics')
     
+#%% ORN correlation analysis
+corr_orn = np.zeros((n_orns_tot, n_orns_tot))
+corr_vorn = np.zeros((n_orns_tot, n_orns_tot))
+for nn1 in range(n_orns_tot):
+    for nn2 in range(n_orns_tot):
+        if nn2>nn1:
+            pip1 = v_orn[::5, nn1]
+            pip2 = v_orn[::5, nn2]
+            corr_vorn[nn1, nn2] = np.corrcoef((pip1,pip2))[0,1]
+            corr_vorn[nn2, nn1] = corr_vorn[nn1, nn2]
+            
+            pip1 = np.zeros(t_tot)
+            pip2 = np.zeros(t_tot)
+            pip1[spike_matrix[spike_matrix[:,1] == nn1, 0]] = 1
+            pip2[spike_matrix[spike_matrix[:,1] == nn2, 0]] = 1
+            corr_orn[nn1, nn2] = np.corrcoef((pip1,pip2))[0,1]
+            corr_orn[nn2, nn1] = corr_orn[nn1, nn2]
+            
+tmp_corr = corr_vorn[:n_orns_recep, :n_orns_recep]
+tmp_corr[tmp_corr!=0]
+corr_orn_hom = np.mean(tmp_corr[tmp_corr!=0])
+corr_orn_het = np.mean(corr_vorn[:n_orns_recep, n_orns_recep:]) # corr_pn[0,-1]
+print('ORNs, Hom and Het Potent corr: %.3f and %.3f' 
+      %(corr_orn_hom, corr_orn_het))
 
+tmp_corr = corr_orn[:n_orns_recep, :n_orns_recep]
+tmp_corr[tmp_corr!=0]
+corr_orn_hom = np.mean(tmp_corr[tmp_corr!=0])
+corr_orn_het = np.mean(corr_orn[:n_orns_recep, n_orns_recep:]) # corr_pn[0,-1]
+print('ORNs, Hom and Het spk cnt corr: %.3f and %.3f' 
+      %(corr_orn_hom, corr_orn_het))
 
+orn_avg = np.mean(orn_sdf)
+print('ORNs, FR avg: %.2f Hz' %orn_avg)
+print('')
+
+if al_dyn:   
+    #%% PNs correlation analysis
+    corr_pn = np.zeros((n_pns_tot, n_pns_tot))
+    corr_vpn = np.zeros((n_pns_tot, n_pns_tot))
+    for nn1 in range(n_pns_tot):
+        for nn2 in range(n_pns_tot):
+            if nn2>nn1:
+                pip1 = np.zeros(t_tot)
+                pip2 = np.zeros(t_tot)
+                pip1[pn_spike_matrix[pn_spike_matrix[:,1] == nn1, 0]] = 1
+                pip2[pn_spike_matrix[pn_spike_matrix[:,1] == nn2, 0]] = 1
+    
+                corr_pn[nn1, nn2] = np.corrcoef((pip1,pip2))[0,1]
+                corr_pn[nn2, nn1] = corr_pn[nn1, nn2]
+                
+                pip1 = v_pn[::pts_ms, nn1]
+                pip2 = v_pn[::pts_ms, nn2]
+                corr_vpn[nn1, nn2] = np.corrcoef((pip1, pip2))[0,1]
+                corr_vpn[nn2, nn1] = corr_vpn[nn1, nn2]
+                
+    tmp_corr = corr_vpn[:n_pns_recep, :n_pns_recep]
+    tmp_corr[tmp_corr!=0]
+    corr_pn_hom = np.mean(tmp_corr[tmp_corr!=0])
+    corr_pn_het = np.mean(corr_vpn[:n_pns_recep, n_pns_recep:]) # corr_pn[0,-1]
+    print('PNs, Hom and Het Potent corr: %.3f and %.3f' 
+          %(corr_pn_hom, corr_pn_het))
+    
+    tmp_corr = corr_pn[:n_pns_recep, :n_pns_recep]
+    tmp_corr[tmp_corr!=0]
+    corr_pn_hom = np.mean(tmp_corr[tmp_corr!=0])
+    corr_pn_het = np.mean(corr_pn[:n_pns_recep, n_pns_recep:]) # corr_pn[0,-1]
+    print('PNs, Hom and Het spk cnt corr: %.3f and %.3f' 
+          %(corr_pn_hom, corr_pn_het))
+    
+    print('')
+    #%% LNs correlation analysis
+    corr_ln = np.zeros((n_lns_tot, n_lns_tot))
+    corr_vln = np.zeros((n_lns_tot, n_lns_tot))
+    for nn1 in range(n_lns_tot):
+        for nn2 in range(n_lns_tot):
+            if nn2>nn1:
+                pip1 = np.zeros(t_tot)
+                pip2 = np.zeros(t_tot)
+                pip1[pn_spike_matrix[pn_spike_matrix[:,1] == nn1, 0]] = 1
+                pip2[pn_spike_matrix[pn_spike_matrix[:,1] == nn2, 0]] = 1
+    
+                corr_ln[nn1, nn2] = np.corrcoef((pip1,pip2))[0,1]
+                corr_ln[nn2, nn1] = corr_ln[nn1, nn2]
+                
+                pip1 = v_ln[::pts_ms, nn1]
+                pip2 = v_ln[::pts_ms, nn2]
+                corr_vln[nn1, nn2] = np.corrcoef((pip1, pip2))[0,1]
+                corr_vln[nn2, nn1] = corr_vln[nn1, nn2]
+                
+    tmp_corr = corr_vln[:n_lns_recep, :n_lns_recep]
+    tmp_corr[tmp_corr!=0]
+    corr_ln_hom = np.mean(tmp_corr[tmp_corr!=0])
+    corr_ln_het = np.mean(corr_vln[:n_lns_recep, n_lns_recep:]) # corr_ln[0,-1]
+    print('LNs, Hom and Het Potent corr: %.3f and %.3f' 
+          %(corr_ln_hom, corr_ln_het))
+    
+    tmp_corr = corr_ln[:n_lns_recep, :n_lns_recep]
+    tmp_corr[tmp_corr!=0]
+    corr_ln_hom = np.mean(tmp_corr[tmp_corr!=0])
+    corr_ln_het = np.mean(corr_ln[:n_lns_recep, n_lns_recep:]) # corr_ln[0,-1]
+    print('LNs, Hom and Het spk cnt corr: %.3f and %.3f' 
+          %(corr_ln_hom, corr_ln_het))
+    print('')
+    
+    
+    
 # %% FIGURE ORN, PN, LN
 # Generate a figure per each sensillum type
 
-al_fig = 0
+al_fig = 1
 stim_type = stim_params['stim_type']
 
 panels_id = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l']
@@ -515,7 +632,7 @@ recep_clrs = ['purple','green','cyan','red']
 trsp = .3
     
 t_on    = np.min(stim_params['t_on'])
-t2plot = -t_on, 1000 #t_tot #-t_on, t_tot-t_on
+t2plot = -t_on, t_tot-t_on, 
 
 if al_dyn & al_fig:
     # Calculate the SDF for PNs and LNs
@@ -526,6 +643,12 @@ if al_dyn & al_fig:
     ln_sdf, ln_sdf_time = sdf_krofczik.main(ln_spike_matrix, sdf_size,
                                                  tau_sdf, dt_sdf)  # (Hz, ms)
     ln_sdf= ln_sdf*1e3
+    
+    # Calculate the mean for PNs and LNs                
+    pn_avg = np.mean(pn_sdf)
+    ln_avg = np.mean(ln_sdf)
+    print('FR avg PNs: %.2f Hz' %pn_avg)
+    print('FR avg LNs: %.2f Hz' %ln_avg)
     
     
     recep_id = 0
@@ -542,28 +665,38 @@ if al_dyn & al_fig:
         # ax_conc.plot(t-t_on, 100*u_od[:,1], '--',color=purple, linewidth=lw+1, 
         #                   label='glom : '+'%d'%(2))
         
-        for ll in range(num_recep):
+        for rr in range(num_recep):
             X1 = orn_sdf[:, recep_id*n_orns_recep:((recep_id+1)*n_orns_recep)] # np.mean(orn_sdf_norm[:,:,num_orns_glo:], axis=2)
             mu1 = X1.mean(axis=1)
             sigma1 = X1.std(axis=1)
             ax_orn.plot(orn_sdf_time-t_on, mu1, 
-                        color=recep_clrs[ll], linewidth=lw-1, )
+                        color=recep_clrs[rr], linewidth=lw-1, )
             ax_orn.fill_between(orn_sdf_time-t_on, mu1+sigma1, mu1-sigma1, 
-                                facecolor=recep_clrs[ll], alpha=trsp)
+                                facecolor=recep_clrs[rr], alpha=trsp)
                     
-            ax_pn.plot(t-t_on, 
-                       u_orn[:, recep_id*n_pns_recep:((recep_id+1)*n_pns_recep)], '--', #pn_sdf
-                       color=recep_clrs[ll], linewidth=lw,)
+            # ax_pn.plot(t-t_on, 
+            #            u_orn[:, recep_id*n_pns_recep:((recep_id+1)*n_pns_recep)], '--', #pn_sdf
+            #            color=recep_clrs[rr], linewidth=lw,)
+            # for nn1 in range(n_pns_recep):
+            #     pn_t_spikes = pn_spike_matrix[pn_spike_matrix[:,1] == rr*n_pns_recep+nn1, 0]
+            #     ax_pn.scatter(pn_t_spikes-t_on, np.ones_like(pn_t_spikes)*(rr*n_pns_recep+nn1),
+            #                     color=recep_clrs[rr], s=10)
+            # ax_ln.plot(t-t_on, 
+            #             v_pn[:, recep_id*n_pns_recep:((recep_id+1)*n_pns_recep)], '--', #pn_sdf
+            #             color=recep_clrs[rr], linewidth=lw,)
+                
             # ax_pn.plot(pn_sdf_time-t_on, 
-                       # pn_sdf[:, recep_id*n_pns_recep:((recep_id+1)*n_pns_recep)], '--', #pn_sdf
-                       # color=recep_clrs[ll], linewidth=lw,)
+                    # pn_sdf[:, recep_id*n_pns_recep:((recep_id+1)*n_pns_recep)], 
+                    # '--', color=recep_clrs[rr], linewidth=lw,)
             
-            # ax_ln.plot(ln_sdf_time-t_on, 
-                       # ln_sdf[:,recep_id*n_lns_recep:((recep_id+1)*n_lns_recep)], '--',
-                       # color=recep_clrs[ll], linewidth=lw, )
-            ax_ln.plot(pn_sdf_time-t_on, 
-                        pn_sdf[:, recep_id*n_pns_recep:((recep_id+1)*n_pns_recep)], '--', #pn_sdf
-                        color=recep_clrs[ll], linewidth=lw,)
+            ax_ln.plot(ln_sdf_time-t_on, 
+                        ln_sdf[:,recep_id*n_lns_recep:((recep_id+1)*n_lns_recep)], 
+                        '--', color=recep_clrs[rr], linewidth=lw, )
+            
+            for nn1 in range(n_lns_recep):
+                ln_t_spikes = ln_spike_matrix[ln_spike_matrix[:,1] == rr*n_lns_recep+nn1, 0]
+                ax_pn.scatter(ln_t_spikes-t_on, np.ones_like(ln_t_spikes)*(rr*n_lns_recep+nn1),
+                                color=recep_clrs[rr], s=10)
             
             recep_id = recep_id+1
             
@@ -572,9 +705,10 @@ if al_dyn & al_fig:
         ax_pn.set_xlim(t2plot)
         ax_ln.set_xlim(t2plot)
         
-        ax_orn.set_ylim((0, 150))
-        # ax_pn.set_ylim((0, 180))
-        ax_ln.set_ylim((0, 230))
+
+        ax_orn.set_ylim((0, 30))
+        # ax_pn.set_ylim((0, 30))
+        # ax_ln.set_ylim((0, 30))
 
         ax_conc.tick_params(axis='both', labelsize=label_fs)
         ax_orn.tick_params(axis='both', labelsize=label_fs)
@@ -646,7 +780,7 @@ if al_dyn & al_fig:
         
 #%% ORN FIGURE
 
-orn_fig = 1
+orn_fig = 0
 pts_ms  = stim_params['pts_ms']
 vrest   = orn_params['vrest']
 vrev    = orn_params['vrev']
@@ -670,22 +804,6 @@ if orn_fig:
         for pp in range(n_neu):
             transd_mat[pp,:] = orn_layer[st]['od_pref'][pp,:]
         
-        t_on    = np.min(stim_params['t_on'])
-        pts_ms  = stim_params['pts_ms']
-        vrest   = orn_params['vrest']
-        vrev    = orn_params['vrev']
-        
-        t2plot = -t_on, 1000 #t_tot #-t_on, t_tot-t_on
-        panels_id = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l']
-        
-        
-        rs = 5      # number of rows
-        cs = n_neu  #  number of cols
-                        
-        fig_orn, ax_orn = plt.subplots(rs, cs, figsize=[8.5, 9])
-        fig_orn.tight_layout()
-        recep_clrs = ['purple','green','cyan','red']
-     
         if n_neu == 1:
             weight_od = u_od*transd_mat[0,:]
             
@@ -701,8 +819,8 @@ if orn_fig:
                     X1 = v_orn
                     ax_orn[3].plot([t[0]-t_on, t[-1]-t_on], [vrest, vrest], 
                                    '--', linewidth=lw, color=red,)
-                    ax_orn[3].plot([t[0]-t_on, t[-1]-t_on], [vrev, vrev], 
-                                   '-.', linewidth=lw, color=red,)
+                    # ax_orn[3].plot([t[0]-t_on, t[-1]-t_on], [vrev, vrev], 
+                    #                '-.', linewidth=lw, color=red,)
                 elif rr == 4:
                     X1 = orn_sdf
                     X0 = orn_sdf_time-t_on
@@ -774,8 +892,8 @@ if orn_fig:
                         X1 = v_orn[:, id_neu*n_orns_recep:((id_neu+1)*n_orns_recep)]
                         ax_orn[3, id_neu].plot([t[0]-t_on, t[-1]-t_on], [vrest, vrest], 
                                        '--', linewidth=lw, color=red,)
-                        ax_orn[3, id_neu].plot([t[0]-t_on, t[-1]-t_on], [vrev, vrev], 
-                                       '-.', linewidth=lw, color=red,)
+                        # ax_orn[3, id_neu].plot([t[0]-t_on, t[-1]-t_on], [vrev, vrev], 
+                        #                '-.', linewidth=lw, color=red,)
                     elif rr == 4:
                         X1 = orn_sdf[:, id_neu*n_orns_recep:((id_neu+1)*n_orns_recep)] 
                         X0 = orn_sdf_time-t_on
