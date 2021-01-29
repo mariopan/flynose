@@ -44,7 +44,7 @@ def tictoc():
     return timeit.default_timer()
 
 def pn2ln_v_ex(x0,t, s, ln_params, ):
-#    ln_params = np.array([tau_s, tau_v, a_s_ln, vrev_ln, vrest_ln, vln_noise])
+#    ln_params = np.array([tau_s, tau_v, alpha_pn, vrev_ln, vrest_ln, vln_noise])
     tau_v = ln_params[1]
     
     vrev = ln_params[3]
@@ -61,7 +61,7 @@ def pn2ln_v_ex(x0,t, s, ln_params, ):
     return y
 
 def pn2ln_s_ex(x0,t, u_pn, ln_params, ):
-    #    ln_params = np.array([tau_s, tau_v, a_s_ln, vrev_ln, vrest_ln])
+    #    ln_params = np.array([tau_s, tau_v, alpha_pn, vrev_ln, vrest_ln])
     tau_s = ln_params[0]
     a_s = ln_params[2]
     
@@ -82,7 +82,7 @@ def y_ln_fun_ex(y0, t, u_ln, tau_y, alpha_ln,):
     return y
 
 def orn2pn_s_ex(x0,t, u_orn, x_pn,y_ln,pn_params,):
-    #    pn_params  = np.array([tau_s, tau_v, a_s_pn, vrev_pn, vrest_pn])
+    #    pn_params  = np.array([tau_s, tau_v, alpha_orn, vrev_pn, vrest_pn])
     tau_s = pn_params[0]
     a_s = pn_params[2]
     
@@ -94,7 +94,7 @@ def orn2pn_s_ex(x0,t, u_orn, x_pn,y_ln,pn_params,):
     return y
 
 def orn2pn_v_ex(x0,t, s, pn_params,):
-#    pn_params  = np.array([tau_s, tau_v, a_s_pn, vrev_pn, vrest_pn, vpn_noise])
+#    pn_params  = np.array([tau_s, tau_v, alpha_orn, vrev_pn, vrest_pn, vpn_noise])
     tau_v = pn_params[1]
     
     vrev = pn_params[3]
@@ -131,7 +131,7 @@ stim_params     = dict([
                     ('conc0', [2.85e-04]),    # 2.854e-04
                     ('od_noise', 00), 
                     ('r_noise', 2.0), 
-                    ('filter_frq', 0.006),#0.001
+                    ('filter_frq', 0.006), 
                     ])
 
 n_od = stim_params['n_od']
@@ -270,13 +270,13 @@ u_orn               = np.zeros((n2sim, n_pns_tot))
 sdf_size            = int(t_tot/dt_sdf)
 
 # ORN, PN and LN PARAMETERS
-spike_length        = int(4*pts_ms)     # [ms]
+spike_length        = pts_ms#int(4*pts_ms)     # [ms]
 t_ref               = 2*pts_ms          # ms; refractory period 
 theta               = 1                 # [mV] firing threshold
 
-orn_spike_height    = .3
-pn_spike_height     = .3
-ln_spike_height     = .3
+# orn_spike_height    = .3
+# pn_spike_height     = .3*4
+# ln_spike_height     = .3*4
 
 # Each PN belongs to ONLY one of the glomeruli
 ids_recep     = np.arange(n_recep_tot)
@@ -289,13 +289,13 @@ for pp in range(n_pns_tot):
     tmp_ids             = rnd_ids[:n_orns_pn] + \
         n_orns_recep*ids_pn_recep[pp]
     # ids_orn_pn[pp,:]    = tmp_ids
-    orn_pn_mat[tmp_ids, pp] = orn_spike_height
+    orn_pn_mat[tmp_ids, pp] = 1# orn_spike_height
 
 # Connectivity matrices between PNs and LNs
 pn_ln_mat           = np.zeros((n_pns_tot, n_lns_tot))
 for pp in range(n_recep_tot):
     pn_ln_mat[pp*n_pns_recep:(pp+1)*n_pns_recep,
-              pp*n_lns_recep:(pp+1)*n_lns_recep] = pn_spike_height
+              pp*n_lns_recep:(pp+1)*n_lns_recep] = 1 # pn_spike_height
 
 recep_id = 0        
 ln_pn_mat           = np.zeros((n_lns_tot,n_pns_tot))
@@ -303,7 +303,7 @@ for pp in range(n_sens_type):
     num_recep = n_recep_list[pp]
     # Inhibitory LN connectivity within receptors cluster
     ln_pn_mat[(recep_id*n_lns_recep):((recep_id+num_recep)*n_lns_recep),
-              (recep_id*n_pns_recep):((recep_id+num_recep)*n_pns_recep)] = ln_spike_height
+              (recep_id*n_pns_recep):((recep_id+num_recep)*n_pns_recep)] = 1#ln_spike_height
     for qq in range(num_recep):
         # PN innervating LN are not inhibited
         ln_pn_mat[((recep_id+qq)*n_lns_recep):((recep_id+qq+1)*n_lns_recep),
@@ -382,26 +382,26 @@ tau_v               = .5        # [ms]
 tau_s               = 10        # [ms]
 
 # PN PARAMETERS
-a_s_pn              = 2.5       #     
+alpha_orn           = 3.0     #     2.5
 vrest_pn            = -6.5      # [mV] resting potential
 vrev_pn             = 15.0      # [mV] reversal potential
 vpn_noise           = 6         # extra noise input to PNs
 
-alpha_x             = 2.         # ORN input coeff for adaptation variable x_pn
+alpha_x             = 2.4     # 2.0 ORN input coeff for adaptation variable x_pn
 tau_x               = 600    # [ms] time scale for dynamics of adaptation variable x_pn
 x_pn0               = 0.48*np.ones(n_pns_tot)     # 0.27
 
-pn_params  = np.array([tau_s, tau_v, a_s_pn, vrev_pn, vrest_pn, vpn_noise])
+pn_params  = np.array([tau_s, tau_v, alpha_orn, vrev_pn, vrest_pn, vpn_noise])
 
 # LN PARAMETERS
-a_s_ln              = 2.5       #     
+alpha_pn            = 3.0       #   2.5  
 vrest_ln            = -3.0      # -1.5 [mV] resting potential
 vrev_ln             = 15.0      # [mV] reversal potential
 vln_noise           = 1         # extra noise input to LNs
 
 tau_y               = 600    # [ms] time scale for dynamics of adaptation variable y_ln
 y_ln0               = 0.025*np.ones(n_pns_tot) # 0.2
-ln_params = np.array([tau_s, tau_v, a_s_ln, vrev_ln, vrest_ln, vln_noise])
+ln_params = np.array([tau_s, tau_v, alpha_pn, vrev_ln, vrest_ln, vln_noise])
 
 # Initialize LN to PN output vectors
 x_pn            = np.zeros((n2sim, n_pns_tot))

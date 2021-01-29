@@ -195,7 +195,7 @@ def y_ln_fun_ex(y0, t, u_ln, tau_y, alpha_ln,):
     return y
 
 def orn2pn_s_ex(x0,t, u_orn, x_pn,y_ln,pn_params,):
-    #    pn_params  = np.array([tau_s, tau_v, a_s_pn, vrev_pn, vrest_pn])
+    #    pn_params  = np.array([tau_s, tau_v, alpha_orn, vrev_pn, vrest_pn])
     tau_s = pn_params[0]
     a_s = pn_params[2]
     
@@ -207,7 +207,7 @@ def orn2pn_s_ex(x0,t, u_orn, x_pn,y_ln,pn_params,):
     return y
 
 def orn2pn_v_ex(x0,t, s, pn_params,):
-#    pn_params  = np.array([tau_s, tau_v, a_s_pn, vrev_pn, vrest_pn])
+#    pn_params  = np.array([tau_s, tau_v, alpha_orn, vrev_pn, vrest_pn])
     tau_v = pn_params[1]
     
     vrev = pn_params[3]
@@ -889,7 +889,7 @@ def main(params2an, fig_opts):
     
     #**************************************
     # PN PARAMETERS
-    a_s_pn              = 2.5       #     
+    alpha_orn              = 2.5       #     
     vrest_pn            = -6.5      # [mV] resting potential
     vrev_pn             = 15.0      # [mV] reversal potential
     
@@ -897,7 +897,7 @@ def main(params2an, fig_opts):
     tau_x               = 600    # [ms] time scale for dynamics of adaptation variable x_pn
     x_pn0               = 0.48*np.ones(n_pns_tot)     # 0.27
     
-    pn_params  = np.array([tau_s, tau_v, a_s_pn, vrev_pn, vrest_pn])
+    pn_params  = np.array([tau_s, tau_v, alpha_orn, vrev_pn, vrest_pn])
     
     #**************************************
     # LN PARAMETERS
