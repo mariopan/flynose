@@ -203,67 +203,6 @@ def quad_ORN(vrev, w_nsi, v_orn, nsi_vect, vrest, t, ):
                         w_nsi*(v_orn[t, vect_b] - vrest)+
                         w_nsi*(v_orn[t, vect_c] - vrest)))
     return vrev_t
-
-def rev_fcn(vrev, w_nsi, v_orn, nsi_mat, vrest, t, n_neu, ):
-    # Convert matrix to vector
-    nsi_vect = np.transpose(np.asarray(np.where(nsi_mat == 1)))
-    
-    # Run correct ORN number
-    rev_dict = {
-        1 : solo_ORN,
-        2 :  duo_ORN, 
-        3 :  tri_ORN,
-        4 : quad_ORN,
-        }
-    
-    vrev_t = rev_dict[n_neu](vrev, w_nsi, v_orn, nsi_vect, vrest, t, n_neu,)
-    return vrev_t
-
-# def rev_fcn(vrev, w_nsi, v_orn, nsi_mat, vrest, t, n_neu, ):
-#     # 1 Co-housed ORN
-#     def solo_ORN():
-#         vrev_t = vrev
-#         return vrev_t
-    
-#     # 2 Co-housed ORNs
-#     def duo_ORN():
-#         vect_a = nsi_vect[:, 1]
-#         vrev_t = vrev*(1 - w_nsi*(v_orn[t, vect_a]-vrest))
-#         return vrev_t
-    
-#     # 3 Co-housed ORNs
-#     def tri_ORN():
-#         vect_a = [nsi_vect[x, 1] for x in range(0, len(nsi_vect[:, 0]), 2)]
-#         vect_b = [nsi_vect[x, 1] for x in range(1, len(nsi_vect[:, 0]), 2)]
-         
-#         vrev_t = vrev*(1 - (w_nsi*(v_orn[t, vect_a] - vrest)+
-#                             w_nsi*(v_orn[t, vect_b] - vrest)))
-#         return vrev_t
-    
-#     # 4 Co-housed ORNs
-#     def quad_ORN():
-#         vect_a = [nsi_vect[x, 1] for x in range(0, len(nsi_vect[:, 0]), 3)]
-#         vect_b = [nsi_vect[x, 1] for x in range(1, len(nsi_vect[:, 0]), 3)]
-#         vect_c = [nsi_vect[x, 1] for x in range(2, len(nsi_vect[:, 0]), 3)]
-        
-#         vrev_t = vrev*(1 - (w_nsi*(v_orn[t, vect_a] - vrest)+
-#                             w_nsi*(v_orn[t, vect_b] - vrest)+
-#                             w_nsi*(v_orn[t, vect_c] - vrest)))
-#         return vrev_t
-    
-#     # Convert matrix to vector
-#     nsi_vect = np.transpose(np.asarray(np.where(nsi_mat == 1)))
-    
-#     # Run correct ORN number
-#     rev_dict = {
-#         1 : solo_ORN,
-#         2 :  duo_ORN, 
-#         3 :  tri_ORN,
-#         4 : quad_ORN,
-#         }
-    
-#     vrev_t = rev_dict[n_neu]()
-#     return vrev_t
               
 
 # ************************************************************************

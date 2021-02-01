@@ -708,11 +708,11 @@ def main(params2an, fig_opts):
             # PLOT
             ax_orn1.plot(t-t_on, u_od[:,0], linewidth=lw+1, color=black, 
                          label=r'Glom %d'%(1))
-            ax_orn2.plot(t-t_on, r_orn[:,0], linestyle='--',color=black,  linewidth=lw+1, 
+            ax_orn2.plot(t-t_on, r_orn[:,0], linestyle='--',color=blue,  linewidth=lw+1, 
                          label=r'r, glom: %d'%(1))
             ax_orn3.plot(t-t_on, x_orn[:,0], linewidth=lw+1, color=black, 
                          label=r'Od, glom : %d'%(0))
-            ax_orn4.plot(t-t_on, y_orn[:,0], linestyle='--', color=black, linewidth=lw+1, 
+            ax_orn4.plot(t-t_on, y_orn[:,0], linestyle='--', color=blue, linewidth=lw+1, 
                          label=r'Od, glom : %d'%(0))
             trsp = .3
             
@@ -751,11 +751,11 @@ def main(params2an, fig_opts):
             # ax_orn1.yaxis.label.set_color(green)
             ax_orn1.set_ylabel('Input (a.u.)', fontsize=label_fs)
             # ax_orn2.yaxis.label.set_color(col_glo[0,:]/2)
-            ax_orn2.set_ylabel(r'r (a.u.) ', fontsize=label_fs)
+            ax_orn2.set_ylabel(r'r (a.u.) ', fontsize=label_fs, color=blue)
             # ax_orn3.yaxis.label.set_color(green)
             ax_orn3.set_ylabel(r'y (a.u.)', fontsize=label_fs)
             # ax_orn4.yaxis.label.set_color(col_glo[1,:]/2)
-            ax_orn4.set_ylabel(r'x (a.u.)', fontsize=label_fs)
+            ax_orn4.set_ylabel(r'x (a.u.)', fontsize=label_fs, color=blue)
             ax_orn_fr.set_ylabel('firing rates (Hz)', fontsize=label_fs)
             ax_orn_fr.set_xlabel('Time  (ms)', fontsize=label_fs) 
             ax_orn_sc.set_ylabel('Neuron id', fontsize=label_fs)
@@ -1255,8 +1255,8 @@ if __name__ == '__main__':
     dt_sdf          = 5
 
     # ORN NSI params
-    alpha_ln        = 0#16.6  # 13.3 #10.0 # 0.0 # ln spike h=0.4
-    nsi_str         = 0.0   # 0.3 # 0.0
+    alpha_ln        = 0     # 16.6  # 13.3 #10.0 # 0.0 # ln spike h=0.4
+    nsi_str         = .00003     # 0.3 # 0.0
     
     # Trials and errors 
 
@@ -1265,12 +1265,12 @@ if __name__ == '__main__':
    
     # #***********************************************
     # # stimulus params
-    stim_dur        = 50
+    stim_dur        = 500
     delay           = 0    
-    stim_type       = 'rs'          # 'rs' # 'ts'  # 'ss' # 'pl'
+    stim_type       = 'ss'          # 'rs' # 'ts'  # 'ss' # 'pl'
     pts_ms          = 1
     t_tot           = 1500        # ms 
-    t_on            = [1300, 1300+delay]    # ms
+    t_on            = [300, 300+delay]    # ms
     t_off           = np.array(t_on)+stim_dur # ms
     concs           = [.7, .7]
     sdf_size        = int(t_tot/dt_sdf)

@@ -215,7 +215,7 @@ sens_params0     = dict([
                     ('n_orns_recep', n_orns_recep),
                     ('od_pref' , od_pref),
     # NSI params
-                    ('w_nsi', .00000002), 
+                    ('w_nsi', .000001), 
                     ('transd_params', transd_params0),
                     ])
 
@@ -270,7 +270,7 @@ u_orn               = np.zeros((n2sim, n_pns_tot))
 sdf_size            = int(t_tot/dt_sdf)
 
 # ORN, PN and LN PARAMETERS
-spike_length        = pts_ms#int(4*pts_ms)     # [ms]
+spike_length        = 1#pts_ms#int(4*pts_ms)     # [ms]
 t_ref               = 2*pts_ms          # ms; refractory period 
 theta               = 1                 # [mV] firing threshold
 
@@ -357,13 +357,15 @@ for id_sens, n_neu in enumerate(n_recep_list):
 # Generate input to PNs
 orn_spikes_all = orn_spikes_t.dot(orn_pn_mat) 
 u_orn =  orn_spikes_all
-t_zeros = np.zeros((1, n_pns_tot))
-for tt in range(spike_length-1):
-    orn_spikes_all = np.concatenate((t_zeros, orn_spikes_all[:-1,:]))
-    u_orn = u_orn + orn_spikes_all
+
+# WARNING: In case we want to come back to a not instantaneous spike
+# t_zeros = np.zeros((1, n_pns_tot))
+# for tt in range(spike_length-1):
+#     orn_spikes_all = np.concatenate((t_zeros, orn_spikes_all[:-1,:]))
+#     u_orn = u_orn + orn_spikes_all
 
 orn_spikes_all = None
-t_zeros = None 
+# t_zeros = None 
 
 toc = tictoc()
 # print('ORNs sim time: %.2f s' %(toc-tic,))
@@ -382,19 +384,19 @@ tau_v               = .5        # [ms]
 tau_s               = 10        # [ms]
 
 # PN PARAMETERS
-alpha_orn           = 3.0     #     2.5
+alpha_orn           = 3.0 *4    #     2.5
 vrest_pn            = -6.5      # [mV] resting potential
 vrev_pn             = 15.0      # [mV] reversal potential
 vpn_noise           = 6         # extra noise input to PNs
 
-alpha_x             = 2.4     # 2.0 ORN input coeff for adaptation variable x_pn
+alpha_x             = 2.4  *4   # 2.0 ORN input coeff for adaptation variable x_pn
 tau_x               = 600    # [ms] time scale for dynamics of adaptation variable x_pn
 x_pn0               = 0.48*np.ones(n_pns_tot)     # 0.27
 
 pn_params  = np.array([tau_s, tau_v, alpha_orn, vrev_pn, vrest_pn, vpn_noise])
 
 # LN PARAMETERS
-alpha_pn            = 3.0       #   2.5  
+alpha_pn            = 3.0   *4    #   2.5  
 vrest_ln            = -3.0      # -1.5 [mV] resting potential
 vrev_ln             = 15.0      # [mV] reversal potential
 vln_noise           = 1         # extra noise input to LNs
