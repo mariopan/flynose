@@ -172,38 +172,39 @@ def y_adapt(y0, t, orn_params):
     #dydt = -y/tau_y + ay * sum(delta(t-t_spike))
     return y
 
+
+# 1 Co-housed ORN
+def solo_ORN(vrev, w_nsi, v_orn, nsi_vect, vrest, t, ):
+    vrev_t = vrev
+    return vrev_t
+
+# 2 Co-housed ORNs
+def duo_ORN(vrev, w_nsi, v_orn, nsi_vect, vrest, t, ):
+    vect_a = nsi_vect[:, 1]
+    vrev_t = vrev*(1 - w_nsi*(v_orn[t, vect_a]-vrest))
+    return vrev_t
+
+# 3 Co-housed ORNs
+def tri_ORN(vrev, w_nsi, v_orn, nsi_vect, vrest, t, ):
+    vect_a = [nsi_vect[x, 1] for x in range(0, len(nsi_vect[:, 0]), 2)]
+    vect_b = [nsi_vect[x, 1] for x in range(1, len(nsi_vect[:, 0]), 2)]
+     
+    vrev_t = vrev*(1 - (w_nsi*(v_orn[t, vect_a] - vrest)+
+                        w_nsi*(v_orn[t, vect_b] - vrest)))
+    return vrev_t
+
+# 4 Co-housed ORNs
+def quad_ORN(vrev, w_nsi, v_orn, nsi_vect, vrest, t, ):
+    vect_a = [nsi_vect[x, 1] for x in range(0, len(nsi_vect[:, 0]), 3)]
+    vect_b = [nsi_vect[x, 1] for x in range(1, len(nsi_vect[:, 0]), 3)]
+    vect_c = [nsi_vect[x, 1] for x in range(2, len(nsi_vect[:, 0]), 3)]
+    
+    vrev_t = vrev*(1 - (w_nsi*(v_orn[t, vect_a] - vrest)+
+                        w_nsi*(v_orn[t, vect_b] - vrest)+
+                        w_nsi*(v_orn[t, vect_c] - vrest)))
+    return vrev_t
+
 def rev_fcn(vrev, w_nsi, v_orn, nsi_mat, vrest, t, n_neu, ):
-    # 1 Co-housed ORN
-    def solo_ORN():
-        vrev_t = vrev
-        return vrev_t
-    
-    # 2 Co-housed ORNs
-    def duo_ORN():
-        vect_a = nsi_vect[:, 1]
-        vrev_t = vrev*(1 - w_nsi*(v_orn[t, vect_a]-vrest))
-        return vrev_t
-    
-    # 3 Co-housed ORNs
-    def tri_ORN():
-        vect_a = [nsi_vect[x, 1] for x in range(0, len(nsi_vect[:, 0]), 2)]
-        vect_b = [nsi_vect[x, 1] for x in range(1, len(nsi_vect[:, 0]), 2)]
-         
-        vrev_t = vrev*(1 - (w_nsi*(v_orn[t, vect_a] - vrest)+
-                            w_nsi*(v_orn[t, vect_b] - vrest)))
-        return vrev_t
-    
-    # 4 Co-housed ORNs
-    def quad_ORN():
-        vect_a = [nsi_vect[x, 1] for x in range(0, len(nsi_vect[:, 0]), 3)]
-        vect_b = [nsi_vect[x, 1] for x in range(1, len(nsi_vect[:, 0]), 3)]
-        vect_c = [nsi_vect[x, 1] for x in range(2, len(nsi_vect[:, 0]), 3)]
-        
-        vrev_t = vrev*(1 - (w_nsi*(v_orn[t, vect_a] - vrest)+
-                            w_nsi*(v_orn[t, vect_b] - vrest)+
-                            w_nsi*(v_orn[t, vect_c] - vrest)))
-        return vrev_t
-    
     # Convert matrix to vector
     nsi_vect = np.transpose(np.asarray(np.where(nsi_mat == 1)))
     
@@ -215,11 +216,56 @@ def rev_fcn(vrev, w_nsi, v_orn, nsi_mat, vrest, t, n_neu, ):
         4 : quad_ORN,
         }
     
-    vrev_t = rev_dict[n_neu]()
+    vrev_t = rev_dict[n_neu](vrev, w_nsi, v_orn, nsi_vect, vrest, t, n_neu,)
     return vrev_t
-   
-        
+
+# def rev_fcn(vrev, w_nsi, v_orn, nsi_mat, vrest, t, n_neu, ):
+#     # 1 Co-housed ORN
+#     def solo_ORN():
+#         vrev_t = vrev
+#         return vrev_t
     
+#     # 2 Co-housed ORNs
+#     def duo_ORN():
+#         vect_a = nsi_vect[:, 1]
+#         vrev_t = vrev*(1 - w_nsi*(v_orn[t, vect_a]-vrest))
+#         return vrev_t
+    
+#     # 3 Co-housed ORNs
+#     def tri_ORN():
+#         vect_a = [nsi_vect[x, 1] for x in range(0, len(nsi_vect[:, 0]), 2)]
+#         vect_b = [nsi_vect[x, 1] for x in range(1, len(nsi_vect[:, 0]), 2)]
+         
+#         vrev_t = vrev*(1 - (w_nsi*(v_orn[t, vect_a] - vrest)+
+#                             w_nsi*(v_orn[t, vect_b] - vrest)))
+#         return vrev_t
+    
+#     # 4 Co-housed ORNs
+#     def quad_ORN():
+#         vect_a = [nsi_vect[x, 1] for x in range(0, len(nsi_vect[:, 0]), 3)]
+#         vect_b = [nsi_vect[x, 1] for x in range(1, len(nsi_vect[:, 0]), 3)]
+#         vect_c = [nsi_vect[x, 1] for x in range(2, len(nsi_vect[:, 0]), 3)]
+        
+#         vrev_t = vrev*(1 - (w_nsi*(v_orn[t, vect_a] - vrest)+
+#                             w_nsi*(v_orn[t, vect_b] - vrest)+
+#                             w_nsi*(v_orn[t, vect_c] - vrest)))
+#         return vrev_t
+    
+#     # Convert matrix to vector
+#     nsi_vect = np.transpose(np.asarray(np.where(nsi_mat == 1)))
+    
+#     # Run correct ORN number
+#     rev_dict = {
+#         1 : solo_ORN,
+#         2 :  duo_ORN, 
+#         3 :  tri_ORN,
+#         4 : quad_ORN,
+#         }
+    
+#     vrev_t = rev_dict[n_neu]()
+#     return vrev_t
+              
+
 # ************************************************************************
 # main function of the LIF ORN 
 def main(orn_params, stim_params, sdf_params, sens_params):
@@ -244,7 +290,18 @@ def main(orn_params, stim_params, sdf_params, sens_params):
                        n_orns_recep,dtype='int')
         nsi_mat[pp, nn] = 1
     np.fill_diagonal(nsi_mat, 0)
-        
+    
+    # Convert connectivity matrix to vector
+    nsi_vect = np.transpose(np.asarray(np.where(nsi_mat == 1)))
+    
+    # Run correct ORN number
+    rev_dict = {
+        1 : solo_ORN,
+        2 :  duo_ORN, 
+        3 :  tri_ORN,
+        4 : quad_ORN,
+        } 
+    
     # ORN PARAMETERS 
     t_ref           = orn_params['t_ref']
     theta           = orn_params['theta']
@@ -312,7 +369,8 @@ def main(orn_params, stim_params, sdf_params, sens_params):
         y_orn[tt, :] = y_adapt(y_orn[tt-1, :], tspan, orn_params)
         
         # NSI effect on reversal potential 
-        vrev_t = rev_fcn(vrev, w_nsi, v_orn, nsi_mat, vrest, tt-1, n_neu)
+        vrev_t = rev_dict[n_neu](vrev, w_nsi, v_orn, nsi_vect, vrest, tt-1, )
+        # vrev_t = rev_fcn(vrev, w_nsi, v_orn, nsi_mat, vrest, tt-1, n_neu)
         
         # ORNs whose ref_cnt is equal to zero:
         orn_ref0 = (orn_ref==0)
@@ -367,7 +425,7 @@ if __name__ == '__main__':
                         ('stim_type' , 'rs'),   # 'rs' # 'ts'  # 'ss' # 'pl'
                         ('pts_ms' , 5),         # simulated pts per ms 
                         ('n_od', 2), 
-                        ('t_tot', 4000),        # ms  
+                        ('t_tot', 2000),        # ms  
                         ('conc0', [2.85e-04]),    # 2.854e-04
                         ('od_noise', 00), 
                         ('r_noise', 2.0), 
@@ -424,7 +482,7 @@ if __name__ == '__main__':
                         ('n_orns_recep', n_orns_recep),
                         ('od_pref' , od_pref),
         # NSI params
-                        ('w_nsi', .000000015), 
+                        ('w_nsi', .001), 
                         ('transd_params', transd_params),
                         ])
         
@@ -500,7 +558,7 @@ if __name__ == '__main__':
                     orientation='horizontal')
     
     fr_mean_rs = 1000/np.mean(isi)
-    print('ORN avg freq. baseline: %.2f Hz' %fr_mean_rs)
+    print('ORNs, FR avg: %.2f Hz' %fr_mean_rs)
     
     # t_tmp = np.linspace(0, np.max(isi),100)
     # isi_pois = fr_mean_rs*np.exp(-fr_mean_rs*t_tmp*1e-3) # poisson    
@@ -538,14 +596,14 @@ if __name__ == '__main__':
     tmp_corr[tmp_corr!=0]
     corr_orn_hom = np.mean(tmp_corr[tmp_corr!=0])
     corr_orn_het = np.mean(corr_vorn[:n_orns_recep, n_orns_recep:]) # corr_pn[0,-1]
-    print('Hom and Het Potent corr ORNs: %.3f and %.3f' 
+    print('ORNs, Hom and Het Potent corr: %.3f and %.3f' 
           %(corr_orn_hom, corr_orn_het))
     
     tmp_corr = corr_orn[:n_orns_recep, :n_orns_recep]
     tmp_corr[tmp_corr!=0]
     corr_orn_hom = np.mean(tmp_corr[tmp_corr!=0])
     corr_orn_het = np.mean(corr_orn[:n_orns_recep, n_orns_recep:]) # corr_pn[0,-1]
-    print('Hom and Het spk cnt corr ORNs: %.3f and %.3f' 
+    print('ORNs, Hom and Het spk cnt corr: %.3f and %.3f' 
           %(corr_orn_hom, corr_orn_het))
     
     
