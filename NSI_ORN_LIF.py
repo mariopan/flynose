@@ -172,6 +172,11 @@ def y_adapt(y0, t, orn_params):
     #dydt = -y/tau_y + ay * sum(delta(t-t_spike))
     return y
 
+# 1 Co-housed ORN
+def solo_ORN(w_nsi, v_orn, nsi_vect, vrest, t, ):
+    # vrev_t = vrev
+    vrev_t = 0
+    return vrev_t
 
 # 2 Co-housed ORNs
 def duo_ORN(w_nsi, r_orn, nsi_vect, vrest, vrev, t, ):
@@ -184,6 +189,9 @@ def tri_ORN(w_nsi, v_orn, nsi_vect, vrest, t, ):
     vect_a = [nsi_vect[x, 1] for x in range(0, len(nsi_vect[:, 0]), 2)]
     vect_b = [nsi_vect[x, 1] for x in range(1, len(nsi_vect[:, 0]), 2)]
      
+    vrev_t = vrev + w_nsi*r_orn[t, vect_a]*(vrest-vrev) \
+                    + w_nsi*r_orn[t, vect_b]*(vrest-vrev) 
+
     vrev_t = (w_nsi*(v_orn[t, vect_a] - vrest)+
               w_nsi*(v_orn[t, vect_b] - vrest))
     return vrev_t
@@ -194,46 +202,15 @@ def quad_ORN(w_nsi, v_orn, nsi_vect, vrest, t, ):
     vect_b = [nsi_vect[x, 1] for x in range(1, len(nsi_vect[:, 0]), 3)]
     vect_c = [nsi_vect[x, 1] for x in range(2, len(nsi_vect[:, 0]), 3)]
     
-    vrev_t = (w_nsi*(v_orn[t, vect_a] - vrest)+
-              w_nsi*(v_orn[t, vect_b] - vrest)+
-              w_nsi*(v_orn[t, vect_c] - vrest))
+    vrev_t = vrev + w_nsi*r_orn[t, vect_a]*(vrest-vrev) \
+                + w_nsi*r_orn[t, vect_b]*(vrest-vrev) \
+              + w_nsi*r_orn[t, vect_c]*(vrest-vrev) 
+                    
+    # vrev_t = (w_nsi*(v_orn[t, vect_a] - vrest)+
+               # w_nsi*(v_orn[t, vect_b] - vrest)+
+              # w_nsi*(v_orn[t, vect_c] - vrest))
     return vrev_t
 
-# 1 Co-housed ORN
-def solo_ORN(w_nsi, v_orn, nsi_vect, vrest, t, ):
-    # vrev_t = vrev
-    vrev_t = 0
-    return vrev_t
-
-# # 2 Co-housed ORNs
-# def duo_ORN(w_nsi, v_orn, nsi_vect, vrest, t, ):
-#     vect_a = nsi_vect[:, 1]
-#     # vrev_t = vrev*(1 - w_nsi*(v_orn[t, vect_a]-vrest))
-#     vrev_t = v_orn[t, vect_a]-vrest
-#     return vrev_t
-
-# # 3 Co-housed ORNs
-# def tri_ORN(w_nsi, v_orn, nsi_vect, vrest, t, ):
-#     vect_a = [nsi_vect[x, 1] for x in range(0, len(nsi_vect[:, 0]), 2)]
-#     vect_b = [nsi_vect[x, 1] for x in range(1, len(nsi_vect[:, 0]), 2)]
-     
-#     vrev_t = (w_nsi*(v_orn[t, vect_a] - vrest)+
-#               w_nsi*(v_orn[t, vect_b] - vrest))
-#     return vrev_t
-
-# # 4 Co-housed ORNs
-# def quad_ORN(w_nsi, v_orn, nsi_vect, vrest, t, ):
-#     vect_a = [nsi_vect[x, 1] for x in range(0, len(nsi_vect[:, 0]), 3)]
-#     vect_b = [nsi_vect[x, 1] for x in range(1, len(nsi_vect[:, 0]), 3)]
-#     vect_c = [nsi_vect[x, 1] for x in range(2, len(nsi_vect[:, 0]), 3)]
-    
-#     vrev_t = (w_nsi*(v_orn[t, vect_a] - vrest)+
-#               w_nsi*(v_orn[t, vect_b] - vrest)+
-#               w_nsi*(v_orn[t, vect_c] - vrest))
-#     # vrev_t = vrev*(1 - (w_nsi*(v_orn[t, vect_a] - vrest)+
-#     #                     w_nsi*(v_orn[t, vect_b] - vrest)+
-#     #                     w_nsi*(v_orn[t, vect_c] - vrest)))
-#     return vrev_t
               
 
 # ************************************************************************
@@ -280,7 +257,6 @@ def main(orn_params, stim_params, sdf_params, sens_params):
     vrev            = orn_params['vrev']
     y0              = orn_params['y0']
     r0              = orn_params['r0']
-    x_nsi           = w_nsi*(vrev-vrest)/(theta-vrest)
     
     # INITIALIZE OUTPUT VECTORS
     n2sim           = pts_ms*t_tot      # number of time points
@@ -340,19 +316,7 @@ def main(orn_params, stim_params, sdf_params, sens_params):
         y_orn[tt, :] = y_adapt(y_orn[tt-1, :], tspan, orn_params)
         
         # NSI effect on reversal potential 
-        # vrev_t = rev_dict[n_neu](vrev, w_nsi, v_orn, nsi_vect, vrest, tt-1, )
-        
-        
-        #vrev_t = vrev - x_nsi*rev_dict[n_neu](w_nsi, v_orn, nsi_vect, vrest, tt-1, )
-        
         vrev_t = rev_dict[n_neu](w_nsi, r_orn, nsi_vect, vrest, vrev, tt-1, )
-        
-        if tt > pts_ms*1200:#stim_params['t_on'][0]:
-            pippo = 0
-            
-            
-            
-        # vrev_t = rev_fcn(vrev, w_nsi, v_orn, nsi_mat, vrest, tt-1, n_neu)
         
         # ORNs whose ref_cnt is equal to zero:
         orn_ref0 = (orn_ref==0)
@@ -410,8 +374,8 @@ if __name__ == '__main__':
                         ('t_tot', 2000),        # ms  
                         ('conc0', [2.75e-04]),    # 2.854e-04
                         ('od_noise', 00), 
-                        ('r_noise', 2.0), 
-                        ('filter_frq', 0.006),#0.001
+                        ('r_noise', 1.0), #2.0
+                        ('filter_frq', 0.006),
                         ])
     
     n_od = stim_params['n_od']
@@ -423,9 +387,9 @@ if __name__ == '__main__':
                         ])
     elif n_od == 2:
         concs_params    = dict([
-                        ('stim_dur' , np.array([500, 100])),  # ms
-                        ('t_on', np.array([1000, 1900])), # ms
-                        ('concs', np.array([1, .00003])),
+                        ('stim_dur' , np.array([500, 1900])),  # ms
+                        ('t_on', np.array([1000, 100])), # ms
+                        ('concs', np.array([.50, .0012])),
                         ])
     
     stim_params.update(concs_params)
@@ -453,7 +417,7 @@ if __name__ == '__main__':
     # Sensilla/network parameters
     transd_params       = (ab3A_params, ab3B_params)
     
-    n_orns_recep        = 3         # number of ORNs per each receptor
+    n_orns_recep        = 20         # number of ORNs per each receptor
     n_neu               = transd_params.__len__()         # number of ORN cohoused in the sensillum
     
     
@@ -464,7 +428,7 @@ if __name__ == '__main__':
                         ('n_orns_recep', n_orns_recep),
                         ('od_pref' , od_pref),
         # NSI params
-                        ('w_nsi', 0.36), 
+                        ('w_nsi', 0.3), 
                         ('transd_params', transd_params),
                         ])
         
