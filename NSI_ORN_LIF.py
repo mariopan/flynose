@@ -173,36 +173,67 @@ def y_adapt(y0, t, orn_params):
     return y
 
 
-# 1 Co-housed ORN
-def solo_ORN(vrev, w_nsi, v_orn, nsi_vect, vrest, t, ):
-    vrev_t = vrev
-    return vrev_t
-
 # 2 Co-housed ORNs
-def duo_ORN(vrev, w_nsi, v_orn, nsi_vect, vrest, t, ):
+def duo_ORN(w_nsi, r_orn, nsi_vect, vrest, vrev, t, ):
     vect_a = nsi_vect[:, 1]
-    vrev_t = vrev*(1 - w_nsi*(v_orn[t, vect_a]-vrest))
+    vrev_t = vrev + w_nsi*r_orn[t, vect_a]*(vrest-vrev)
     return vrev_t
 
 # 3 Co-housed ORNs
-def tri_ORN(vrev, w_nsi, v_orn, nsi_vect, vrest, t, ):
+def tri_ORN(w_nsi, v_orn, nsi_vect, vrest, t, ):
     vect_a = [nsi_vect[x, 1] for x in range(0, len(nsi_vect[:, 0]), 2)]
     vect_b = [nsi_vect[x, 1] for x in range(1, len(nsi_vect[:, 0]), 2)]
      
-    vrev_t = vrev*(1 - (w_nsi*(v_orn[t, vect_a] - vrest)+
-                        w_nsi*(v_orn[t, vect_b] - vrest)))
+    vrev_t = (w_nsi*(v_orn[t, vect_a] - vrest)+
+              w_nsi*(v_orn[t, vect_b] - vrest))
     return vrev_t
 
 # 4 Co-housed ORNs
-def quad_ORN(vrev, w_nsi, v_orn, nsi_vect, vrest, t, ):
+def quad_ORN(w_nsi, v_orn, nsi_vect, vrest, t, ):
     vect_a = [nsi_vect[x, 1] for x in range(0, len(nsi_vect[:, 0]), 3)]
     vect_b = [nsi_vect[x, 1] for x in range(1, len(nsi_vect[:, 0]), 3)]
     vect_c = [nsi_vect[x, 1] for x in range(2, len(nsi_vect[:, 0]), 3)]
     
-    vrev_t = vrev*(1 - (w_nsi*(v_orn[t, vect_a] - vrest)+
-                        w_nsi*(v_orn[t, vect_b] - vrest)+
-                        w_nsi*(v_orn[t, vect_c] - vrest)))
+    vrev_t = (w_nsi*(v_orn[t, vect_a] - vrest)+
+              w_nsi*(v_orn[t, vect_b] - vrest)+
+              w_nsi*(v_orn[t, vect_c] - vrest))
     return vrev_t
+
+# 1 Co-housed ORN
+def solo_ORN(w_nsi, v_orn, nsi_vect, vrest, t, ):
+    # vrev_t = vrev
+    vrev_t = 0
+    return vrev_t
+
+# # 2 Co-housed ORNs
+# def duo_ORN(w_nsi, v_orn, nsi_vect, vrest, t, ):
+#     vect_a = nsi_vect[:, 1]
+#     # vrev_t = vrev*(1 - w_nsi*(v_orn[t, vect_a]-vrest))
+#     vrev_t = v_orn[t, vect_a]-vrest
+#     return vrev_t
+
+# # 3 Co-housed ORNs
+# def tri_ORN(w_nsi, v_orn, nsi_vect, vrest, t, ):
+#     vect_a = [nsi_vect[x, 1] for x in range(0, len(nsi_vect[:, 0]), 2)]
+#     vect_b = [nsi_vect[x, 1] for x in range(1, len(nsi_vect[:, 0]), 2)]
+     
+#     vrev_t = (w_nsi*(v_orn[t, vect_a] - vrest)+
+#               w_nsi*(v_orn[t, vect_b] - vrest))
+#     return vrev_t
+
+# # 4 Co-housed ORNs
+# def quad_ORN(w_nsi, v_orn, nsi_vect, vrest, t, ):
+#     vect_a = [nsi_vect[x, 1] for x in range(0, len(nsi_vect[:, 0]), 3)]
+#     vect_b = [nsi_vect[x, 1] for x in range(1, len(nsi_vect[:, 0]), 3)]
+#     vect_c = [nsi_vect[x, 1] for x in range(2, len(nsi_vect[:, 0]), 3)]
+    
+#     vrev_t = (w_nsi*(v_orn[t, vect_a] - vrest)+
+#               w_nsi*(v_orn[t, vect_b] - vrest)+
+#               w_nsi*(v_orn[t, vect_c] - vrest))
+#     # vrev_t = vrev*(1 - (w_nsi*(v_orn[t, vect_a] - vrest)+
+#     #                     w_nsi*(v_orn[t, vect_b] - vrest)+
+#     #                     w_nsi*(v_orn[t, vect_c] - vrest)))
+#     return vrev_t
               
 
 # ************************************************************************
@@ -249,6 +280,7 @@ def main(orn_params, stim_params, sdf_params, sens_params):
     vrev            = orn_params['vrev']
     y0              = orn_params['y0']
     r0              = orn_params['r0']
+    x_nsi           = w_nsi*(vrev-vrest)/(theta-vrest)
     
     # INITIALIZE OUTPUT VECTORS
     n2sim           = pts_ms*t_tot      # number of time points
@@ -258,7 +290,7 @@ def main(orn_params, stim_params, sdf_params, sens_params):
     u_od            = np.zeros((n2sim, n_od))
     
     r_orn_od        = np.zeros((n2sim, n_neu, n_od)) 
-    v_orn           = np.zeros((n2sim, n_neu_tot)) 
+    v_orn           = np.ones((n2sim, n_neu_tot)) *vrest
     r_orn_od[0,:,:] = r0*np.ones((1, n_neu, n_od)) #+ np.random.standard_normal((1, n_neu, n_od)) 
     v_orn[0,:]      = .5*(np.ones((1, n_neu_tot)) + .01*np.random.standard_normal((1, n_neu_tot))) 
     y_orn           = np.zeros((n2sim, n_neu_tot))
@@ -308,7 +340,18 @@ def main(orn_params, stim_params, sdf_params, sens_params):
         y_orn[tt, :] = y_adapt(y_orn[tt-1, :], tspan, orn_params)
         
         # NSI effect on reversal potential 
-        vrev_t = rev_dict[n_neu](vrev, w_nsi, v_orn, nsi_vect, vrest, tt-1, )
+        # vrev_t = rev_dict[n_neu](vrev, w_nsi, v_orn, nsi_vect, vrest, tt-1, )
+        
+        
+        #vrev_t = vrev - x_nsi*rev_dict[n_neu](w_nsi, v_orn, nsi_vect, vrest, tt-1, )
+        
+        vrev_t = rev_dict[n_neu](w_nsi, r_orn, nsi_vect, vrest, vrev, tt-1, )
+        
+        if tt > pts_ms*1200:#stim_params['t_on'][0]:
+            pippo = 0
+            
+            
+            
         # vrev_t = rev_fcn(vrev, w_nsi, v_orn, nsi_mat, vrest, tt-1, n_neu)
         
         # ORNs whose ref_cnt is equal to zero:
@@ -361,11 +404,11 @@ if __name__ == '__main__':
     
     # stimulus params
     stim_params     = dict([
-                        ('stim_type' , 'rs'),   # 'rs' # 'ts'  # 'ss' # 'pl'
+                        ('stim_type' , 'ss'),   # 'rs' # 'ts'  # 'ss' # 'pl'
                         ('pts_ms' , 5),         # simulated pts per ms 
                         ('n_od', 2), 
                         ('t_tot', 2000),        # ms  
-                        ('conc0', [2.85e-04]),    # 2.854e-04
+                        ('conc0', [2.75e-04]),    # 2.854e-04
                         ('od_noise', 00), 
                         ('r_noise', 2.0), 
                         ('filter_frq', 0.006),#0.001
@@ -380,9 +423,9 @@ if __name__ == '__main__':
                         ])
     elif n_od == 2:
         concs_params    = dict([
-                        ('stim_dur' , np.array([50, 50])),  # ms
-                        ('t_on', np.array([1900, 1900])), # ms
-                        ('concs', np.array([.003, .003])),
+                        ('stim_dur' , np.array([500, 100])),  # ms
+                        ('t_on', np.array([1000, 1900])), # ms
+                        ('concs', np.array([1, .00003])),
                         ])
     
     stim_params.update(concs_params)
@@ -410,7 +453,7 @@ if __name__ == '__main__':
     # Sensilla/network parameters
     transd_params       = (ab3A_params, ab3B_params)
     
-    n_orns_recep        = 20         # number of ORNs per each receptor
+    n_orns_recep        = 3         # number of ORNs per each receptor
     n_neu               = transd_params.__len__()         # number of ORN cohoused in the sensillum
     
     
@@ -421,7 +464,7 @@ if __name__ == '__main__':
                         ('n_orns_recep', n_orns_recep),
                         ('od_pref' , od_pref),
         # NSI params
-                        ('w_nsi', .001), 
+                        ('w_nsi', 0.36), 
                         ('transd_params', transd_params),
                         ])
         
@@ -433,7 +476,7 @@ if __name__ == '__main__':
                         # fitted values
                         ('tau_v', 2.26183540),          # [ms]
                         ('vrest', -0.969461053),        # [mV] resting potential
-                        ('vrev', 21.1784081),           # [mV] reversal potential
+                        ('vrev', 21),  #25wnsi.2 30wnsi.5         # 21.1784081 [mV] reversal potential
                         # ('v_k', vrest),
                         ('g_y', .5853575783),       
                         ('g_r', .864162073), 
@@ -463,9 +506,10 @@ if __name__ == '__main__':
      orn_sdf_time,]  = orn_lif_out
     
     
-    #%% FIGURE ISI of ORNs
+    #%% FIGURE, time course and histograom of ISI and POTENTIAL of ORNs
     
-    t_on    = np.min(stim_params['t_on'])
+    t_on    = stim_params['t_on'][0]
+    stim_dur = stim_params['stim_dur'][0]
     t_tot   = stim_params['t_tot']
     pts_ms  = stim_params['pts_ms']
     vrest   = orn_params['vrest']
@@ -475,7 +519,10 @@ if __name__ == '__main__':
     n_neu_tot       = n_neu*n_orns_recep
     n_isi = np.zeros((n_neu_tot,))
     recep_clrs = ['purple','green','cyan','red']
-    fig, axs = plt.subplots(1, 2, figsize=(7,7))    
+    rs = 2
+    cs = 2
+    
+    fig, axs = plt.subplots(rs, cs, figsize=(7,7))    
     
     for nn1 in range(n_neu):
         isi = []
@@ -483,35 +530,105 @@ if __name__ == '__main__':
             nn = nn2+n_orns_recep*nn1     
             min_isi = 10
             spks_tmp = spike_matrix[spike_matrix[:,1]==nn][:,0]
-            spks_tmp = spks_tmp[spks_tmp>500]
-            spks_tmp = spks_tmp[spks_tmp<t_on]
+            spks_tmp = spks_tmp[spks_tmp>10]
+            if stim_params['stim_type'] != 'rs':
+                spks_tmp = spks_tmp[spks_tmp<t_on]
             n_isi[nn] = len(spks_tmp)-1
             isi = np.append(isi, np.diff(spks_tmp))
             if np.shape(isi)[0]>0:
                 min_isi = np.min((np.min(isi), min_isi))
                 
-            axs[0].plot(np.diff(spks_tmp), '.-', color=recep_clrs[nn1], alpha=.25)
+            axs[0,0].plot(np.diff(spks_tmp), '.-', color=recep_clrs[nn1], alpha=.25)
         
         if len(isi)>3:
-            axs[1].hist(isi, bins=int(len(isi)/3), color=recep_clrs[nn1], alpha=.25, 
+            axs[0, 1].hist(isi, bins=int(len(isi)/3), color=recep_clrs[nn1], alpha=.25, 
                     orientation='horizontal')
     
     fr_mean_rs = 1000/np.mean(isi)
     print('ORNs, FR avg: %.2f Hz' %fr_mean_rs)
+    fr_peak = np.max(np.mean(orn_sdf[:, :n_orns_recep], axis=1)) #1000/np.min(isi)
+    print('ORNs, FR peak: %.2f Hz' %fr_peak)
     
+    # Comparison with Poissonian hypothesis
     # t_tmp = np.linspace(0, np.max(isi),100)
     # isi_pois = fr_mean_rs*np.exp(-fr_mean_rs*t_tmp*1e-3) # poisson    
     # axs[1].plot(isi_pois, t_tmp, 'k.-')
+    # SETTINGS
+    axs[0, 0].set_xlabel('id spikes', fontsize=label_fs)
+    axs[0, 0].set_ylabel('ISI spikes (ms)', fontsize=label_fs)
     
     dbb = 1.5
-    ll, bb, ww, hh = axs[0].get_position().bounds
-    axs[0].set_position([ll, bb, ww*dbb , hh])
+    ll, bb, ww, hh = axs[0,0].get_position().bounds
+    axs[0,0].set_position([ll, bb, ww*dbb , hh])
     
-    ll, bb, ww, hh = axs[1].get_position().bounds
-    axs[1].set_position([ll+(dbb - 1)*ww, bb, ww*(2-dbb), hh])
+    ll, bb, ww, hh = axs[0,1].get_position().bounds
+    axs[0, 1].set_position(
+        [ll+(dbb - 1)*ww, bb, ww*(2-dbb), hh])
     
+    # V ORNs
+    
+    X0 = t-t_on
+    trsp = .3
+    if n_neu == 1:
+        X1 = v_orn
+        axs[1, 0].plot([t[0]-t_on, t[-1]-t_on], [vrest, vrest], 
+             '--', linewidth=lw, color=black,)
+        mu1 = X1.mean(axis=1)
+        sigma1 = X1.std(axis=1)
+        
+        axs[1, 0].plot(X0, mu1, linewidth=lw+1, 
+                color=recep_clrs[0], )
+        for nn in range(n_orns_recep):
+            axs[1, 0].plot(X0, X1[:, nn], '.', linewidth= lw-1, 
+                color=recep_clrs[0], alpha=trsp)
+            
+        axs[1, 1].hist(X1[(t_on*pts_ms):(t_on+250)*pts_ms, nn], 
+            bins=50, color=recep_clrs[0], alpha=.25, 
+                    orientation='horizontal')
+    
+    
+    else:
+        for id_neu in range(n_neu):
+            X1 = v_orn[:, id_neu*n_orns_recep:((id_neu+1)*n_orns_recep)]
+            axs[1, 0].plot([t[0]-t_on, t[-1]-t_on], [vrest, vrest], 
+                         '--', linewidth=lw, color=red,)
+            mu1 = X1.mean(axis=1)
+            sigma1 = X1.std(axis=1)
+            
+            # axs[1, 0].fill_between(X0, mu1+sigma1, mu1-sigma1, 
+                        # facecolor=recep_clrs[id_neu], alpha=trsp)
+            
+            axs[1, 0].plot(X0, mu1,  
+                linewidth=lw+1, color=recep_clrs[id_neu],)
+            
+            for nn in range(n_orns_recep):
+                axs[1, 0].plot(X0, X1[:, nn], '.', linewidth= lw-1, 
+                    color=recep_clrs[id_neu], alpha=trsp)
+            
+            axs[1, 1].hist(X1[(t_on*pts_ms):(t_on+250)*pts_ms, nn], bins=50, 
+                    alpha=.25, color=recep_clrs[id_neu], 
+                    orientation='horizontal')
+
+    axs[1, 0].set_xlabel('time (ms)', fontsize=label_fs)
+    axs[1, 0].set_ylabel('V (mV)', fontsize=label_fs)
+    axs[1, 1].set_ylabel('pdf', fontsize=label_fs)
+    
+    dbb = 1.5
+    ll, bb, ww, hh = axs[1,0].get_position().bounds
+    axs[1, 0].set_position([ll, bb, ww*dbb , hh])
+    
+    ll, bb, ww, hh = axs[1,1].get_position().bounds
+    axs[1, 1].set_position(
+        [ll+(dbb - 1)*ww, bb, ww*(2-dbb), hh])
+
+                        
     plt.show()
     
+    fld_analysis = 'NSI_analysis/trials'
+    hist_fig_name = '/ORN_lif_dyn_hist' + \
+                            '.png'
+    fig.savefig(fld_analysis + hist_fig_name)
+        
     #%% correlation analysis
     tic = tictoc()
     corr_orn = np.zeros((n_neu_tot,n_neu_tot))
@@ -604,7 +721,7 @@ if __name__ == '__main__':
                                     linewidth=lw-1, color=recep_clrs[0], alpha=trsp)
             
             # SETTINGS
-            ax_orn[4].set_ylim(0, 30)
+            # ax_orn[4].set_ylim(0, 30)
             for rr in range(rs):
                 ax_orn[rr].tick_params(axis='both', which='major', labelsize=ticks_fs)
                 ax_orn[rr].text(-.15, 1.25, panels_id[rr], transform=ax_orn[0].transAxes, 
@@ -643,7 +760,6 @@ if __name__ == '__main__':
             ax_orn[4].set_position([ll_new, bb+1.7*bb_plus, ww_new, hh])
             
             plt.show()
-        #%%    
         else:
             for id_neu in range(n_neu):
                 
@@ -691,7 +807,7 @@ if __name__ == '__main__':
                                 
                 ax_orn[4, id_neu].set_xlabel('Time  (ms)', fontsize=label_fs) 
             
-                ax_orn[4, id_neu].set_ylim(0, 30)
+                # ax_orn[4, id_neu].set_ylim(0, 30)
                 # LABELING THE PANELS
                 # ax_orn[0, id_neu].text(-.15, 1.25, panels_id[0+id_neu], 
                 #                        transform=ax_orn[0, id_neu].transAxes, 
