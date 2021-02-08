@@ -79,8 +79,9 @@ def tictoc():
 def stim_fcn(stim_params):
     
     tmp_ks = \
-        ['stim_type', 'stim_dur', 'pts_ms', 't_tot', 't_on', 'concs', 'conc0', 'od_noise']    
-    [stim_type, stim_dur, pts_ms, t_tot, t_on, concs, conc0, od_noise] = [
+        ['stim_type', 'stim_dur', 'pts_ms', 't_tot', 
+         't_on', 'concs', 'conc0', 'od_noise', 'od_filter_frq']    
+    [stim_type, stim_dur, pts_ms, t_tot, t_on, concs, conc0, od_noise, od_filter_frq] = [
         stim_params[x] for x in tmp_ks]  
     
     # Stimulus params    
@@ -92,15 +93,13 @@ def stim_fcn(stim_params):
     rand_ts =  np.random.randn(n2sim, n_od)*od_noise
     # Create an order 3 lowpass butterworth filter:
     filter_ord = 3
-    filter_frq = 0.06
-    b, a = signal.butter(filter_ord, filter_frq)
+    b, a = signal.butter(filter_ord, od_filter_frq)
     
     filt_ts = np.zeros_like(rand_ts)
-    # for oo in range(n_od):
-        # filt_ts[:, oo] = signal.filtfilt(b, a, rand_ts[:,oo])
     filt_ts = signal.filtfilt(b, a, rand_ts.T).T    
 
-    u_od            = np.ones((n2sim, n_od)) * conc0*(1 + filt_ts)#od_noise*np.random.standard_normal((n2sim, n_od)))
+    u_od = np.ones((n2sim, n_od)) * conc0*(1 + filt_ts)
+    
     
     if (stim_type == 'rs'):
         # baseline stimuli
@@ -173,9 +172,8 @@ def y_adapt(y0, t, orn_params):
     return y
 
 # 1 Co-housed ORN
-def solo_ORN(w_nsi, v_orn, nsi_vect, vrest, t, ):
-    # vrev_t = vrev
-    vrev_t = 0
+def solo_ORN(w_nsi, v_orn, nsi_vect, vrest, vrev, t, ):
+    vrev_t = vrev
     return vrev_t
 
 # 2 Co-housed ORNs
@@ -185,7 +183,7 @@ def duo_ORN(w_nsi, r_orn, nsi_vect, vrest, vrev, t, ):
     return vrev_t
 
 # 3 Co-housed ORNs
-def tri_ORN(w_nsi, v_orn, nsi_vect, vrest, t, ):
+def tri_ORN(w_nsi, v_orn, nsi_vect, vrest, vrev, t, ):
     vect_a = [nsi_vect[x, 1] for x in range(0, len(nsi_vect[:, 0]), 2)]
     vect_b = [nsi_vect[x, 1] for x in range(1, len(nsi_vect[:, 0]), 2)]
      
@@ -197,7 +195,7 @@ def tri_ORN(w_nsi, v_orn, nsi_vect, vrest, t, ):
     return vrev_t
 
 # 4 Co-housed ORNs
-def quad_ORN(w_nsi, v_orn, nsi_vect, vrest, t, ):
+def quad_ORN(w_nsi, v_orn, nsi_vect, vrest, vrev, t, ):
     vect_a = [nsi_vect[x, 1] for x in range(0, len(nsi_vect[:, 0]), 3)]
     vect_b = [nsi_vect[x, 1] for x in range(1, len(nsi_vect[:, 0]), 3)]
     vect_c = [nsi_vect[x, 1] for x in range(2, len(nsi_vect[:, 0]), 3)]
@@ -221,8 +219,8 @@ def main(orn_params, stim_params, sdf_params, sens_params):
     [tau_sdf, dt_sdf] = sdf_params
     
     # STIMULI PARAMETERS 
-    tmp_ks = ['pts_ms', 't_tot', 'n_od', 'r_noise', 'filter_frq']    
-    [pts_ms, t_tot, n_od, r_noise, filter_frq] = [
+    tmp_ks = ['pts_ms', 't_tot', 'n_od', 'r_noise', 'r_filter_frq']    
+    [pts_ms, t_tot, n_od, r_noise, r_filter_frq] = [
         stim_params[x] for x in tmp_ks]    
     # SENSILLUM PARAMETERS
     n_neu           = sens_params['n_neu']
@@ -292,7 +290,7 @@ def main(orn_params, stim_params, sdf_params, sens_params):
 
     # Create an order 3 lowpass butterworth filter:
     filter_ord = 3
-    b, a = signal.butter(filter_ord, filter_frq)
+    b, a = signal.butter(filter_ord, r_filter_frq)
     
     # Replicate to all sensilla and add noise    
     r_tmp = np.sum(r_orn_od, axis=2)
@@ -302,8 +300,8 @@ def main(orn_params, stim_params, sdf_params, sens_params):
             rand_ts = r_noise*np.random.standard_normal((int(n2sim*1.3)))
             filt_ts = signal.filtfilt(b, a, rand_ts)
             filt_ts = filt_ts[-n2sim:]
-            r_orn[:, ss+nn*n_orns_recep] = r_tmp[:, nn] * \
-                (1+ filt_ts)
+            r_orn[:, ss+nn*n_orns_recep] = r_tmp[:, nn] + .1*filt_ts
+            #r_orn[:, ss+nn*n_orns_recep] = r_tmp[:, nn] * (1+ filt_ts)
     r_orn[r_orn<0] = 0
     
     # ********************************************************
@@ -368,14 +366,15 @@ if __name__ == '__main__':
     
     # stimulus params
     stim_params     = dict([
-                        ('stim_type' , 'ss'),   # 'rs' # 'ts'  # 'ss' # 'pl'
+                        ('stim_type' , 'rs'),   # 'rs' # 'ts'  # 'ss' # 'pl'
                         ('pts_ms' , 5),         # simulated pts per ms 
                         ('n_od', 2), 
-                        ('t_tot', 2000),        # ms  
-                        ('conc0', [2.75e-04]),    # 2.854e-04
-                        ('od_noise', 00), 
-                        ('r_noise', 1.0), #2.0
-                        ('filter_frq', 0.006),
+                        ('t_tot', 5000),        # ms  
+                        ('conc0', [1.9e-04]),    # 2.854e-04
+                        ('od_noise', 5), #3.5
+                        ('od_filter_frq', 0.002), #.002
+                        ('r_noise', 5.0), #6.0
+                        ('r_filter_frq', 0.002), # 0.002
                         ])
     
     n_od = stim_params['n_od']
@@ -387,9 +386,9 @@ if __name__ == '__main__':
                         ])
     elif n_od == 2:
         concs_params    = dict([
-                        ('stim_dur' , np.array([500, 1900])),  # ms
-                        ('t_on', np.array([1000, 100])), # ms
-                        ('concs', np.array([.50, .0012])),
+                        ('stim_dur' , np.array([500, 100])),  # ms
+                        ('t_on', np.array([1000, 1000])), # ms
+                        ('concs', np.array([.50, .00])),
                         ])
     
     stim_params.update(concs_params)
@@ -415,7 +414,7 @@ if __name__ == '__main__':
                         ])
     
     # Sensilla/network parameters
-    transd_params       = (ab3A_params, ab3B_params)
+    transd_params       = (ab3A_params, )#ab3B_params)
     
     n_orns_recep        = 20         # number of ORNs per each receptor
     n_neu               = transd_params.__len__()         # number of ORN cohoused in the sensillum
@@ -472,7 +471,7 @@ if __name__ == '__main__':
     
     #%% FIGURE, time course and histograom of ISI and POTENTIAL of ORNs
     
-    t_on    = stim_params['t_on'][0]
+    t_on    = np.min(stim_params['t_on'])
     stim_dur = stim_params['stim_dur'][0]
     t_tot   = stim_params['t_tot']
     pts_ms  = stim_params['pts_ms']
@@ -509,8 +508,9 @@ if __name__ == '__main__':
                     orientation='horizontal')
     
     fr_mean_rs = 1000/np.mean(isi)
-    print('ORNs, FR avg: %.2f Hz' %fr_mean_rs)
-    fr_peak = np.max(np.mean(orn_sdf[:, :n_orns_recep], axis=1)) #1000/np.min(isi)
+    print('ORNs, FR avg no stimulus: %.2f Hz' %fr_mean_rs)
+    
+    fr_peak = np.max(np.mean(orn_sdf[:, :n_orns_recep], axis=1)) 
     print('ORNs, FR peak: %.2f Hz' %fr_peak)
     
     # Comparison with Poissonian hypothesis
