@@ -72,7 +72,7 @@ print(seed)
 np.random.seed(seed)
 
 fld_analysis = 'hypotheses/'
-fig_save = 1
+fig_save = 0
 if seed == 7873:
     fig_name = 'NSI_negative_corr'
 elif seed == 4645:

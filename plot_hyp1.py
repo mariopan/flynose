@@ -120,10 +120,11 @@ print(hh)
 axs.set_position([ll+dx, bb+dy, ww, hh])
 
 
-axs.text(-.1, 1.05, 'b.', transform=axs.transAxes, color=blue,
+axs.text(-.1, 1.05, 'b.', transform=axs.transAxes, #color=blue,
    fontsize=panel_fs, fontweight='bold', va='top', ha='right')
             
 
 if fig_save:
     fig.savefig(fig_hyp1_name+'.png')
        
+plt.show()

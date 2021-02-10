@@ -213,7 +213,13 @@ def quad_ORN(w_nsi, v_orn, nsi_vect, vrest, vrev, t, ):
 
 # ************************************************************************
 # main function of the LIF ORN 
-def main(orn_params, stim_params, sdf_params, sens_params):
+def main(params2an):
+    
+    stim_params = params2an['stim_params']
+    sens_params = params2an['sens_params']
+    orn_params = params2an['orn_params']
+    sdf_params = params2an['sdf_params']
+    
     
     # SDF PARAMETERS 
     [tau_sdf, dt_sdf] = sdf_params
@@ -300,7 +306,7 @@ def main(orn_params, stim_params, sdf_params, sens_params):
             rand_ts = r_noise*np.random.standard_normal((int(n2sim*1.3)))
             filt_ts = signal.filtfilt(b, a, rand_ts)
             filt_ts = filt_ts[-n2sim:]
-            r_orn[:, ss+nn*n_orns_recep] = r_tmp[:, nn] + .1*filt_ts
+            r_orn[:, ss+nn*n_orns_recep] = r_tmp[:, nn] + filt_ts
             #r_orn[:, ss+nn*n_orns_recep] = r_tmp[:, nn] * (1+ filt_ts)
     r_orn[r_orn<0] = 0
     
@@ -366,14 +372,14 @@ if __name__ == '__main__':
     
     # stimulus params
     stim_params     = dict([
-                        ('stim_type' , 'rs'),   # 'rs' # 'ts'  # 'ss' # 'pl'
+                        ('stim_type' , 'ss'),   # 'rs' # 'ts'  # 'ss' # 'pl'
                         ('pts_ms' , 5),         # simulated pts per ms 
                         ('n_od', 2), 
-                        ('t_tot', 5000),        # ms  
+                        ('t_tot', 2000),        # ms  
                         ('conc0', [1.9e-04]),    # 2.854e-04
                         ('od_noise', 5), #3.5
                         ('od_filter_frq', 0.002), #.002
-                        ('r_noise', 5.0), #6.0
+                        ('r_noise', .50), #6.0
                         ('r_filter_frq', 0.002), # 0.002
                         ])
     
@@ -386,7 +392,7 @@ if __name__ == '__main__':
                         ])
     elif n_od == 2:
         concs_params    = dict([
-                        ('stim_dur' , np.array([500, 100])),  # ms
+                        ('stim_dur' , np.array([500, 500])),  # ms
                         ('t_on', np.array([1000, 1000])), # ms
                         ('concs', np.array([.50, .00])),
                         ])
@@ -414,7 +420,7 @@ if __name__ == '__main__':
                         ])
     
     # Sensilla/network parameters
-    transd_params       = (ab3A_params, )#ab3B_params)
+    transd_params       = (ab3A_params, ab3B_params)
     
     n_orns_recep        = 20         # number of ORNs per each receptor
     n_neu               = transd_params.__len__()         # number of ORN cohoused in the sensillum
@@ -427,7 +433,7 @@ if __name__ == '__main__':
                         ('n_orns_recep', n_orns_recep),
                         ('od_pref' , od_pref),
         # NSI params
-                        ('w_nsi', 0.3), 
+                        ('w_nsi', 0.),  # 0.3
                         ('transd_params', transd_params),
                         ])
         
@@ -457,10 +463,16 @@ if __name__ == '__main__':
     dt_sdf          = 5
     sdf_params      = [tau_sdf, dt_sdf]
     
+    params2an   = dict([
+                        ('stim_params', stim_params),
+                        ('sens_params', sens_params),
+                        ('orn_params', orn_params),
+                        ('sdf_params', sdf_params),
+                        ])
     #*********************************************************************
     # ORN LIF SIMULATION
     tic = timeit.default_timer()
-    orn_lif_out = main(orn_params, stim_params, sdf_params, sens_params)
+    orn_lif_out = main(params2an)
     toc = timeit.default_timer()
     
     print('sim run time: %.2f s' %(toc-tic))
@@ -642,7 +654,7 @@ if __name__ == '__main__':
             transd_mat[pp,:] = sens_params['od_pref'][pp,:]
         
     
-        t2plot = -t_on, t_tot-t_on#np.min([1000-t_on, t_tot-t_on])
+        t2plot = -300,1000 #-t_on, t_tot-t_on#np.min([1000-t_on, t_tot-t_on])
         panels_id = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l']
         
         rs = 5      # number of rows
@@ -723,7 +735,7 @@ if __name__ == '__main__':
             ll, bb, ww, hh = ax_orn[4].get_position().bounds
             ax_orn[4].set_position([ll_new, bb+1.7*bb_plus, ww_new, hh])
             
-            plt.show()
+            
         else:
             for id_neu in range(n_neu):
                 
@@ -836,6 +848,7 @@ if __name__ == '__main__':
                     
                       
         
+        fig_orn.align_labels() 
         plt.show()
         fig_orn.savefig(fld_analysis + orn_fig_name)
          
