@@ -8,8 +8,8 @@ ORN_dyn_plot.py
 This script run NSI_ORN_LIF.py one or multiple times and saves the data 
 the following figures of the NSI paper:
     fig.3 ORN dynamics of all its components (ORN_response)
-    fig.3 ORN firing rates for several values of the stimulations (martelli)
-    fig.3s ORN dynamics for stimuli a la Lazar (lazar)   
+    fig.3 ORN firing rates for several values of the stimulations (martelli2013)
+    fig.3s ORN dynamics for stimuli a la Lazar (lazar: ramp, parabola and step)   
 
 @author: mario
 """
@@ -53,12 +53,6 @@ orange  = 'xkcd:orange'
 cmap    = plt.get_cmap('rainbow')
 
 
-
-
-stim_data_fld = ''
-
-fig2plot = 'orn_response' # 'orn_response' # 'martelli2013' # 'lazar'
-
 # Standard params
 alpha_ln        = 13.3# ln spike h=0.4
 nsi_str         = 0.3
@@ -87,7 +81,7 @@ if n_od == 1:
 elif n_od == 2:
     concs_params    = dict([
                     ('stim_dur' , np.array([500, 500])),  # ms
-                    ('t_on', np.array([500, 500])), # ms
+                    ('t_on', np.array([50, 50])), # ms
                     ('concs', np.array([.50, .00])),
                     ])
 
@@ -114,7 +108,7 @@ ab3B_params = dict([
                     ])
 
 # Sensilla/network parameters
-transd_params       = (ab3A_params, ab3B_params)
+transd_params       = (ab3A_params, )#ab3B_params)
 
 n_orns_recep        = 20         # number of ORNs per each receptor
 n_neu               = transd_params.__len__()         # number of ORN cohoused in the sensillum
@@ -157,12 +151,11 @@ tau_sdf         = 41
 dt_sdf          = 5
 sdf_params      = [tau_sdf, dt_sdf]
 
-
-# sdf_size    = int(stim_params['t_tot']/dt_sdf)
 #***********************************************
+# 'martelli2013' # 'orn_response' # 'ramp' # 'parabola' # 'step'
+fig2plot ='parabola'
 
-
-# %% FIG. ORN_response
+# %%  ORN dynamic response
 if fig2plot == 'orn_response':
     
     fld_analysis = 'NSI_analysis/ORN_LIF_dynamics' #/sdf_test
@@ -170,17 +163,17 @@ if fig2plot == 'orn_response':
     
     # stim params
     stim_params['stim_type'] = 'ss' # 'ts' # 'ss' # 'rp'# '
-    stim_params['t_tot'] = 1200        # ms 
+    stim_params['t_tot'] = 2000        # ms 
     delay       = 0
-    stim_params['t_on'] =  [300, 300]
-    stim_params['stim_dur'] = [500, 500]
-    peaks       = [0.5]         # concentration value for ORN1
-    peak_ratio  = 1             # concentration value for ORN1/ORN2    
+    stim_params['t_on'] =  np.array([1000, 1000])
+    stim_params['stim_dur'] = np.array([500, 500])
+    peaks       = np.array([.001])         # concentration value for ORN1
+    peak_ratio  = 1e-6         # concentration ratio: ORN2/ORN1    
     
     # nsi params
     inh_conds   = ['noin'] 
     
-    ext_stimulus = 0            # it is equal to 1 only for lazar stimuli
+    fig_orn_dyn = 1
     fig_save    = 0
     data_save   = 1  
     n_loops     = 1
@@ -192,7 +185,7 @@ elif fig2plot == 'martelli2013':
 
     # stim params
     stim_params['stim_type'] = 'ss' # 'ss'  # 'ts'
-    stim_params['stim_dur'] = [500, 500]
+    stim_params['stim_dur'] = np.array([500, 500])
     delay       = 0
     peak_ratio  = 1
     peaks       = np.linspace(0,.5,11)
@@ -200,42 +193,42 @@ elif fig2plot == 'martelli2013':
     # nsi params
     inh_conds   = ['noin'] #['nsi', 'ln', 'noin'] #
     
-    ext_stimulus = 0            # it is equal to 1 only for lazar stimuli
+    fig_orn_dyn = 0
     fig_save    = 0
     data_save   = 1  
     n_loops     = 1
     
 
 # Lazar and Kim data reproduction
-elif fig2plot == 'lazar':
-    ext_stimulus = 1            # it is equal to 1 only for lazar stimuli
-# fld_analysis    = 'NSI_analysis/lazar_sim/'
-# inh_conds       = ['nsi', ] #'ln', 'noin'
-# ext_stimulus    = True
-# stim_type       = 'ramp_1' # 'step_3' 'parabola_3' 'ramp_3'
-# stim_data_fld   = 'lazar_data_hr/'
+elif (fig2plot == 'ramp') | (fig2plot == 'parabola') | (fig2plot == 'step'):
+    
+    fld_analysis    = 'NSI_analysis/lazar_sim2/'
+    
+    # stim params 
+    stim_params['stim_type'] = 'ext'
+    stim_params['stim_data_name'] = 'lazar_data_hr/'+fig2plot+'_1'#.dat
+    stim_name = fig2plot
+    peaks       = np.array([1, 2, 3])
+    
+    # nsi params 
+    inh_conds       = ['noin', ] #'ln', 'noin'
 
-# stim_dur        = np.nan
-# delay           = np.nan
-# peak_ratio      = np.nan
-# peaks           = [1,] 
-# al_dyn          = 0
-# orn_fig         = 0
-# al_fig          = 0
-# fig_ui          = 1        
-# fig_save        = 0
-# data_save       = 1    
-# t_tot       = 3500 # ms 
-# tau_sdf     = 60
-# dt_sdf      = 5      
+    fig_orn_dyn = 0
+    fig_save    = 0
+    data_save   = 1    
+    n_loops     = 1
+
+    # tau_sdf     = 60
+    # dt_sdf      = 5      
+    # sdf_params      = [tau_sdf, dt_sdf]
 
 print(fig2plot)
-    params2an   = dict([
-                    ('stim_params', stim_params),
-                    ('sens_params', sens_params),
-                    ('orn_params', orn_params),
-                    ('sdf_params', sdf_params),
-                    ])
+params2an   = dict([
+                ('stim_params', stim_params),
+                ('sens_params', sens_params),
+                ('orn_params', orn_params),
+                ('sdf_params', sdf_params),
+                ])
   
 # %% RUN SIMULATIONS
 for stim_seed in range(1):
@@ -247,7 +240,14 @@ for stim_seed in range(1):
         mkdir(fld_analysis)
     
     for peak in peaks:
-        stim_params['concs'] = [peak, peak*peak_ratio]
+        
+        
+        if stim_params['stim_type'] == 'ext':
+            stim_params['stim_data_name'] = stim_params['stim_data_name'][:-1]+str(peak)
+            
+            print(stim_params['stim_data_name'])
+        else:
+            stim_params['concs'] = np.array([peak, peak*peak_ratio])
         
         tic = tictoc() #timeit.default_timer()
         for inh_cond in inh_conds:
@@ -259,17 +259,15 @@ for stim_seed in range(1):
                 sens_params['w_nsi'] = 0    #params2an[0:2] = [.0, alpha_ln,]
             
             for id_loop in range(n_loops):
-                tmp1 = params2an['stim_params']['concs'][0]
-                print(tmp1)
                 orn_lif_out = NSI_ORN_LIF.main(params2an, )
                 [t, u_od, r_orn, v_orn, y_orn, 
                    num_spikes, orn_spike_matrix, orn_sdf, orn_sdf_time,] = orn_lif_out
                 
                 # SAVE SDF OF ORN FIRING RATE
                 if data_save:
-                    if ext_stimulus:
+                    if stim_params['stim_type'] == 'ext':
                         name_data = '/ORNrate' +\
-                                '_stim_' + stim_params['stim_type'] +\
+                                '_stim_' + stim_name + str(peak) +\
                                 '_nsi_%.1f'%(sens_params['w_nsi']) +\
                                 '.pickle'
                     else:
@@ -286,8 +284,7 @@ for stim_seed in range(1):
                                 ('t', t),
                                 ('u_od',u_od),
                                 ('orn_sdf', orn_sdf),
-                                ('orn_sdf_time',orn_sdf_time), ])        
-                    
+                                ('orn_sdf_time',orn_sdf_time), ])                            
                     
                     with open(fld_analysis+name_data, 'wb') as f:
                         pickle.dump([params2an, output2an], f)
@@ -297,8 +294,8 @@ for stim_seed in range(1):
         print('')
         
 #%%
-orndyn_plot = 1
-if orndyn_plot:
+
+if fig_orn_dyn:
     t_on    = np.min(stim_params['t_on'])
     stim_dur = stim_params['stim_dur'][0]
     t_tot   = stim_params['t_tot']
@@ -316,7 +313,7 @@ if orndyn_plot:
         transd_mat[pp,:] = sens_params['od_pref'][pp,:]
     
 
-    t2plot = -300,1000 #-t_on, t_tot-t_on#np.min([1000-t_on, t_tot-t_on])
+    t2plot = -t_on, t_tot-t_on#np.min([1000-t_on, t_tot-t_on])
     panels_id = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l']
     
     rs = 5      # number of rows

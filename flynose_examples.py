@@ -48,44 +48,44 @@ tau_sdf     = 20
 dt_sdf      = 5      
 
 
-#***********************************************
-# FIG. ORN_response
-fld_analysis = 'NSI_analysis/ORN_dynamics' #/sdf_test
-inh_conds   = ['noin'] 
-stim_type   = 'ss' # 'ts' # 'ss' # 'rp'# '
-stim_dur    = 500
-delay       = 0
-peaks       = [0.8]
-peak_ratio  = 1
-t_tot       = 1200        # ms 
-orn_fig     = 1
-al_fig      = 0
-fig_ui      = 1
-fig_save    = 0
-data_save   = 0  
-al_dyn      = 0
-        
 # #***********************************************
-# # Lazar and Kim data reproduction
-# fld_analysis    = 'NSI_analysis/lazar_sim/'
-# inh_conds       = ['nsi', ] #'ln', 'noin'
-# ext_stimulus    = True
-# stim_type       = 'ramp_1' # 'step_3' 'parabola_3' 'ramp_3'
-# stim_data_fld   = 'lazar_data_hr/'
+# # FIG. ORN_response
+# fld_analysis = 'NSI_analysis/ORN_dynamics' #/sdf_test
+# inh_conds   = ['noin'] 
+# stim_type   = 'ss' # 'ts' # 'ss' # 'rp'# '
+# stim_dur    = 500
+# delay       = 0
+# peaks       = [0.8]
+# peak_ratio  = 1
+# t_tot       = 1200        # ms 
+# orn_fig     = 1
+# al_fig      = 0
+# fig_ui      = 1
+# fig_save    = 0
+# data_save   = 0  
+# al_dyn      = 0
+        
+#***********************************************
+# Lazar and Kim data reproduction
+fld_analysis    = 'NSI_analysis/lazar_sim/'
+inh_conds       = ['nsi', ] #'ln', 'noin'
+ext_stimulus    = True
+stim_type       = 'ramp_1' # 'step_3' 'parabola_3' 'ramp_3'
+stim_data_fld   = 'lazar_data_hr/'
 
-# stim_dur        = np.nan
-# delay           = np.nan
-# peak_ratio      = np.nan
-# peaks           = [1,] 
-# al_dyn          = 0
-# orn_fig         = 0
-# al_fig          = 0
-# fig_ui          = 1        
-# fig_save        = 0
-# data_save       = 1    
-# t_tot       = 3500 # ms 
-# tau_sdf     = 60
-# dt_sdf      = 5      
+stim_dur        = np.nan
+delay           = np.nan
+peak_ratio      = np.nan
+peaks           = [1,] 
+al_dyn          = 0
+orn_fig         = 0
+al_fig          = 0
+fig_ui          = 1        
+fig_save        = 0
+data_save       = 0    
+t_tot       = 3500 # ms 
+tau_sdf     = 60
+dt_sdf      = 5      
 
 # #***********************************************
 # # Olsen-Wilson 2010 figure

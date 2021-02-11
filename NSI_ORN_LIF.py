@@ -88,7 +88,7 @@ def stim_fcn(stim_params):
     n_od            = len(concs)
     t_off           = t_on+stim_dur
     
-    n2sim           = pts_ms*t_tot       # number of time points
+    n2sim           = int(pts_ms*t_tot) + 1       # number of time points
     
     rand_ts =  np.random.randn(n2sim, n_od)*od_noise
     # Create an order 3 lowpass butterworth filter:
@@ -101,12 +101,30 @@ def stim_fcn(stim_params):
     u_od = np.ones((n2sim, n_od)) * conc0*(1 + filt_ts)
     
     
-    if (stim_type == 'rs'):
+    if stim_type == 'ext':
+        stim_data_name = stim_params['stim_data_name'] 
+        ex_stim = np.loadtxt(stim_data_name+'.dat')
+     
+        # Sims params
+        t_tot           = ex_stim[-1,0]*1e3 # [ms] t_tot depends on data
+        n2sim           = int(t_tot*pts_ms)+1 
+        # n_ex_stim       = np.size(ex_stim, axis=0)#pts_ms*t_tot + 1      # number of time points
+        stim_params['t_tot'] = t_tot
+        
+        u_od            = np.zeros((n2sim, 2))
+        u_od[:, 0]      = .00004*ex_stim[:,1]
+        u_od[:, 1]      = .00004*(ex_stim[0,1]+ex_stim[-1,1])/2
+        
+        
+    elif (stim_type == 'rs'):
         # baseline stimuli
         print('u_od is constant')
+        
     elif (stim_type == 'ss'):
         # Single Step Stimuli
+        # print('u_od is single step')
         
+        n2sim           = int(t_tot*pts_ms)+1 
         tau_on          = 50
         for nn in range(n_od):
             stim_on         = t_on[nn]*pts_ms   # [num. of samples]
@@ -121,7 +139,7 @@ def stim_fcn(stim_params):
             
             # stimulus offset
             t_tmp           = \
-                np.linspace(0, t_tot-t_off[nn], t_tot*pts_ms-stim_off)    
+                np.linspace(0, t_tot-t_off[nn], n2sim-stim_off)    
             
             u_od[stim_off:, nn]  += \
                 (u_od[stim_off-1, nn]-conc0)*np.exp(-t_tmp/tau_on)
@@ -220,6 +238,8 @@ def main(params2an):
     orn_params = params2an['orn_params']
     sdf_params = params2an['sdf_params']
     
+    # GENERATE ODOUR STIMULUS/I and UPDATE STIM PARAMS
+    u_od            = stim_fcn(stim_params)
     
     # SDF PARAMETERS 
     [tau_sdf, dt_sdf] = sdf_params
@@ -228,6 +248,7 @@ def main(params2an):
     tmp_ks = ['pts_ms', 't_tot', 'n_od', 'r_noise', 'r_filter_frq']    
     [pts_ms, t_tot, n_od, r_noise, r_filter_frq] = [
         stim_params[x] for x in tmp_ks]    
+    
     # SENSILLUM PARAMETERS
     n_neu           = sens_params['n_neu']
     w_nsi           = sens_params['w_nsi']
@@ -263,11 +284,11 @@ def main(params2an):
     r0              = orn_params['r0']
     
     # INITIALIZE OUTPUT VECTORS
-    n2sim           = pts_ms*t_tot      # number of time points
+    n2sim           = int(pts_ms*t_tot)   + 1   # number of time points
     t               = np.linspace(0, t_tot, n2sim) # time points
     n_neu_tot       = n_neu*n_orns_recep
 
-    u_od            = np.zeros((n2sim, n_od))
+    # u_od            = np.zeros((n2sim, n_od))
     
     r_orn_od        = np.zeros((n2sim, n_neu, n_od)) 
     v_orn           = np.ones((n2sim, n_neu_tot)) *vrest
@@ -280,8 +301,7 @@ def main(params2an):
     num_spikes      = np.zeros((n2sim, n_neu_tot))
     orn_ref         = np.zeros(n_neu_tot)
     
-    # GENERATE ODOUR STIMULUS/I
-    u_od            = stim_fcn(stim_params)
+    
     
     
     # Transduction for different ORNs and odours
@@ -372,7 +392,7 @@ if __name__ == '__main__':
     
     # stimulus params
     stim_params     = dict([
-                        ('stim_type' , 'ss'),   # 'rs' # 'ts'  # 'ss' # 'pl'
+                        ('stim_type' , 'ss'),   # 'rs' # 'ts'  # 'ss' # 'pl' # 'ext'
                         ('pts_ms' , 5),         # simulated pts per ms 
                         ('n_od', 2), 
                         ('t_tot', 2000),        # ms  
@@ -382,6 +402,7 @@ if __name__ == '__main__':
                         ('r_noise', .50), #6.0
                         ('r_filter_frq', 0.002), # 0.002
                         ])
+    
     
     n_od = stim_params['n_od']
     if n_od == 1:
@@ -420,7 +441,7 @@ if __name__ == '__main__':
                         ])
     
     # Sensilla/network parameters
-    transd_params       = (ab3A_params, ab3B_params)
+    transd_params       = (ab3A_params, )#ab3B_params)
     
     n_orns_recep        = 20         # number of ORNs per each receptor
     n_neu               = transd_params.__len__()         # number of ORN cohoused in the sensillum
@@ -493,7 +514,7 @@ if __name__ == '__main__':
     
     n_neu_tot       = n_neu*n_orns_recep
     n_isi = np.zeros((n_neu_tot,))
-    recep_clrs = ['purple','green','cyan','red']
+    recep_clrs = ['green','purple','cyan','red']
     rs = 2
     cs = 2
     
@@ -617,8 +638,8 @@ if __name__ == '__main__':
                 corr_vorn[nn1, nn2] = np.corrcoef((pip1,pip2))[0,1]
                 corr_vorn[nn2, nn1] = corr_vorn[nn1, nn2]
                 
-                pip1 = np.zeros(t_tot)
-                pip2 = np.zeros(t_tot)
+                pip1 = np.zeros(int(t_tot))
+                pip2 = np.zeros(int(t_tot))
                 pip1[spike_matrix[spike_matrix[:,1] == nn1, 0]] = 1
                 pip2[spike_matrix[spike_matrix[:,1] == nn2, 0]] = 1
                 corr_orn[nn1, nn2] = np.corrcoef((pip1,pip2))[0,1]
@@ -654,7 +675,8 @@ if __name__ == '__main__':
             transd_mat[pp,:] = sens_params['od_pref'][pp,:]
         
     
-        t2plot = -300,1000 #-t_on, t_tot-t_on#np.min([1000-t_on, t_tot-t_on])
+        t2plot = -t_on, t_tot-t_on#np.min([1000-t_on, t_tot-t_on])
+        
         panels_id = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l']
         
         rs = 5      # number of rows
@@ -738,8 +760,8 @@ if __name__ == '__main__':
             
         else:
             for id_neu in range(n_neu):
-                
-                # PLOT
+                          
+                # PLOT    
                 weight_od = u_od*transd_mat[id_neu,:]
                 ax_orn[0, id_neu].plot(t-t_on, weight_od, linewidth=lw+1, 
                                        color=black,) 
