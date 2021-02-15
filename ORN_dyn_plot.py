@@ -144,6 +144,7 @@ green   = 'xkcd:green'
 purple  = 'xkcd:purple'
 orange  = 'xkcd:orange'
 cmap    = plt.get_cmap('rainbow')
+recep_clrs = ['green','purple','cyan','red']
 
 
 fig2plot = 'step' # 'martelli' # 'ramp' # 'parabola' # 'step'

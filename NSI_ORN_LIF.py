@@ -67,6 +67,7 @@ green   = 'xkcd:green'
 purple  = 'xkcd:purple'
 orange  = 'xkcd:orange'
 cmap    = plt.get_cmap('rainbow')
+recep_clrs = ['green','purple','cyan','red']
 
 
 #%% DEFINE FUNCTIONS
@@ -242,7 +243,8 @@ def main(params2an):
     u_od            = stim_fcn(stim_params)
     
     # SDF PARAMETERS 
-    [tau_sdf, dt_sdf] = sdf_params
+    tau_sdf = sdf_params['tau_sdf']
+    dt_sdf  = sdf_params['dt_sdf']
     
     # STIMULI PARAMETERS 
     tmp_ks = ['pts_ms', 't_tot', 'n_od', 'r_noise', 'r_filter_frq']    
@@ -480,9 +482,11 @@ if __name__ == '__main__':
 
     
     # analysis params
-    tau_sdf         = 41
-    dt_sdf          = 5
-    sdf_params      = [tau_sdf, dt_sdf]
+    sdf_params      = dict([
+                        ('tau_sdf', 41),
+                        ('dt_sdf', 5),
+                        ])
+     # [tau_sdf, dt_sdf]
     
     params2an   = dict([
                         ('stim_params', stim_params),
@@ -514,7 +518,6 @@ if __name__ == '__main__':
     
     n_neu_tot       = n_neu*n_orns_recep
     n_isi = np.zeros((n_neu_tot,))
-    recep_clrs = ['green','purple','cyan','red']
     rs = 2
     cs = 2
     

@@ -147,13 +147,14 @@ orn_params  = dict([
 
 
 # analysis params
-tau_sdf         = 41
-dt_sdf          = 5
-sdf_params      = [tau_sdf, dt_sdf]
+sdf_params      = dict([
+                    ('tau_sdf', 41),
+                    ('dt_sdf', 5),
+                    ])
 
 #***********************************************
 # 'martelli2013' # 'orn_response' # 'ramp' # 'parabola' # 'step'
-fig2plot ='parabola'
+fig2plot ='orn_response'
 
 # %%  ORN dynamic response
 if fig2plot == 'orn_response':
