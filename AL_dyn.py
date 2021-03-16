@@ -41,94 +41,101 @@ recep_clrs = ['green','purple','cyan','red']
 def tictoc():
     return timeit.default_timer()
 
-def pn2ln_v_ex(x0,t, s, ln_params, ):
+def pn2ln_v_ex(v0,t, s, pn_ln_params, ):
 #    ln_params = np.array([tau_s, tau_v, alpha_pn, vrev_ln, vrest_ln, vln_noise])
-    tau_v = ln_params[1]
+    tau_v = pn_ln_params['tau_v']
     
-    vrev = ln_params[3]
-    vrest = ln_params[4]
-    vln_noise = ln_params[5]*1*(-.5+np.random.uniform(0, 1, size=np.shape(x0)))
+    vrev = pn_ln_params['vrev_ln']
+    vrest = pn_ln_params['vrest_ln']
+    vln_noise = pn_ln_params['vln_noise']*1*(-.5+np.random.uniform(0, 1, size=np.shape(v0)))
     
     # PN -> LN equations:
     # ORN -> PN equations:
     dt = t[1]-t[0]
     b = -(1 + s)/tau_v
     a = (vrest + s*vrev + vln_noise)/tau_v
-    y = (x0 + a/b)*np.exp(b*dt)-a/b
+    v = (v0 + a/b)*np.exp(b*dt)-a/b
     #dvdt = ((vrest-v) + s*(vrev-v) + v_bckgnd)/tau_v
-    return y
+    return v
 
-def pn2ln_s_ex(x0,t, u_pn, ln_params, ):
-    #    ln_params = np.array([tau_s, tau_v, alpha_pn, vrev_ln, vrest_ln])
-    tau_s = ln_params[0]
-    a_s = ln_params[2]
+def pn2ln_s_ex(s0,t, u_pn, pn_ln_params, ):
+    tau_s = pn_ln_params['tau_s']
+    alpha_pn = pn_ln_params['alpha_pn']
     
     # PN -> LN equation of s:
-    b = (-1-a_s*u_pn)/tau_s
-    a = a_s*u_pn/tau_s
+    b = (-1-alpha_pn*u_pn)/tau_s
+    a = alpha_pn*u_pn/tau_s
     dt = t[1]-t[0]
-    y = (x0 + a/b)*np.exp(b*dt)-a/b
+    s = (s0 + a/b)*np.exp(b*dt)-a/b
 #    dsdt = (a_s*u_pn*(1-s) - s)/tau_s       
-    return y
+    return s
 
-
-def y_ln_fun_ex(y0, t, u_ln, tau_y, alpha_ln,):
+def y_ln_fun_ex(y0, t, u_ln, pn_ln_params,):
+    alpha_ln = pn_ln_params['alpha_ln']
+    tau_y = pn_ln_params['tau_y']
+    
     b = (-alpha_ln*u_ln-1)/tau_y
     a = alpha_ln*u_ln/tau_y
     dt = t[1]-t[0]
     y = (y0 + a/b)*np.exp(b*dt)-a/b
     return y
 
-def orn2pn_s_ex(x0,t, u_orn, x_pn,y_ln,pn_params,):
+def orn2pn_s_ex(s0,t, u_orn, x_pn,y_ln,pn_ln_params,):
     #    pn_params  = np.array([tau_s, tau_v, alpha_orn, vrev_pn, vrest_pn])
-    tau_s = pn_params[0]
-    a_s = pn_params[2]
+    tau_s = pn_ln_params['tau_s']
+    alpha_orn = pn_ln_params['alpha_orn']
     
     # ORN -> PN equations:
-    b = (-1-a_s*u_orn*(1-x_pn)*(1-y_ln))/tau_s
-    a = a_s*u_orn*(1-x_pn)*(1-y_ln)/tau_s
+    b = (-1-alpha_orn*u_orn*(1-x_pn)*(1-y_ln))/tau_s
+    a = alpha_orn*u_orn*(1-x_pn)*(1-y_ln)/tau_s
     dt = t[1]-t[0]
-    y = (x0 + a/b)*np.exp(b*dt)-a/b
-    return y
+    s = (s0 + a/b)*np.exp(b*dt)-a/b
+    return s
 
-def orn2pn_v_ex(x0,t, s, pn_params,):
+def orn2pn_v_ex(v0,t, s, pn_ln_params,):
 #    pn_params  = np.array([tau_s, tau_v, alpha_orn, vrev_pn, vrest_pn, vpn_noise])
-    tau_v = pn_params[1]
+    tau_v = pn_ln_params['tau_v']
     
-    vrev = pn_params[3]
-    vrest = pn_params[4]
-    vpn_noise = pn_params[5]*(-.5+np.random.uniform(0, 1, size=np.shape(x0)))
+    vrev    = pn_ln_params['vrev_pn']
+    vrest   = pn_ln_params['vrest_pn']
+    vpn_noise = pn_ln_params['vpn_noise']*(-.5+np.random.uniform(0, 1, size=np.shape(v0)))
+
+    g_l     = pn_ln_params['g_l']
+    g_s     = pn_ln_params['g_s']
     
     # ORN -> PN equations:
     dt = t[1]-t[0]
-    b = -(1 + s)/tau_v
-    a = (vrest + s*vrev + vpn_noise)/tau_v
-    y = (x0 + a/b)*np.exp(b*dt)-a/b
+    b = -(g_l + g_s* s)/tau_v
+    a = (g_l*vrest + g_s*s*vrev + vpn_noise)/tau_v
+    vtmp  = np.exp(b*dt)
+    
+    v = (v0 + a/b)*vtmp-a/b
 #    dvdt = (vrest + s*vrev + v_bckgnd)/tau_v  - v*(1 + g*s)/tau_v
-    return y
+    return v
 
-def x_adapt_ex(x0,t,u_orn, tau, a_ad,):
-    b = (-a_ad*u_orn-1)/tau
-    a = a_ad*u_orn/tau
+def x_adapt_ex(x0,t,u_orn, pn_ln_params,):
+    tau_x = pn_ln_params['tau_x']
+    alpha_x = pn_ln_params['alpha_x']
+    
+    b = (-alpha_x*u_orn-1)/tau_x
+    a = alpha_x*u_orn/tau_x
     dt = t[1]-t[0]
-    y = (x0 + a/b)*np.exp(b*dt)-a/b
-    return y
+    x = (x0 + a/b)*np.exp(b*dt)-a/b
+    return x
 
 # ************************************************************************
 # main function of the LIF ORN 
-def main(al_params, pn_ln_params, params2an, orn_spikes_t):
+def main(params_al_orn, orn_spikes_t, verbose=False, corr_an=False):
     
     tic = tictoc()
     
-    al_corr = 1
-    stim_params = params2an['stim_params']
-    # sens_params = params2an['sens_params']
-    # orn_params = params2an['orn_params']
-    sdf_params = params2an['sdf_params']
+    stim_params = params_al_orn['stim_params']
+    # sens_params = params_al_orn['sens_params']
+    # orn_params = params_al_orn['orn_params']
+    sdf_params = params_al_orn['sdf_params']
+    al_params = params_al_orn['al_params']
+    pn_ln_params = params_al_orn['pn_ln_params']
     
-    ########################## AL_dyn STARTS HERE #################################
-
-
     # ORN, PN and LN PARAMETERS
     t_ref               = al_params['t_ref']          # ms; refractory period 
     theta               = al_params['theta']                 # [mV] firing threshold
@@ -156,28 +163,28 @@ def main(al_params, pn_ln_params, params2an, orn_spikes_t):
     n_pns_recep         = al_params['n_pns_recep']     # number of PNs per each glomerulus
     n_lns_recep         = al_params['n_lns_recep']     # number of LNs per each glomerulus
     n_pns_tot           = n_pns_recep*n_recep_tot # number of total PNs
-    n_lns_tot           = n_lns_recep*n_recep_tot # number of total LNs 
+    n_lns_tot           = n_lns_recep*n_recep_tot # number of total LNs    
     
+    if verbose:
+        # flynose verbose description 
+        print('flynose Simulation ')    
+        print('')
+        print('In the ORNs layer there are %d type/s of sensilla' %(n_sens_type, ))
+        print('and %d identical sensilla of each type' %(n_orns_recep, ))
         
-    # flynose verbose description 
-    print('flynose Simulation ')    
-    print('')
-    print('In the ORNs layer there are %d type/s of sensilla' %(n_sens_type, ))
-    print('and %d identical sensilla of each type' %(n_orns_recep, ))
-    
-    for st in range(n_sens_type):
-        print('   Sensillum %d has %d ORNs of different type' %(st, n_recep_list[st]))
-    print('In total, there are %d ORNs of %d different types' %(n_orns_tot, n_recep_tot))
-    print('')
-    
-    print('In the AL there are %d glomeruli. One per each receptor type.' %n_recep_tot)
-    print('Each glomerulus has %d PNs and %d LNs' %(n_pns_recep, n_lns_recep))
-    print('In total, AL is compound of %d PNs and %d LNs' %(n_pns_tot, n_lns_tot))
-    print('Each PNs receives input from %d random ORNs of the same type' %(n_orns_pn))
-    print('')
-    
-    print('flynose is presented with an odour mixtures containing %d odorants' %n_od)
-    print('The stimulus is a '+stim_type)
+        for st in range(n_sens_type):
+            print('   Sensillum %d has %d ORNs of different type' %(st, n_recep_list[st]))
+        print('In total, there are %d ORNs of %d different types' %(n_orns_tot, n_recep_tot))
+        print('')
+        
+        print('In the AL there are %d glomeruli. One per each receptor type.' %n_recep_tot)
+        print('Each glomerulus has %d PNs and %d LNs' %(n_pns_recep, n_lns_recep))
+        print('In total, AL is compound of %d PNs and %d LNs' %(n_pns_tot, n_lns_tot))
+        print('Each PNs receives input from %d random ORNs of the same type' %(n_orns_pn))
+        print('')
+        
+        print('flynose is presented with an odour mixtures containing %d odorants' %n_od)
+        print('The stimulus is a '+stim_type)
     
     
     # Each PN belongs to ONLY one of the glomeruli
@@ -211,54 +218,23 @@ def main(al_params, pn_ln_params, params2an, orn_spikes_t):
                       ((recep_id+qq)*n_pns_recep):((recep_id+qq+1)*n_pns_recep)] = 0
         recep_id = recep_id + num_recep
     
-    
-    
-    
     # Generate input to PNs
     u_orn = orn_spikes_t.dot(orn_pn_mat) 
-    
       
-    alpha_ln = pn_ln_params['alpha_ln'] # 0.0#3                           
-    
     # PN and LN PARAMETERS and OUTPUT VECTORS
-    tau_v               = pn_ln_params['tau_v'] #.5        # [ms]
-    tau_s               = pn_ln_params['tau_s'] #10        # [ms]
+    x_pn0               = 0#.0048 # .48
+    s_pn0               = 0#.02   #.2
+    v_pn0               = 0#.05   # .5
     
-    # PN PARAMETERS
-    alpha_orn           = pn_ln_params['alpha_orn'] #12        
-    vrest_pn            = pn_ln_params['vrest_pn'] #-6.5      # [mV] resting potential
-    vrev_pn             = pn_ln_params['vrev_pn'] #15.0      # [mV] reversal potential
-    vpn_noise           = pn_ln_params['vpn_noise'] #6         # extra noise input to PNs
-    
-    alpha_x             = pn_ln_params['alpha_x'] #9.6       # ORN input coeff for adaptation variable x_pn
-    tau_x               = pn_ln_params['tau_x'] #600       # [ms] time scale for dynamics of adaptation variable x_pn
-    
-    pn_params  = np.array([tau_s, tau_v, alpha_orn, vrev_pn, vrest_pn, vpn_noise])
-    
-    # LN PARAMETERS
-    alpha_pn            = pn_ln_params['alpha_pn'] #12        #
-    vrest_ln            = pn_ln_params['vrest_ln'] #-3.0      # [mV] resting potential
-    vrev_ln             = pn_ln_params['vrev_ln'] #15.0      # [mV] reversal potential
-    vln_noise           = pn_ln_params['vln_noise'] #1         # extra noise input to LNs
-    
-    tau_y               = pn_ln_params['tau_y'] #600    # [ms] time scale for dynamics of adaptation variable y_ln
-    ln_params = np.array([tau_s, tau_v, alpha_pn, vrev_ln, vrest_ln, vln_noise])
-    
-    
-    x_pn0               = 0.48 
-    y_ln0               = 0.025
-    s_pn0               = 0.2
-    v_pn0               = 0.5
-    s_ln0               = 0.2
-    v_ln0               = 0.5
-    
-    ############################################################
+    y_ln0               = 0#.0025
+    s_ln0               = 0#.02
+    v_ln0               = 0#.05
     
     # Initialize LN to PN output vectors
     x_pn            = np.zeros((n2sim, n_pns_tot))
     u_pn            = np.zeros((n2sim, n_lns_tot))
     s_pn            = np.zeros((n2sim, n_pns_tot))
-    v_pn            = np.ones((n2sim, n_pns_tot))*vrest_pn
+    v_pn            = np.ones((n2sim, n_pns_tot))*pn_ln_params['vrest_pn']
     
     u_ln            = np.zeros((n2sim, n_pns_tot))
     y_ln            = np.zeros((n2sim, n_pns_tot))
@@ -296,20 +272,20 @@ def main(al_params, pn_ln_params, params2an, orn_spikes_t):
         
         # Adaptation variable of PN neuron
         x_pn[tt, pp_rnd] = x_adapt_ex(x_pn[tt-1,pp_rnd],tspan, 
-                u_orn[tt, pp_rnd], tau_x, alpha_x, )        
+                u_orn[tt, pp_rnd], pn_ln_params, )        
     
         # Inhibitory input to PNs
         y_ln[tt, pp_rnd] = y_ln_fun_ex(y_ln[tt-1, pp_rnd],tspan, 
-                u_ln[tt, pp_rnd], tau_y, alpha_ln, )
-    
+                u_ln[tt-1, pp_rnd], pn_ln_params, )
+        
         # ORN -> PN synapses
         
         # PNs whose ref_cnt is equal to zero:
         pn_ref_0 = pn_ref_cnt==0
         s_pn[tt, pn_ref_0] = orn2pn_s_ex(s_pn[tt-1, pn_ref_0],tspan, 
-            u_orn[tt, pn_ref_0], x_pn[tt-1, pn_ref_0], y_ln[tt-1, pn_ref_0], pn_params, )
+            u_orn[tt, pn_ref_0], x_pn[tt-1, pn_ref_0], y_ln[tt-1, pn_ref_0], pn_ln_params, )
         v_pn[tt, pn_ref_0] = orn2pn_v_ex(v_pn[tt-1, pn_ref_0],tspan, 
-                s_pn[tt-1, pn_ref_0], pn_params, )
+                s_pn[tt-1, pn_ref_0], pn_ln_params, )
         
         # PNs whose ref_cnt is different from zero:
         pn_ref_no0 = pn_ref_cnt!=0
@@ -327,9 +303,9 @@ def main(al_params, pn_ln_params, params2an, orn_spikes_t):
         # LNs whose ref_cnt is equal to zero:
         ln_ref_0 = ln_ref_cnt==0
         s_ln[tt, ln_ref_0] = pn2ln_s_ex(s_ln[tt-1, ln_ref_0], tspan, 
-                    u_pn[tt, ln_ref_0], ln_params, )
+                    u_pn[tt, ln_ref_0], pn_ln_params, )
         v_ln[tt, ln_ref_0] = pn2ln_v_ex(v_ln[tt-1, ln_ref_0], tspan, 
-                    s_ln[tt-1, ln_ref_0], ln_params, )
+                    s_ln[tt-1, ln_ref_0], pn_ln_params, )
         
         # LNs whose ref_cnt is different from zero:
         ln_ref_no0 = ln_ref_cnt!=0
@@ -352,34 +328,35 @@ def main(al_params, pn_ln_params, params2an, orn_spikes_t):
     ln_spike_matrix = np.transpose(ln_spike_matrix)
     toc = tictoc()
 
-    
+        
     # Calculate the SDF for PNs and LNs
     pn_sdf_time = np.linspace(0, dt_sdf*sdf_size, sdf_size)
     pn_sdf = np.zeros((sdf_size, n_pns_tot))
     
     if ~(np.sum(pn_spike_matrix) == 0):
-        pn_sdf, pn_sdf_time = sdf_krofczik.main(pn_spike_matrix, sdf_size,
+        pn_sdf_tmp, pn_sdf_time = sdf_krofczik.main(pn_spike_matrix, sdf_size,
                                                  tau_sdf, dt_sdf)  # (Hz, ms)
-        pn_sdf= pn_sdf*1e3
-
-
+        for nn in range(np.size(pn_sdf_tmp,1)):
+            pn_sdf[:, nn] = pn_sdf_tmp[:, nn]*1e3 
 
     ln_sdf_time = np.linspace(0, dt_sdf*sdf_size, sdf_size)
     ln_sdf = np.zeros((sdf_size, n_lns_tot))
     
-    if ~(np.sum(pn_spike_matrix) == 0):
-        ln_sdf, ln_sdf_time = sdf_krofczik.main(ln_spike_matrix, sdf_size,
+    if ~(np.sum(ln_spike_matrix) == 0):
+        ln_sdf_tmp, ln_sdf_time = sdf_krofczik.main(ln_spike_matrix, sdf_size,
                                                  tau_sdf, dt_sdf)  # (Hz, ms)
-        ln_sdf= ln_sdf*1e3
+        for nn in range(np.size(ln_sdf_tmp,1)):
+            ln_sdf[:, nn] = ln_sdf_tmp[:, nn]*1e3 
     
-    print('AL sim time: %.2f s' %(toc-tic,))
+    if verbose:
+        print('AL sim time: %.2f s' %(toc-tic,))
     
     al_out = [t, pn_spike_matrix, pn_sdf, pn_sdf_time,
               ln_spike_matrix, ln_sdf, ln_sdf_time,]
     
     
     #%%  AL correlation analysis
-    if al_corr:   
+    if corr_an:   
         tic = tictoc()
         corr_pn = np.zeros((n_pns_tot, n_pns_tot))
         corr_vpn = np.zeros((n_pns_tot, n_pns_tot))
@@ -436,14 +413,14 @@ def main(al_params, pn_ln_params, params2an, orn_spikes_t):
         tmp_corr = corr_vln[:n_lns_recep, :n_lns_recep]
         tmp_corr[tmp_corr!=0]
         corr_ln_hom = np.mean(tmp_corr[tmp_corr!=0])
-        corr_ln_het = np.mean(corr_vln[:n_lns_recep, n_lns_recep:]) # corr_ln[0,-1]
+        corr_ln_het = np.mean(corr_vln[:n_lns_recep, n_lns_recep:])
         print('LNs, Hom and Het Potent corr: %.3f and %.3f' 
               %(corr_ln_hom, corr_ln_het))
         
         tmp_corr = corr_ln[:n_lns_recep, :n_lns_recep]
         tmp_corr[tmp_corr!=0]
         corr_ln_hom = np.mean(tmp_corr[tmp_corr!=0])
-        corr_ln_het = np.mean(corr_ln[:n_lns_recep, n_lns_recep:]) # corr_ln[0,-1]
+        corr_ln_het = np.mean(corr_ln[:n_lns_recep, n_lns_recep:]) 
         print('LNs, Hom and Het spk cnt corr: %.3f and %.3f' 
               %(corr_ln_hom, corr_ln_het))
         print('')

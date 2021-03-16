@@ -295,12 +295,12 @@ def main(params2an, fig_opts):
     stim_on2        = t_on2*pts_ms
     stim_off2       = t_off2*pts_ms
     
-    stim_dur          = t_off-t_on
+    stim_dur        = t_off-t_on
     delay           = t_on2-t_on
 
     # initialize output vectors
     num_glo_list    = [2]#[4,3,2,1]     # number of glomeruli per sensilla
-    n_sens_type        = len(num_glo_list)  # number of sensilla
+    n_sens_type     = len(num_glo_list)  # number of sensilla
     num_glo_tot     = sum(num_glo_list) # number of glomeruli in total
     # TEMPORARY FIX U_OD SCALING
     u_od            = np.zeros((n2sim, 2))
@@ -329,7 +329,7 @@ def main(params2an, fig_opts):
         print('rs stimulus type, i.e. no stimulus at all')    
         
     elif stim_type == 'ts':
-        # Single Step Stimuli
+        # Single Step Stimuli with a triangular shape
         
         t_peak          = t_on + stim_dur/2     # [ms]
         stim_peak       = int(t_peak*pts_ms)
@@ -431,8 +431,8 @@ def main(params2an, fig_opts):
     
     # *****************************************************************
     # NETWORK PARAMETERS 
-    n_orns_pn         = 18    # number of ORNs per each PN in each glomerulus
-    n_orns_recep      = 18    # number of ORNs per each glomerulus
+    n_orns_pn         = 18    # 18 number of ORNs per each PN in each glomerulus
+    n_orns_recep      = 40    # 40 number of ORNs per each glomerulus
     n_orns_tot        = n_orns_recep*num_glo_tot  # total number of ORNs 
     n_pns_recep       = 5     # number of PNs per each glomerulus
     n_lns_recep       = 3     # number of LNs per each glomerulus
@@ -1006,6 +1006,7 @@ def main(params2an, fig_opts):
             u_ln[tt:tt+spike_length, :] = (u_ln[tt:tt+spike_length, :] + 
                         np.sum(ln_pn_mat[ln_above_thr,:], axis=0))
             ln_ref_cnt[ln_above_thr] = t_ref
+                    
             # ******************************************************************
             
         # *****************************************************************
@@ -1018,40 +1019,51 @@ def main(params2an, fig_opts):
         ln_spike_matrix[0,:] = ln_spike_matrix[0,:]/pts_ms
         ln_spike_matrix = np.transpose(ln_spike_matrix)
         
+        # # Temporary figure
+        # fig_tmp, axs = plt.subplots(3,1)
+        # axs[0].plot(v_ln,'.')
+        # axs[0].set_ylabel('v')
+        
+        # axs[1].plot(y_ln,'.')
+        # axs[1].set_ylabel('y')
+        
+        # axs[2].plot(u_ln, '.')
+        # axs[2].set_ylabel('u LN')
+        # plt.show()
         
 
     else:
         [pn_spike_matrix, ln_spike_matrix, ] = [np.nan, np.nan]
     
 
-    if al_dyn:
-        # correlation analysis of V_pn correlation
-        corr_vpn = np.zeros((n_pns_tot, n_pns_tot))
-        for nn1 in range(n_pns_tot):
-            for nn2 in range(n_pns_tot):
-                if nn2>nn1:
-                    pip1 = v_pn[::pts_ms, nn1]
-                    pip2 = v_pn[::pts_ms, nn2]
-                    corr_vpn[nn1, nn2] = np.corrcoef((pip1,pip2))[0,1]
+    # if al_dyn:
+    #     # correlation analysis of V_pn correlation
+    #     corr_vpn = np.zeros((n_pns_tot, n_pns_tot))
+    #     for nn1 in range(n_pns_tot):
+    #         for nn2 in range(n_pns_tot):
+    #             if nn2>nn1:
+    #                 pip1 = v_pn[::pts_ms, nn1]
+    #                 pip2 = v_pn[::pts_ms, nn2]
+    #                 corr_vpn[nn1, nn2] = np.corrcoef((pip1,pip2))[0,1]
         
-        corr_pn_hom = corr_vpn[0,1]
-        corr_pn_het = corr_vpn[0,-1]
-        print('Hom and Het corr V PNs: %.3f and %.3f' 
-              %(corr_pn_hom, corr_pn_het))
+    #     corr_pn_hom = corr_vpn[0,1]
+    #     corr_pn_het = corr_vpn[0,-1]
+    #     print('Hom and Het corr V PNs: %.3f and %.3f' 
+    #           %(corr_pn_hom, corr_pn_het))
         
-        # correlation analysis of V_ln correlation
-        corr_vln = np.zeros((n_lns_tot, n_lns_tot))
-        for nn1 in range(n_lns_tot):
-            for nn2 in range(n_lns_tot):
-                if nn2>nn1:
-                    pip1 = v_ln[::pts_ms, nn1]
-                    pip2 = v_ln[::pts_ms, nn2]
-                    corr_vln[nn1, nn2] = np.corrcoef((pip1,pip2))[0,1]
+    #     # correlation analysis of V_ln correlation
+    #     corr_vln = np.zeros((n_lns_tot, n_lns_tot))
+    #     for nn1 in range(n_lns_tot):
+    #         for nn2 in range(n_lns_tot):
+    #             if nn2>nn1:
+    #                 pip1 = v_ln[::pts_ms, nn1]
+    #                 pip2 = v_ln[::pts_ms, nn2]
+    #                 corr_vln[nn1, nn2] = np.corrcoef((pip1,pip2))[0,1]
         
-        corr_ln_hom = corr_vln[0,1]
-        corr_ln_het = corr_vln[0,-1]
-        print('Hom and Het corr V PNs: %.3f and %.3f' 
-              %(corr_ln_hom, corr_ln_het))
+    #     corr_ln_hom = corr_vln[0,1]
+    #     corr_ln_het = corr_vln[0,-1]
+    #     print('Hom and Het corr V PNs: %.3f and %.3f' 
+    #           %(corr_ln_hom, corr_ln_het))
         
     # %******************************************
     # FIGURE ORN, PN, LN
@@ -1255,7 +1267,7 @@ if __name__ == '__main__':
     dt_sdf          = 5
 
     # ORN NSI params
-    alpha_ln        = 0     # 16.6  # 13.3 #10.0 # 0.0 # ln spike h=0.4
+    alpha_ln        = 10     # 16.6  # 13.3 #10.0 # 0.0 # ln spike h=0.4
     nsi_str         = .00003     # 0.3 # 0.0
     
     # Trials and errors 
@@ -1263,42 +1275,42 @@ if __name__ == '__main__':
     # output params 
     fld_analysis    = 'NSI_analysis/trials'
    
-    # #***********************************************
-    # # stimulus params
-    stim_dur        = 500
-    delay           = 0    
-    stim_type       = 'ss'          # 'rs' # 'ts'  # 'ss' # 'pl'
-    pts_ms          = 1
-    t_tot           = 1500        # ms 
-    t_on            = [300, 300+delay]    # ms
-    t_off           = np.array(t_on)+stim_dur # ms
-    concs           = [.7, .7]
-    sdf_size        = int(t_tot/dt_sdf)
-    # real plumes params
-    b_max           = np.nan # 3, 50, 150
-    w_max           = np.nan #3, 50, 150
-    rho             = np.nan #[0, 1, 3, 5]: 
-    stim_seed       = 0   # if =np.nan() no traceable random
-    
-    #***********************************************
-    # Real plumes, example figure
-    # stim_type   = 'pl'  # 'ts' # 'ss'
-    # dur         = 4000
-    # delay       = 0
-    
-    # pts_ms      = 5
-    # t_tot       = 4300        # ms 
-    # t_on        = [300, 300+delay]    # ms
-    # t_off       = np.array(t_on)+dur # ms
-    # concs       = [1.5, 1.5]
-    # sdf_size    = int(t_tot/dt_sdf)
-    
+    # # #***********************************************
+    # # # stimulus params
+    # stim_dur        = 100
+    # delay           = 0    
+    # stim_type       = 'ss'          # 'rs' # 'ts'  # 'ss' # 'pl'
+    # pts_ms          = 5
+    # t_tot           = 1000        # ms 
+    # t_on            = [300, 300+delay]    # ms
+    # t_off           = np.array(t_on)+stim_dur # ms
+    # concs           = [.7, .7]
+    # sdf_size        = int(t_tot/dt_sdf)
     # # real plumes params
-    # b_max       = 25#, 50, 150
-    # w_max       = 3#np.nan #3, 50, 150
-    # rho         = 1#np.nan #[0, 1, 3, 5]: 
-    # stim_seed   = 0   # if =np.nan() no traceable random
-    #***********************************************
+    # b_max           = np.nan # 3, 50, 150
+    # w_max           = np.nan #3, 50, 150
+    # rho             = np.nan #[0, 1, 3, 5]: 
+    # stim_seed       = 0   # if =np.nan() no traceable random
+    
+    # ***********************************************
+    # Real plumes, example figure
+    stim_type   = 'pl'  # 'ts' # 'ss'
+    dur         = 10000
+    delay       = 0
+    
+    pts_ms      = 5
+    t_tot       = 10300        # ms 
+    t_on        = [300, 300+delay]    # ms
+    t_off       = np.array(t_on)+dur # ms
+    concs       = [1.5, 0.00005]
+    sdf_size    = int(t_tot/dt_sdf)
+    
+    # real plumes params
+    b_max       = 25#, 50, 150
+    w_max       = 3#np.nan #3, 50, 150
+    rho         = 1#np.nan #[0, 1, 3, 5]: 
+    stim_seed   = 0   # if =np.nan() no traceable random
+    # ***********************************************
 
     plume_params = [rho, w_max, b_max, stim_seed]
     
@@ -1307,11 +1319,11 @@ if __name__ == '__main__':
     params2an = [nsi_str, alpha_ln, stim_params,]
     
     orn_fig     = 1
-    al_fig      = 1
+    al_fig      = 0
     fig_ui      = 1        
-    fig_save    = 1    
+    fig_save    = 0    
     data_save   = 0
-    al_dyn      = 1
+    al_dyn      = 0
     verbose     = 0    
 
     fig_opts = [orn_fig, al_fig, fig_ui, fig_save, data_save, al_dyn, 

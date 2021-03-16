@@ -65,27 +65,27 @@ dt_sdf      = 5
 # data_save   = 0  
 # al_dyn      = 0
         
-#***********************************************
-# Lazar and Kim data reproduction
-fld_analysis    = 'NSI_analysis/lazar_sim/'
-inh_conds       = ['nsi', ] #'ln', 'noin'
-ext_stimulus    = True
-stim_type       = 'ramp_1' # 'step_3' 'parabola_3' 'ramp_3'
-stim_data_fld   = 'lazar_data_hr/'
+# #***********************************************
+# # Lazar and Kim data reproduction
+# fld_analysis    = 'NSI_analysis/lazar_sim/'
+# inh_conds       = ['nsi', ] #'ln', 'noin'
+# ext_stimulus    = True
+# stim_type       = 'ramp_1' # 'step_3' 'parabola_3' 'ramp_3'
+# stim_data_fld   = 'lazar_data_hr/'
 
-stim_dur        = np.nan
-delay           = np.nan
-peak_ratio      = np.nan
-peaks           = [1,] 
-al_dyn          = 0
-orn_fig         = 0
-al_fig          = 0
-fig_ui          = 1        
-fig_save        = 0
-data_save       = 0    
-t_tot       = 3500 # ms 
-tau_sdf     = 60
-dt_sdf      = 5      
+# stim_dur        = np.nan
+# delay           = np.nan
+# peak_ratio      = np.nan
+# peaks           = [1,] 
+# al_dyn          = 0
+# orn_fig         = 0
+# al_fig          = 0
+# fig_ui          = 1        
+# fig_save        = 0
+# data_save       = 0    
+# t_tot       = 3500 # ms 
+# tau_sdf     = 60
+# dt_sdf      = 5      
 
 # #***********************************************
 # # Olsen-Wilson 2010 figure
@@ -135,28 +135,29 @@ dt_sdf      = 5
 #fig_save    = 0
 #data_save   = 0    
 
-##***********************************************
-## Real plumes, example figure
-#fld_analysis = 'NSI_analysis/analysis_real_plumes/example'
-#inh_conds   = ['nsi', ] #'ln', 'noin'
-#stim_type   = 'pl'  # 'ts' # 'ss'
-#t_tot       = 5000
-#stim_dur    = 4000
-#delay       = 0
-#peak_ratio  = 1
-#peaks       = [1.5,] 
-## real plumes params
-#b_max       = 25 #, 50, 150
-#w_max       = 3  #, 50, 150
-#rho         = 1 #np.nan # 0, 1, 3, 5: 
-#stim_seed   = 0   # if =np.nan() no traceable random
-##fig opts
-#orn_fig     = 0
-#al_dyn      = 1
-#al_fig      = 1
-#fig_ui      = 1        
-#fig_save    = 0    
-#data_save   = 0    
+#***********************************************
+# Real plumes, example figure
+fld_analysis = 'NSI_analysis/analysis_real_plumes/example'
+inh_conds   = ['nsi', ] #'ln', 'noin'
+stim_type   = 'pl'  # 'ts' # 'ss'
+t_tot       = 5000
+stim_dur    = 4000
+delay       = 0
+peak_ratio  = 1
+peaks       = [1.5,] 
+# real plumes params
+b_max       = 25 #, 50, 150
+w_max       = 3  #, 50, 150
+rho         = 1 #np.nan # 0, 1, 3, 5: 
+# stim_seed   = np.nan   # if =np.nan() no traceable random
+
+# figures opts
+orn_fig     = 0
+al_dyn      = 1
+al_fig      = 1
+fig_ui      = 1        
+fig_save    = 0    
+data_save   = 0    
 
    
 # Standard params
@@ -165,7 +166,7 @@ t_off       = np.array(t_on)+stim_dur # ms
 concs       = [0, 0]
 sdf_size    = int(t_tot/dt_sdf)       
 
-for stim_seed in range(1):
+for stim_seed in range(10):
     plume_params = [rho, w_max, b_max, stim_seed]
     fig_opts = [orn_fig, al_fig, fig_ui, fig_save, data_save, al_dyn, 
                 verbose, fld_analysis] 

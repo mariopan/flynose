@@ -5,6 +5,11 @@ Created on Tue Aug 27 14:55:39 2019
 
 corr_plumes.py
 
+Generates couple of correlated time series having the same statistical feature  
+of real plumes detected in open space.
+
+see also stats_for_plumes.py
+
 @author: mp525
 """
 

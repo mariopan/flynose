@@ -3,6 +3,11 @@
 """
 Created on Tue Apr 14 17:49:50 2020
 
+A collection of small functions used mainly by corr_plumes.py and other scripts 
+to describe the statistical features of real plumes
+
+see also corr_plumes.py
+
 @author: mario
 """
 

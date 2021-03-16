@@ -86,10 +86,6 @@ def main(spike_mat, sdf_size, tau_sdf = 100, dt_sdf = 20, ):
     
     n_neu  = int(1+np.max(spike_mat[:, 1]))  # number of neurons
     
-    #t_max = np.max(spike_mat[:, 0])  # max time (ms)
-    #sdf_size = int(2*t_max/dt_sdf)
-    
-    
     # inizialize sdf variable
     sdf_matrix = np.zeros((sdf_size, n_neu))
     

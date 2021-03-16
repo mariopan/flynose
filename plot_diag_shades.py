@@ -181,7 +181,7 @@ alpha_ln    = 16.6
 nsi_str     = 0.2
 
 # Stimulus params 
-fig_id = 'ts_a' # 'ts_s' #  'ts_a' # 'pl'
+fig_id = 'ts_s' # 'ts_s' #  'ts_a' # 'pl'
 if fig_id == 'ts_s':
     stim_type   = 'ts'          # 'ts'  # 'ss' # 'pl'
     delay       = 0    
@@ -239,7 +239,7 @@ al_dyn      = 1
 al_fig      = 0
 fig_ui      = 0        
 verbose     = 0    
-fig_save    = 1
+fig_save    = 0
 data_save   = 0    
 
 fig_opts    = [orn_fig, al_fig, fig_ui, fig_save, data_save, al_dyn, 
@@ -253,7 +253,7 @@ fig_name    = 'diag_stim_'+stim_type+'_delay_%d'%delay + \
 
 
 # Plot settings/params
-n_lines = 10
+n_lines = 2#10
 
 num_glo = 2
 num_orns = num_glo*40    # number of ORNs per each glomerulus
@@ -305,7 +305,7 @@ for inh_cond in inh_conds:
     data2plot = [t, u_od, orn_sdf_time, orn_sdf, 
                   pn_sdf_time, pn_sdf, ]
     orn_al_plot(data2plot, params2an, inh_cond)
-        
+    plt.show()
 if fig_save:
     print('saving figure in '+fld_analysis)
     fig_pn.savefig(fld_analysis+ '/'+ fig_name + '.png')

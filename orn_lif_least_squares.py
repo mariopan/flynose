@@ -3,7 +3,7 @@
 """
 Created on Mon Oct 26 17:24:23 2020
 
-study_least_squares.py
+orn_lif_least_squares.py
 
 This function fits multiple curves coming from ORN_depalo or study_ORN_LIF
 with the function scipy.optimize.least_squares. 
