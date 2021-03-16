@@ -186,15 +186,15 @@ def olsen2010_data(data_tmp, params_tmp):
     pn_id_stim = np.flatnonzero((pn_sdf_time>t_on) & (pn_sdf_time<t_off))
     ln_id_stim = np.flatnonzero((ln_sdf_time>t_on) & (ln_sdf_time<t_off))
     
-    nu_orn_w = np.mean(orn_sdf[orn_id_stim, :n_orns_recep])
-    nu_pn_w = np.mean(pn_sdf[pn_id_stim, :n_pns_recep])
-    # nu_ln_w = np.mean(ln_sdf[ln_id_stim, :n_lns_recep])
-    # conc_w = np.mean(u_od[stim_on:stim_off, 1], axis=0)
+    nu_orn_w = np.max(orn_sdf[orn_id_stim, :n_orns_recep])
+    nu_pn_w = np.max(pn_sdf[pn_id_stim, :n_pns_recep])
+    # nu_ln_w = np.max(ln_sdf[ln_id_stim, :n_lns_recep])
+    # conc_w = np.max(u_od[stim_on:stim_off, 1], axis=0)
     
-    nu_orn_s = np.mean(orn_sdf[orn_id_stim, n_orns_recep:])
-    nu_pn_s = np.mean(pn_sdf[pn_id_stim, n_pns_recep:])
-    nu_ln_s = np.mean(ln_sdf[ln_id_stim, n_lns_recep:])
-    conc_s = np.mean(u_od[stim_on:stim_off, 0], axis=0)
+    nu_orn_s = np.max(orn_sdf[orn_id_stim, n_orns_recep:])
+    nu_pn_s = np.max(pn_sdf[pn_id_stim, n_pns_recep:])
+    nu_ln_s = np.max(ln_sdf[ln_id_stim, n_lns_recep:])
+    conc_s = np.max(u_od[stim_on:stim_off, 0], axis=0)
     
     nu_orn_err = np.std(orn_sdf[orn_id_stim, :n_orns_recep])/np.sqrt(n_orns_recep)
     nu_pn_err = np.std(pn_sdf[pn_id_stim, :n_pns_recep])/np.sqrt(n_pns_recep)
@@ -221,9 +221,9 @@ stim_params     = dict([
                     ('n_od', 2),            # number of odours
                     ('t_tot', 1500),        # ms 
                     ('conc0', 2.85e-04),    # 2.854e-04
-                    ('od_noise', 2),        # 5
+                    ('od_noise', 0*2),        # 2
                     ('od_filter_frq', 0.002), #.002
-                    ('r_noise', .50),       # .5
+                    ('r_noise', 0*.50),       # .5
                     ('r_filter_frq', 0.002), # 0.002
                     ])
 
@@ -369,9 +369,9 @@ pn_ln_params = dict([
                     ('vrev_pn',     0),    # 15 [mV] reversal potential
                     ('vrest_pn',  -55),    # -6.5 [mV] resting potential
                     
-                    ('tau_s',       2* 10),    # 10 [ms]
-                    ('alpha_orn',  .75* 3*4),   # 3  coeff for the ORN input to PNs                    
-                    ('tau_v',      20*.5),    # .5 [ms]
+                    ('tau_s',      1000),    # 10 [ms]
+                    ('alpha_orn',  10),   # 3  coeff for the ORN input to PNs                    
+                    ('tau_v',      10),    # .5 [ms]
                     
                     ('g_s',        1*1), # 1                                        
                     ('g_l',        1e-10*1), #  1 
@@ -380,7 +380,7 @@ pn_ln_params = dict([
                     ('tau_x',      1*600),    # 600 [ms] time scale for dynamics of adaptation    
                                             # variable x_pn
                     
-                    ('vpn_noise',  .0061*10),  # NEW # extra noise input to PNs
+                    ('vpn_noise',  .0*10),  # NEW # extra noise input to PNs
                     
                     # LN params
                     ('vln_noise',   0*350),    # NEW
@@ -443,8 +443,8 @@ stim_params['t_tot']        = t0+delay+stim_dur+300
 stim_params['t_on']         = np.array([t0, t0+delay])
 
 stim_params['conc0']        = 1.85e-4    # 1.85e-4  # fitting value: 2.85e-4
-peak_ratio                  = 1
-peaks                       = [1.85e-4, 3e-4, 2e-3, 2e-2,]#*np.logspace(-4, -2.5, 10)  # np.array([3e-4, 0.0006,0.0012, 0.0025,])#.005])#np.array([0.0001, 0.0006,0.0012, 0.0025, 0.005]) # np.logspace(-4, -1, 5) 
+peak_ratio                  = 10
+peaks                       = [1.85e-4, 8e-4, 2e-3, 2e-2]#*np.logspace(-4, -2.5, 10)  # np.array([3e-4, 0.0006,0.0012, 0.0025,])#.005])#np.array([0.0001, 0.0006,0.0012, 0.0025, 0.005]) # np.logspace(-4, -1, 5) 
 
 # nsi params
 inh_cond                    = 'noin'    #['nsi', 'ln', 'noin'] #
@@ -503,6 +503,12 @@ if path.isdir(fld_analysis):
 else:
     print('no fld analysis, please create one. thanks')
 
+
+pn_ln_params['tau_s']       = .000005   # 10 [ms]
+pn_ln_params['alpha_orn']   = .1*10   # 3  coeff for the ORN input to PNs                    
+pn_ln_params['tau_v']       = .0005   # .5 [ms]
+                    
+                    
 for id_c, peak in enumerate(peaks):
     if stim_params['stim_type'] == 'ext':
         stim_params['stim_data_name'] = stim_params['stim_data_name'][:-1]+str(peak)
@@ -551,9 +557,10 @@ for id_c, peak in enumerate(peaks):
         [t, u_od,  orn_spikes_t, orn_sdf,orn_sdf_time] = output_orn 
         
         # AL dynamics
+        
         output_al = AL_dyn.main(params_al_orn, orn_spikes_t)
         [t, pn_spike_matrix, pn_sdf, pn_sdf_time,
-                      ln_spike_matrix, ln_sdf, ln_sdf_time,] = output_al
+         ln_spike_matrix, ln_sdf, ln_sdf_time,] = output_al
     
         output2an = dict([
                     ('t', t),

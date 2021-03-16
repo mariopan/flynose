@@ -246,7 +246,7 @@ def main(params_al_orn, orn_spikes_t, verbose=False, corr_an=False):
     
     # Initialize LN output vectors
     s_ln            = np.zeros((n2sim, n_lns_tot))
-    v_ln            = np.zeros((n2sim, n_lns_tot))
+    v_ln            = np.ones((n2sim, n_lns_tot))*pn_ln_params['vrest_ln']
     num_spike_ln    = np.zeros((n2sim, n_lns_tot))  
     
     # PN and LN params initial conditions
