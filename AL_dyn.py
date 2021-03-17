@@ -86,7 +86,7 @@ def orn2pn_s_ex(s0,t, u_orn, x_pn,y_ln,pn_ln_params,):
     alpha_orn = pn_ln_params['alpha_orn']
     
     # ORN -> PN equations:
-    b = (-1-alpha_orn*u_orn*(1-x_pn)*(1-y_ln))/tau_s
+    b = -1/tau_s
     a = alpha_orn*u_orn*(1-x_pn)*(1-y_ln)/tau_s
     dt = t[1]-t[0]
     s = (s0 + a/b)*np.exp(b*dt)-a/b
@@ -282,15 +282,15 @@ def main(params_al_orn, orn_spikes_t, verbose=False, corr_an=False):
         
         # PNs whose ref_cnt is equal to zero:
         pn_ref_0 = pn_ref_cnt==0
-        s_pn[tt, pn_ref_0] = orn2pn_s_ex(s_pn[tt-1, pn_ref_0],tspan, 
-            u_orn[tt, pn_ref_0], x_pn[tt-1, pn_ref_0], y_ln[tt-1, pn_ref_0], pn_ln_params, )
+        s_pn[tt, :] = orn2pn_s_ex(s_pn[tt-1, :],tspan, 
+            u_orn[tt, :], x_pn[tt-1, :], y_ln[tt-1, :], pn_ln_params, )
         v_pn[tt, pn_ref_0] = orn2pn_v_ex(v_pn[tt-1, pn_ref_0],tspan, 
                 s_pn[tt-1, pn_ref_0], pn_ln_params, )
         
         # PNs whose ref_cnt is different from zero:
         pn_ref_no0 = pn_ref_cnt!=0
         # Refractory period count down
-        pn_ref_cnt[pn_ref_no0] = pn_ref_cnt[pn_ref_no0] - 1  
+        pn_ref_cnt[pn_ref_no0] = pn_ref_cnt[pn_ref_no0] - 1
         
         # PNs whose Voltage is above threshold AND whose ref_cnt is equal to zero:
         pn_above_thr = (v_pn[tt, :] >= theta) & (pn_ref_cnt==0)
@@ -318,7 +318,15 @@ def main(params_al_orn, orn_spikes_t, verbose=False, corr_an=False):
         u_ln[tt, :] += np.sum(ln_pn_mat[ln_above_thr,:], axis=0)
         ln_ref_cnt[ln_above_thr] = t_ref
         
+
+    plt.figure()
+    plt.plot(s_pn)
+    plt.figure()
+    plt.plot(x_pn)
+    plt.figure()
+    plt.plot(v_pn)
     # Calculate the spike matrix of PNs and LNs
+
     pn_spike_matrix = np.asarray(np.where(num_spike_pn))
     pn_spike_matrix[0,:] = pn_spike_matrix[0,:]/pts_ms
     pn_spike_matrix = np.transpose(pn_spike_matrix)

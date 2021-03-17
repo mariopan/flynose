@@ -246,7 +246,7 @@ stim_params.update(concs_params)
 # ORN Parameters 
 orn_params  = dict([
     # LIF params
-                    ('t_ref', 2*stim_params['pts_ms']), # ms; refractory period 
+                    ('t_ref', 2*stim_params['pts_ms']), # timesteps; refractory period 
                     ('theta', 1),                 # [mV] firing threshold
                     ('tau_v', 2.26183540),        # [ms]
                     ('vrest', -0.969461053),      # [mV] resting potential
@@ -264,7 +264,7 @@ orn_params  = dict([
 # SDF/Analysis params
 sdf_params      = dict([
                     ('tau_sdf', 21),
-                    ('dt_sdf', 5),
+                    ('dt_sdf', 1),
                     ])
 
 # ***************************************************************************
@@ -367,7 +367,7 @@ al_params  = dict([
 pn_ln_params = dict([
                     # CHANGED params
                     ('vrev_pn',     0),    # 15 [mV] reversal potential
-                    ('vrest_pn',  -55),    # -6.5 [mV] resting potential
+                    ('vrest_pn',  -65),    # -6.5 [mV] resting potential
                     
                     ('tau_s',       2* 10),    # 10 [ms]
                     ('alpha_orn',  .75* 3*4),   # 3  coeff for the ORN input to PNs                    
