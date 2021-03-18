@@ -47,14 +47,15 @@ def pn2ln_v_ex(v0,t, s, pn_ln_params, ):
     
     vrev = pn_ln_params['vrev_ln']
     vrest = pn_ln_params['vrest_ln']
-    vln_noise = pn_ln_params['vln_noise']*1*(-.5+np.random.uniform(0, 1, size=np.shape(v0)))
+    vln_noise = pn_ln_params['vln_noise']*1*(0.3*np.random.normal(size=np.shape(v0)))
     
     # PN -> LN equations:
     # ORN -> PN equations:
     dt = t[1]-t[0]
     b = -(1 + s)/tau_v
-    a = (vrest + s*vrev + vln_noise)/tau_v
+    a = (vrest + s*vrev)/tau_v
     v = (v0 + a/b)*np.exp(b*dt)-a/b
+    v = v + vln_noise*np.sqrt(dt)
     #dvdt = ((vrest-v) + s*(vrev-v) + v_bckgnd)/tau_v
     return v
 
@@ -64,10 +65,10 @@ def pn2ln_s_ex(s0,t, u_pn, pn_ln_params, ):
     
     # PN -> LN equation of s:
     b = (-1-alpha_pn*u_pn)/tau_s
-    a = alpha_pn*u_pn/tau_s
     dt = t[1]-t[0]
-    s = (s0 + a/b)*np.exp(b*dt)-a/b
-#    dsdt = (a_s*u_pn*(1-s) - s)/tau_s       
+    s = s0*np.exp(b*dt)
+    s = s + alpha_pn*u_pn
+    #    dsdt = (a_s*u_pn*(1-s) - s)/tau_s       
     return s
 
 def y_ln_fun_ex(y0, t, u_ln, pn_ln_params,):
@@ -75,9 +76,9 @@ def y_ln_fun_ex(y0, t, u_ln, pn_ln_params,):
     tau_y = pn_ln_params['tau_y']
     
     b = (-alpha_ln*u_ln-1)/tau_y
-    a = alpha_ln*u_ln/tau_y
     dt = t[1]-t[0]
-    y = (y0 + a/b)*np.exp(b*dt)-a/b
+    y = y0*np.exp(b*dt)
+    y = y + alpha_ln*u_ln
     return y
 
 def orn2pn_s_ex(s0,t, u_orn, x_pn,y_ln,pn_ln_params,):
@@ -87,9 +88,9 @@ def orn2pn_s_ex(s0,t, u_orn, x_pn,y_ln,pn_ln_params,):
     
     # ORN -> PN equations:
     b = -1/tau_s
-    a = alpha_orn*u_orn*(1-x_pn)*(1-y_ln)/tau_s
     dt = t[1]-t[0]
-    s = (s0 + a/b)*np.exp(b*dt)-a/b
+    s = s0*np.exp(b*dt)
+    s= s + alpha_orn*u_orn*(1-x_pn)*(1-y_ln)
     return s
 
 def orn2pn_v_ex(v0,t, s, pn_ln_params,):

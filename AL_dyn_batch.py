@@ -370,7 +370,7 @@ pn_ln_params = dict([
                     ('vrest_pn',  -65),    # -6.5 [mV] resting potential
                     
                     ('tau_s',       2* 10),    # 10 [ms]
-                    ('alpha_orn',  .75* 3*4),   # 3  coeff for the ORN input to PNs                    
+                    ('alpha_orn',  .75* 3*4*0.2/(2*10)),   # 3  coeff for the ORN input to PNs                    
                     ('tau_v',      20*.5),    # .5 [ms]
                     
                     ('g_s',        1*1), # 1                                        
@@ -384,7 +384,7 @@ pn_ln_params = dict([
                     
                     # LN params
                     ('vln_noise',   0*350),    # NEW
-                    ('alpha_pn',    3*.6),  # 3  # coeff for the PN input to LNs
+                    ('alpha_pn',    3*.6*.05),  # 3  # coeff for the PN input to LNs
                     
                     # LN params
                     ('vrest_ln', -55),   # -3[mV] resting potential
