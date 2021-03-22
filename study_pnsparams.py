@@ -186,15 +186,15 @@ def olsen2010_data(data_tmp, params_tmp):
     pn_id_stim = np.flatnonzero((pn_sdf_time>t_on) & (pn_sdf_time<t_off))
     ln_id_stim = np.flatnonzero((ln_sdf_time>t_on) & (ln_sdf_time<t_off))
     
-    nu_orn_w = np.max(orn_sdf[orn_id_stim, :n_orns_recep])
-    nu_pn_w = np.max(pn_sdf[pn_id_stim, :n_pns_recep])
-    # nu_ln_w = np.max(ln_sdf[ln_id_stim, :n_lns_recep])
-    # conc_w = np.max(u_od[stim_on:stim_off, 1], axis=0)
+    nu_orn_w = np.mean(orn_sdf[orn_id_stim, :n_orns_recep])
+    nu_pn_w = np.mean(pn_sdf[pn_id_stim, :n_pns_recep])
+    # nu_ln_w = np.mean(ln_sdf[ln_id_stim, :n_lns_recep])
+    # conc_w = np.mean(u_od[stim_on:stim_off, 1], axis=0)
     
-    nu_orn_s = np.max(orn_sdf[orn_id_stim, n_orns_recep:])
-    nu_pn_s = np.max(pn_sdf[pn_id_stim, n_pns_recep:])
-    nu_ln_s = np.max(ln_sdf[ln_id_stim, n_lns_recep:])
-    conc_s = np.max(u_od[stim_on:stim_off, 0], axis=0)
+    nu_orn_s = np.mean(orn_sdf[orn_id_stim, n_orns_recep:])
+    nu_pn_s = np.mean(pn_sdf[pn_id_stim, n_pns_recep:])
+    nu_ln_s = np.mean(ln_sdf[ln_id_stim, n_lns_recep:])
+    conc_s = np.mean(u_od[stim_on:stim_off, 0], axis=0)
     
     nu_orn_err = np.std(orn_sdf[orn_id_stim, :n_orns_recep])/np.sqrt(n_orns_recep)
     nu_pn_err = np.std(pn_sdf[pn_id_stim, :n_pns_recep])/np.sqrt(n_pns_recep)
@@ -219,11 +219,11 @@ stim_params     = dict([
                     ('stim_type' , 'ss'),   # 'ts'  # 'ss' # 'pl'
                     ('pts_ms' , 5),         # simulated pts per ms 
                     ('n_od', 2),            # number of odours
-                    ('t_tot', 1500),        # ms 
+                    ('t_tot', 5000),        # ms 
                     ('conc0', 2.85e-04),    # 2.854e-04
-                    ('od_noise', 0*2),        # 2
+                    ('od_noise', 4.5),        # 4.5
                     ('od_filter_frq', 0.002), #.002
-                    ('r_noise', 0*.50),       # .5
+                    ('r_noise', 1.1),       # .5
                     ('r_filter_frq', 0.002), # 0.002
                     ])
 
@@ -247,15 +247,16 @@ stim_params.update(concs_params)
 orn_params  = dict([
     # LIF params
                     ('t_ref', 2*stim_params['pts_ms']), # ms; refractory period 
-                    ('theta', 1),                 # [mV] firing threshold
-                    ('tau_v', 2.26183540),        # [ms]
-                    ('vrest', -0.969461053),      # [mV] resting potential
-                    ('vrev', 21.1784081),  # [mV] reversal potential
-                    # ('v_k', vrest),
+                    ('theta', -30),#1),                   # [mV] firing threshold
+                    # fitted values
+                    ('tau_v', 2.26183540),          # [ms]
+                    ('vrest', -33), #-0.969461053),        # [mV] resting potential
+                    ('vrev', 0),#21),                   # 21.1784081 [mV] reversal potential
+                    # ('v_k', vrest),                        
                     ('g_y', .5853575783),       
                     ('g_r', .864162073),  
                     ('r0', 0.15), 
-                    ('y0', 2), 
+                    ('y0', .5), 
     # Adaptation params
                     ('alpha_y', .45310619), 
                     ('beta_y', 3.467184e-03), 
@@ -353,6 +354,7 @@ for st in range(n_sens_type):
 
 
 # AL DYNAMICS PARAMETERS 
+dt = 1/stim_params['pts_ms']
 
 al_params  = dict([
                     ('n_pns_recep', 5),
@@ -367,31 +369,37 @@ al_params  = dict([
 pn_ln_params = dict([
                     # CHANGED params
                     ('vrev_pn',     0),    # 15 [mV] reversal potential
-                    ('vrest_pn',  -55),    # -6.5 [mV] resting potential
+                    ('vrest_pn',  -55),    # -6.5 [mV] resting potential                    
                     
-                    ('tau_s',      1000),    # 10 [ms]
-                    ('alpha_orn',  10),   # 3  coeff for the ORN input to PNs                    
-                    ('tau_v',      10),    # .5 [ms]
+                    ('tau_v',      10),    # .5 [ms]                    
+                    # x variables params
+                    ('alpha_x',    0*2.4*3*dt), # 2.4 ORN input coeff for adaptation variable x_pn
+                    ('tau_x',      600),    # 600 [ms] time scale for dynamics of adaptation                        
                     
-                    ('g_s',        1*1), # 1                                        
-                    ('g_l',        1e-10*1), #  1 
                     
-                    ('alpha_x',    0*2.4*3), # 2.4 ORN input coeff for adaptation variable x_pn
-                    ('tau_x',      1*600),    # 600 [ms] time scale for dynamics of adaptation    
-                                            # variable x_pn
+                    ('vpn_noise',  15),  # NEW # extra noise input to PNs                    
+                    ('alpha_orn',  .8*dt),   # 3  coeff for the ORN input to PNs                    
                     
-                    ('vpn_noise',  .0*10),  # NEW # extra noise input to PNs
+                    # PN and LN common params
+                    ('tau_s',       15),     # 10 [ms]
+                    ('g_s_pn',      4.5),     
+                    ('g_l_pn',      1), #  1                     
+                    
+                    ('g_s_ln',      2),     
+                    ('g_l_ln',      1), #  1                     
                     
                     # LN params
-                    ('vln_noise',   0*350),    # NEW
-                    ('alpha_pn',    3*.6),  # 3  # coeff for the PN input to LNs
+                    ('vln_noise',   15),    # NEW
+                    ('alpha_pn',    5*dt),  # 3  # coeff for the PN input to LNs                    
                     
                     # LN params
-                    ('vrest_ln', -55),   # -3[mV] resting potential
-                    ('vrev_ln', -80),        # 15  [mV] reversal potential
-                    ('tau_y', 600),
+                    ('vrev_ln',     0),        # 15  [mV] reversal potential                    
+                    ('vrest_ln',    -55),   # -3[mV] resting potential
+                    
+                    
                     # LN to PN
-                    ('alpha_ln', 0), # [ms]
+                    ('tau_y', 600),
+                    ('alpha_ln', 0), 
                     ])
 
 # ORNS layer SIMULATION
@@ -432,7 +440,7 @@ with open(fld_analysis+params_file, 'wb') as f:
 # %%
 # stim params
 delay                       = 0
-t0                          = 500
+t0                          = 150
 stim_name                   = ''
 
 stim_params['stim_type']    = 'ss' # 'ss'  # 'ts' # 'rs' # 'pl'
@@ -443,18 +451,18 @@ stim_params['t_tot']        = t0+delay+stim_dur+300
 stim_params['t_on']         = np.array([t0, t0+delay])
 
 stim_params['conc0']        = 1.85e-4    # 1.85e-4  # fitting value: 2.85e-4
-peak_ratio                  = 10
-peaks                       = [1.85e-4, 8e-4, 2e-3, 2e-2]#*np.logspace(-4, -2.5, 10)  # np.array([3e-4, 0.0006,0.0012, 0.0025,])#.005])#np.array([0.0001, 0.0006,0.0012, 0.0025, 0.005]) # np.logspace(-4, -1, 5) 
+peak_ratio                  = 1
+peaks                       = [1.85e-4, 1.85e-3,1.85e-2, 3*1.85e-2, 1.85e-1,]#8e-4, 3e-3]#*np.logspace(-4, -2.5, 10)  # np.array([3e-4, 0.0006,0.0012, 0.0025,])#.005])#np.array([0.0001, 0.0006,0.0012, 0.0025, 0.005]) # np.logspace(-4, -1, 5) 
 
 # nsi params
-inh_cond                    = 'noin'    #['nsi', 'ln', 'noin'] #
-nsi_str                     = .6
+inh_cond                    = 'nsi'    #['nsi', 'ln', 'noin'] #
+nsi_str                     = .4
 alpha_ln                    = 100
 
 # output params
 run_sims                    = 1     # Run sims or just load the data
 data_save                   = 0
-al_orn_1r_fig               = 1     # single run figure flag
+al_orn_1r_fig               = 0     # single run figure flag
 fig_orn_al_name_1r             = 'ORN_AL_timecourse_' +inh_cond+\
                         '_stim_'+ stim_params['stim_type'] +'_dur_%d'%stim_dur
 
@@ -466,7 +474,7 @@ olsen_fig                   = 1     # PN vs ORN activity, like Olsen 2010
 fig_olsen_fit_name          = 'Olsen2010' +inh_cond+\
                         '_stim_'+ stim_params['stim_type'] +'_dur_%d'%stim_dur
 
-figs_save                   = 0
+figs_save                   = 1
 
 
 # OLSEN 2010 FIGURES 
@@ -504,10 +512,10 @@ else:
     print('no fld analysis, please create one. thanks')
 
 
-pn_ln_params['tau_s']       = .000005   # 10 [ms]
-pn_ln_params['alpha_orn']   = .1*10   # 3  coeff for the ORN input to PNs                    
-pn_ln_params['tau_v']       = .0005   # .5 [ms]
-                    
+# pn_ln_params['tau_s']       = 15   # 10 [ms]
+# pn_ln_params['alpha_orn']   = 1   # 3  coeff for the ORN input to PNs                    
+# pn_ln_params['g_s']         = .4   # 
+                
                     
 for id_c, peak in enumerate(peaks):
     if stim_params['stim_type'] == 'ext':
@@ -553,15 +561,21 @@ for id_c, peak in enumerate(peaks):
     #### RUN SIMULATIONS #####################################################
     # ORNs layer dynamics
     if run_sims:
+        # ORNs layer dynamics
         output_orn = ORNs_layer_dyn.main(params_al_orn)
-        [t, u_od,  orn_spikes_t, orn_sdf,orn_sdf_time] = output_orn 
+        [t, u_od,  orn_spikes_t, orn_sdf, orn_sdf_time] = output_orn 
+        
+        
         
         # AL dynamics
-        
         output_al = AL_dyn.main(params_al_orn, orn_spikes_t)
         [t, pn_spike_matrix, pn_sdf, pn_sdf_time,
          ln_spike_matrix, ln_sdf, ln_sdf_time,] = output_al
-    
+        if stim_params['stim_type'] == 'rs':
+            print('baseline ORNs freq.: %.2f' %(np.mean(orn_sdf)))
+            print('baseline PNs freq.: %.2f' %(np.mean(pn_sdf)))
+            print('baseline LNs freq.: %.2f' %(np.mean(ln_sdf)))
+            
         output2an = dict([
                     ('t', t),
                     ('u_od',u_od),
@@ -627,6 +641,10 @@ print('nu ORN weak avg:')
 print(nu_orn_w)
 print('nu ORN ratio avg:')        
 print(nu_orn/nu_orn_w)
+print('')
+print('nu LN avg:')        
+print(nu_ln)
+
 # print('nu LN avg:')        
 # print(nu_ln)
 

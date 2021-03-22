@@ -6,7 +6,7 @@ Created on Thu Feb 11 16:25:36 2021
 This script simulate the activity of the AL. 
 It receives as input the activity of the ORN layer and its structure.
 
-AL.py
+AL_dyn.py
 @author: mario
 """
 
@@ -41,86 +41,82 @@ recep_clrs = ['green','purple','cyan','red']
 def tictoc():
     return timeit.default_timer()
 
-def pn2ln_v_ex(v0,t, s, pn_ln_params, ):
-#    ln_params = np.array([tau_s, tau_v, alpha_pn, vrev_ln, vrest_ln, vln_noise])
-    tau_v = pn_ln_params['tau_v']
-    
-    vrev = pn_ln_params['vrev_ln']
-    vrest = pn_ln_params['vrest_ln']
-    vln_noise = pn_ln_params['vln_noise']*1*(-.5+np.random.uniform(0, 1, size=np.shape(v0)))
-    
-    # PN -> LN equations:
-    # ORN -> PN equations:
-    dt = t[1]-t[0]
-    b = -(1 + s)/tau_v
-    a = (vrest + s*vrev + vln_noise)/tau_v
-    v = (v0 + a/b)*np.exp(b*dt)-a/b
-    #dvdt = ((vrest-v) + s*(vrev-v) + v_bckgnd)/tau_v
-    return v
 
 def pn2ln_s_ex(s0,t, u_pn, pn_ln_params, ):
     tau_s = pn_ln_params['tau_s']
     alpha_pn = pn_ln_params['alpha_pn']
     
     # PN -> LN equation of s:
-    b = (-1-alpha_pn*u_pn)/tau_s
-    a = alpha_pn*u_pn/tau_s
     dt = t[1]-t[0]
-    s = (s0 + a/b)*np.exp(b*dt)-a/b
-#    dsdt = (a_s*u_pn*(1-s) - s)/tau_s       
+    b = -1/tau_s 
+    s = s0*np.exp(b*dt) + alpha_pn*u_pn/tau_s
+    # b = (-1-alpha_pn*u_pn)/tau_s
+    # a = alpha_pn*u_pn/tau_s
+    # s = (s0 + a/b)*np.exp(b*dt)-a/b
     return s
 
 def y_ln_fun_ex(y0, t, u_ln, pn_ln_params,):
     alpha_ln = pn_ln_params['alpha_ln']
     tau_y = pn_ln_params['tau_y']
     
-    b = (-alpha_ln*u_ln-1)/tau_y
-    a = alpha_ln*u_ln/tau_y
+    b = -1/tau_y
     dt = t[1]-t[0]
-    y = (y0 + a/b)*np.exp(b*dt)-a/b
+    y = y0*np.exp(b*dt) + alpha_ln*u_ln/tau_y
     return y
 
 def orn2pn_s_ex(s0,t, u_orn, x_pn,y_ln,pn_ln_params,):
-    #    pn_params  = np.array([tau_s, tau_v, alpha_orn, vrev_pn, vrest_pn])
+    # ORN -> PN equations:
     tau_s = pn_ln_params['tau_s']
     alpha_orn = pn_ln_params['alpha_orn']
     
-    # ORN -> PN equations:
-    b = (-1-alpha_orn*u_orn*(1-x_pn)*(1-y_ln))/tau_s
-    a = alpha_orn*u_orn*(1-x_pn)*(1-y_ln)/tau_s
+    b = -1/tau_s 
     dt = t[1]-t[0]
-    s = (s0 + a/b)*np.exp(b*dt)-a/b
+    s = s0*np.exp(b*dt)+ alpha_orn*u_orn/tau_s 
+    #*(1-x_pn)*(1-y_ln)
     return s
 
 def orn2pn_v_ex(v0,t, s, pn_ln_params,):
-#    pn_params  = np.array([tau_s, tau_v, alpha_orn, vrev_pn, vrest_pn, vpn_noise])
+    # PN potential equations:
     tau_v = pn_ln_params['tau_v']
     
     vrev    = pn_ln_params['vrev_pn']
     vrest   = pn_ln_params['vrest_pn']
-    vpn_noise = pn_ln_params['vpn_noise']*(-.5+np.random.uniform(0, 1, size=np.shape(v0)))
+    vpn_noise = pn_ln_params['vpn_noise']*(.3*np.random.normal(size=np.shape(v0)))
 
-    g_l     = pn_ln_params['g_l']
-    g_s     = pn_ln_params['g_s']
+    g_l     = pn_ln_params['g_l_pn']
+    g_s     = pn_ln_params['g_s_pn']
     
-    # ORN -> PN equations:
     dt = t[1]-t[0]
     b = -(g_l + g_s* s)/tau_v
-    a = (g_l*vrest + g_s*s*vrev + vpn_noise)/tau_v
-    vtmp  = np.exp(b*dt)
-    
-    v = (v0 + a/b)*vtmp-a/b
-#    dvdt = (vrest + s*vrev + v_bckgnd)/tau_v  - v*(1 + g*s)/tau_v
+    a = (g_l*vrest + g_s*s*vrev )/tau_v
+    v = (v0 + a/b)*np.exp(b*dt)-a/b + vpn_noise*np.sqrt(dt)
     return v
+
+def pn2ln_v_ex(v0,t, s, pn_ln_params, ):
+    # LN potential equations:
+    tau_v = pn_ln_params['tau_v']
+    
+    vrev = pn_ln_params['vrev_ln']
+    vrest = pn_ln_params['vrest_ln']
+    vln_noise = pn_ln_params['vln_noise']*(.3*np.random.normal(size=np.shape(v0)))
+
+    g_l     = pn_ln_params['g_l_ln']
+    g_s     = pn_ln_params['g_s_ln']
+    
+    dt = t[1]-t[0]
+    b = -(g_l + g_s*s)/tau_v
+    a = (g_l *vrest + g_s*s*vrev )/tau_v 
+    v = (v0 + a/b)*np.exp(b*dt)-a/b + vln_noise*np.sqrt(dt)
+    return v
+
 
 def x_adapt_ex(x0,t,u_orn, pn_ln_params,):
     tau_x = pn_ln_params['tau_x']
     alpha_x = pn_ln_params['alpha_x']
     
-    b = (-alpha_x*u_orn-1)/tau_x
-    a = alpha_x*u_orn/tau_x
+    b = -1/tau_x
     dt = t[1]-t[0]
-    x = (x0 + a/b)*np.exp(b*dt)-a/b
+    x = x0 *np.exp(b*dt)+ alpha_x*u_orn/tau_x
     return x
 
 # ************************************************************************
@@ -222,13 +218,13 @@ def main(params_al_orn, orn_spikes_t, verbose=False, corr_an=False):
     u_orn = orn_spikes_t.dot(orn_pn_mat) 
       
     # PN and LN PARAMETERS and OUTPUT VECTORS
-    x_pn0               = 0#.0048 # .48
-    s_pn0               = 0#.02   #.2
-    v_pn0               = 0#.05   # .5
+    x_pn0               = 0
+    s_pn0               = 0
+    v_pn0               = 0
     
-    y_ln0               = 0#.0025
-    s_ln0               = 0#.02
-    v_ln0               = 0#.05
+    y_ln0               = 0
+    s_ln0               = 0
+    v_ln0               = 0
     
     # Initialize LN to PN output vectors
     x_pn            = np.zeros((n2sim, n_pns_tot))
@@ -282,8 +278,10 @@ def main(params_al_orn, orn_spikes_t, verbose=False, corr_an=False):
         
         # PNs whose ref_cnt is equal to zero:
         pn_ref_0 = pn_ref_cnt==0
-        s_pn[tt, pn_ref_0] = orn2pn_s_ex(s_pn[tt-1, pn_ref_0],tspan, 
-            u_orn[tt, pn_ref_0], x_pn[tt-1, pn_ref_0], y_ln[tt-1, pn_ref_0], pn_ln_params, )
+        s_pn[tt, :] = orn2pn_s_ex(s_pn[tt-1, :],tspan, 
+            u_orn[tt, :], x_pn[tt-1, :], y_ln[tt-1, :], pn_ln_params, )
+        # s_pn[tt, pn_ref_0] = orn2pn_s_ex(s_pn[tt-1, pn_ref_0],tspan, 
+        #     u_orn[tt, pn_ref_0], x_pn[tt-1, pn_ref_0], y_ln[tt-1, pn_ref_0], pn_ln_params, )
         v_pn[tt, pn_ref_0] = orn2pn_v_ex(v_pn[tt-1, pn_ref_0],tspan, 
                 s_pn[tt-1, pn_ref_0], pn_ln_params, )
         
@@ -302,8 +300,10 @@ def main(params_al_orn, orn_spikes_t, verbose=False, corr_an=False):
             
         # LNs whose ref_cnt is equal to zero:
         ln_ref_0 = ln_ref_cnt==0
-        s_ln[tt, ln_ref_0] = pn2ln_s_ex(s_ln[tt-1, ln_ref_0], tspan, 
-                    u_pn[tt, ln_ref_0], pn_ln_params, )
+        # s_ln[tt, ln_ref_0] = pn2ln_s_ex(s_ln[tt-1, ln_ref_0], tspan, 
+                    # u_pn[tt, ln_ref_0], pn_ln_params, )
+        s_ln[tt, :] = pn2ln_s_ex(s_ln[tt-1, :], tspan, 
+                    u_pn[tt-1, :], pn_ln_params, )        
         v_ln[tt, ln_ref_0] = pn2ln_v_ex(v_ln[tt-1, ln_ref_0], tspan, 
                     s_ln[tt-1, ln_ref_0], pn_ln_params, )
         

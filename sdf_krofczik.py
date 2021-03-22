@@ -49,7 +49,7 @@ def poisson_isi(rate, n_spikes):
 def add_to_sdf(sdf, tme, krnl_bins, tau_sdf, dt_sdf, sdf_size):
 
     for j in range(1,krnl_bins): # to check, substitute 1 with 0
-        t  = tme + j*dt_sdf - tau_sdf
+        t  = tme + j*dt_sdf #- tau_sdf
         dt = j*dt_sdf
         s  = dt*np.exp(-dt/tau_sdf)
         iTime = int(t/dt_sdf)
@@ -97,7 +97,6 @@ def main(spike_mat, sdf_size, tau_sdf = 100, dt_sdf = 20, ):
         
         sdf_tmp = sdf_matrix[:, id_neu]
         # add to sdf the spike
-        #   sdf = add_to_SDF(sdf, tme, krnl_bins, tau_sdf, dt_sdf, sdf_size)
         sdf_tmp = add_to_sdf(sdf_tmp, tSpike, krnl_bins, 
            tau_sdf, dt_sdf, sdf_size)
         
@@ -107,6 +106,12 @@ def main(spike_mat, sdf_size, tau_sdf = 100, dt_sdf = 20, ):
     time_sdf = np.linspace(0, dt_sdf*sdf_size,sdf_size)
 
     return sdf_norm,time_sdf
+
+
+
+
+
+
 
 if __name__ == '__main__':
     #% Input
@@ -119,11 +124,16 @@ if __name__ == '__main__':
     # **************************************************************
     # PARAMETERS
     n_neurons   = 2
-    n_spikes    = 1000
-    rate        = 10 # Hz
-    tau_sdf     = 20 # 20 # ms
+    rate        = 2 # Hz
+    t_tot       = 10  # [ms]
+    tau_sdf     = 6 # 20 # ms
     dt_sdf      = 5  # 5 # ms    
     stimulus    = 'poi' # 'poi' or 'det'
+    n_spikes    = int(rate*t_tot*2)
+    t0          = 100       # ms
+    sdf_size    = int(t_tot*1.1*1e3/dt_sdf)
+    
+    
     
     print('tau sdf: %d ms'%tau_sdf)
     print('dt sdf: %d ms'%dt_sdf)
@@ -138,7 +148,7 @@ if __name__ == '__main__':
 
     isi_mean = np.mean(isi)
     
-    t_spikes = 2000+np.cumsum(isi)
+    t_spikes = t0+np.cumsum(isi)
 
     spike_mat = np.zeros((np.size(t_spikes), 2))
     spike_mat[:, 0] = t_spikes
@@ -150,7 +160,7 @@ if __name__ == '__main__':
     # ******************************************
     # SDF calculus
     tic = timeit.default_timer()
-    sdf_norm, time_sdf = main(spike_mat = spike_mat, tau_sdf=tau_sdf, dt_sdf = dt_sdf)  # (Hz, ms)
+    sdf_norm, time_sdf = main(spike_mat, sdf_size, tau_sdf=tau_sdf, dt_sdf = dt_sdf)  # (Hz, ms)
     toc = timeit.default_timer()
     print('mean rate sdf: %.1f'%np.mean(sdf_norm))
     print('time to caclulate sdf: %f'%(toc-tic))
@@ -165,7 +175,7 @@ if __name__ == '__main__':
         
         fig, axs = plt.subplots(rs, cs, figsize=[8, 5])
         axs[0].plot(time_sdf/1e3, sdf_norm*1e3, '.', label='sdf')
-    #    axs[0].plot(t_spikes/1e3, np.ones_like(t_spikes), 'r.', label='spikes')
+        axs[0].plot(t_spikes/1e3, 65*np.ones_like(t_spikes), 'r.', label='spikes')
         axs[0].plot(time_sdf/1e3, np.ones_like(time_sdf)*rate, 'r.', label='th. rate')
         axs[0].set_ylabel('sdf (Hz)', fontsize=label_fs)
         axs[0].set_xlabel('time (s)', fontsize=label_fs)
@@ -175,3 +185,4 @@ if __name__ == '__main__':
         axs[1].hist(isi, bins=30, label='spikes')
         axs[1].set_xlabel('isi  (ms)', fontsize=label_fs)
         axs[1].set_ylabel('pdf ()', fontsize=label_fs)
+        plt.show()

@@ -65,10 +65,6 @@ def main(params_1sens, output_orn, ):
     n_neu   = sens_params['n_neu']
     n_orns_recep= sens_params['n_orns_recep']
     
-    # output params 
-    fld_analysis = 'NSI_analysis/trials'
-    orn_fig_name = '/ORN_lif_dyn' + '.png'
-                        
     # Create Transduction Matrix to plot odour 
     transd_mat = np.zeros((n_neu, n_od))
     for pp in range(n_neu):

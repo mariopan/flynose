@@ -176,6 +176,15 @@ def main(params_al_orn, output_orn_layer, output_al):
             ax_ln.text(-.15, 1.15, 'd.', transform=ax_ln.transAxes,
                 color=blue, fontsize=panel_fs, fontweight='bold', va='top', ha='right')
     
+        elif stim_type == 'rs':
+            ax_orn.set_ylim((0, 15))
+            ax_pn.set_ylim((0, 15))
+            ax_ln.set_ylim((0, 15))
+        else:
+            ax_orn.set_ylim((0, 300))
+            ax_pn.set_ylim((0, 300))
+            ax_ln.set_ylim((0, 250))
+            
         # tmp
         # if not(stim_type == 'pl'):
         #     title_fs = 30

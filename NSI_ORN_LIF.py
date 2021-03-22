@@ -219,14 +219,13 @@ def main(params_1sens, verbose=False):
     n2sim           = int(pts_ms*t_tot)   + 1   # number of time points
     t               = np.linspace(0, t_tot, n2sim) # time points
     n_neu_tot       = n_neu*n_orns_recep
-
-    # u_od            = np.zeros((n2sim, n_od))
-    
+   
     r_orn_od        = np.zeros((n2sim, n_neu, n_od)) 
     v_orn           = np.ones((n2sim, n_neu_tot)) *vrest
-    r_orn_od[0,:,:] = r0*np.ones((1, n_neu, n_od)) #+ np.random.standard_normal((1, n_neu, n_od)) 
-    v_orn[0,:]      = .5*(np.ones((1, n_neu_tot)) + .01*np.random.standard_normal((1, n_neu_tot))) 
     y_orn           = np.zeros((n2sim, n_neu_tot))
+    
+    r_orn_od[0,:,:] = r0/n_od*(np.ones((1, n_neu, n_od)) +.01*np.random.standard_normal((1, n_neu, n_od))) 
+    v_orn[0,:]      = vrest*(np.ones((1, n_neu_tot)) + .01*np.random.standard_normal((1, n_neu_tot))) 
     y_orn[0,:]      = y0*(np.ones((1, n_neu_tot)) +.01*np.random.standard_normal((1, n_neu_tot))) 
     
     vrev_t          = np.ones(n_neu_tot)*vrev
@@ -258,7 +257,7 @@ def main(params_1sens, verbose=False):
             rand_ts = r_noise*np.random.standard_normal((int(n2sim*1.3)))
             filt_ts = signal.filtfilt(b, a, rand_ts)
             filt_ts = filt_ts[-n2sim:]
-            r_orn[:, ss+nn*n_orns_recep] = r_tmp[:, nn] + filt_ts
+            r_orn[:, ss+nn*n_orns_recep] = r_tmp[:, nn] + filt_ts*np.sqrt(1/pts_ms)
             #r_orn[:, ss+nn*n_orns_recep] = r_tmp[:, nn] * (1+ filt_ts)
     r_orn[r_orn<0] = 0
     
@@ -329,11 +328,11 @@ if __name__ == '__main__':
                         ('stim_type' , 'rs'),   # 'rs' # 'ts'  # 'ss' # 'pl' # 'ext'
                         ('pts_ms' , 5),         # simulated pts per ms 
                         ('n_od', 2), 
-                        ('t_tot', 2000),        # ms  
+                        ('t_tot', 1500),        # ms  
                         ('conc0', [1.9e-04]),    # 1.9e-4 # fitted value 2.854e-04
-                        ('od_noise', 5), #3.5
+                        ('od_noise', 4.5), #3.5
                         ('od_filter_frq', 0.002), #.002
-                        ('r_noise', .50), #6.0
+                        ('r_noise', 1.10), #6.0
                         ('r_filter_frq', 0.002), # 0.002
                         ])    
     
@@ -347,7 +346,7 @@ if __name__ == '__main__':
     elif n_od == 2:
         concs_params    = dict([
                         ('stim_dur' , np.array([500, 500])),  # ms
-                        ('t_on', np.array([1000, 1000])), # ms
+                        ('t_on', np.array([500, 500])), # ms
                         ('concs', np.array([.50, .00])),
                         ])
     
@@ -395,17 +394,17 @@ if __name__ == '__main__':
     orn_params  = dict([
         # LIF params
                         ('t_ref', 2*stim_params['pts_ms']), # ms; refractory period 
-                        ('theta', 1),                   # [mV] firing threshold
+                        ('theta', -30),#1),                   # [mV] firing threshold
                         # fitted values
                         ('tau_v', 2.26183540),          # [ms]
-                        ('vrest', -0.969461053),        # [mV] resting potential
-                        ('vrev', 21),  #25wnsi.2 30wnsi.5         # 21.1784081 [mV] reversal potential
+                        ('vrest', -33), #-0.969461053),        # [mV] resting potential
+                        ('vrev', 0),#21),                   # 21.1784081 [mV] reversal potential
                         # ('v_k', vrest),
                         ('g_y', .5853575783),       
                         ('g_r', .864162073), 
                         # initial values of y anr r
                         ('r0', 0.15), 
-                        ('y0', 1), 
+                        ('y0', .5), 
         # Adaptation params
                         ('alpha_y', .45310619), 
                         ('beta_y', 3.467184e-03), 
@@ -436,7 +435,7 @@ if __name__ == '__main__':
      orn_sdf_time,]  = output_orn
     
     figure_orn.main(params_1sens, output_orn, )
-    
+    #print(np.mean(orn_sdf))
     
     # #%% FIGURE, time course and histogram of ISI and POTENTIAL of ORNs
     

@@ -36,7 +36,7 @@ def main(stim_params, verbose=False):
     filt_ts         = np.zeros_like(rand_ts)
     filt_ts         = signal.filtfilt(b, a, rand_ts.T).T    
 
-    u_od = np.ones((n2sim+extra_t, n_od)) * conc0*(1 + filt_ts)    
+    u_od = np.ones((n2sim+extra_t, n_od)) * conc0*(1 + filt_ts*np.sqrt(1/pts_ms))    
     u_od = u_od[extra_t:, :]
     
     
