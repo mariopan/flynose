@@ -357,7 +357,7 @@ for st in range(n_sens_type):
 al_params  = dict([
                     ('n_pns_recep', 5),
                     ('n_lns_recep', 3),
-                    ('theta', -30),                     # 1
+                    ('theta', -35),                     # 1
                     ('t_ref', orn_params['t_ref']),
                     ('n_recep_list', n_recep_list),
                     ('n_sens_type', n_sens_type),                    
@@ -367,7 +367,7 @@ al_params  = dict([
 pn_ln_params = dict([
     # CHANGED params
     ('vrev_ex',     0),    # 15 [mV] excitatory reversal potential
-    ('vrest_pn',  -55),    # -6.5 [mV] resting potential
+    ('vrest_pn',  -65),    # -6.5 [mV] resting potential
     
     ('tau_s',       2* 10),    # 10 [ms]
     ('alpha_orn',  .75* 3*4),   # 3  coeff for the ORN input to PNs                    
@@ -379,7 +379,7 @@ pn_ln_params = dict([
     ('alpha_x',    0*2.4*3), # 2.4 ORN input coeff for adaptation variable x_pn
     ('tau_x',      1*600),    # 600 [ms] time scale for dynamics of adaptation
     ('g_adapt_pn', 0.05), # [muS] maximal conductance of spike rate adaptation current
-    ('g_pnln',   0.5),  # [muS] maximal conductance of PN to LN synapses
+    ('g_pnln',   0.8),  # [muS] maximal conductance of PN to LN synapses
     # variable x_pn
     
     ('vpn_noise',  .0061*10*0.3),  # NEW # extra noise input to PNs
@@ -389,13 +389,13 @@ pn_ln_params = dict([
     ('alpha_pn',    0.1),  # [unitless] 3  # coeff for the PN input to LNs
     
     # LN params
-    ('vrest_ln', -55),   # -3[mV] resting potential
+    ('vrest_ln', -65),   # -3[mV] resting potential
     ('vrev_inh', -80),        # 15  [mV] inhibitory reversal potential
     ('g_l_ln',        1e-10*1), #  leak conductance for LN 
     ('tau_y', 600),
     # LN to PN
     ('alpha_ln', 0.2), # [unitless]
-    ('g_lnpn', 0.1), # [muS] LN to PN "maximal" conductance
+    ('g_lnpn', 0.05), # [muS] LN to PN "maximal" conductance
 ])
 
 # ORNS layer SIMULATION
@@ -452,7 +452,7 @@ peaks                       = [1.85e-4, 3e-4, 2e-3, 2e-2,]#*np.logspace(-4, -2.5
 
 # nsi params
 inh_cond                    = 'ln'    #['nsi', 'ln', 'noin'] #
-nsi_str                     = .6
+nsi_str                     =  .6
 alpha_ln                    = 0.1
 
 # output params
