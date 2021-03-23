@@ -41,87 +41,108 @@ recep_clrs = ['green','purple','cyan','red']
 def tictoc():
     return timeit.default_timer()
 
+"""
+PN to LN synaptic activation s_j (pre-synapse), j=0...nPN-1
+spike_pn is an array of length nPN containing 1 for PN spiking and 0 otherwise
+"""
 
-def pn2ln_s_ex(s0,t, u_pn, pn_ln_params, ):
+def pn2ln_s(s0, t, spike_pn, pn_ln_params, ):
     tau_s = pn_ln_params['tau_s']
     alpha_pn = pn_ln_params['alpha_pn']
     
-    # PN -> LN equation of s:
+    # equation of presynatpic activation s:
     dt = t[1]-t[0]
-    b = -1/tau_s 
-    s = s0*np.exp(b*dt) + alpha_pn*u_pn/tau_s
-    # b = (-1-alpha_pn*u_pn)/tau_s
-    # a = alpha_pn*u_pn/tau_s
-    # s = (s0 + a/b)*np.exp(b*dt)-a/b
+    s = s0*np.exp(-dt/tau_s)
+    s += alpha_pn*spike_pn
     return s
+   
 
-def y_ln_fun_ex(y0, t, u_ln, pn_ln_params,):
+"""
+LN to ORN-PN synapse synaptic activation y_j (pre-synapse), j=0...nLN-1
+spike_ln is an array of length nLN containing 1 for LN spiking and 0 otherwise
+"""
+
+def ln2pn_y(y0, t, spike_ln, pn_ln_params, ):
     alpha_ln = pn_ln_params['alpha_ln']
     tau_y = pn_ln_params['tau_y']
     
-    b = -1/tau_y
     dt = t[1]-t[0]
-    y = y0*np.exp(b*dt) + alpha_ln*u_ln/tau_y
+    y = y0*np.exp(-dt/tau_y)
+    y += alpha_ln*spike_ln
     return y
 
-def orn2pn_s_ex(s0,t, u_orn, x_pn,y_ln,pn_ln_params,):
+"""
+ORN to PN synaptic activation s_j (pre-synapse) 
+spike_orn is an array of length nORN containing 1 for ORN spiking and 0 otherwise
+"""
+
+def orn2pn_s(s0, t, spike_orn, pn_ln_params, ):
     # ORN -> PN equations:
     tau_s = pn_ln_params['tau_s']
     alpha_orn = pn_ln_params['alpha_orn']
-    
-    b = -1/tau_s 
+
+    # per PN inhibition 
     dt = t[1]-t[0]
-    s = s0*np.exp(b*dt)+ alpha_orn*u_orn/tau_s 
+    s = s0*np.exp(-dt/tau_s)
+    s += alpha_orn*spike_orn
     #*(1-x_pn)*(1-y_ln)
     return s
 
-def orn2pn_v_ex(v0,t, s, pn_ln_params,):
+"""
+PN spike adaptation variable, driven by PN spiking
+spike_pn is an array of length nPN containing 1 for ORN spiking and 0 otherwise
+"""
+
+def x_adapt(x0, t, spike_pn, pn_ln_params,):
+    tau_x = pn_ln_params['tau_x']
+    alpha_x = pn_ln_params['alpha_x']
+    
+    dt = t[1]-t[0]
+    x = x0*np.exp(-dt/tau_x)
+    x += alpha_x*spike_pn
+    return x
+
+def pn_v(v0, t, s_ornpn, y_lnpn, x_pn, pn_ln_params,):
     # PN potential equations:
     tau_v = pn_ln_params['tau_v']
     
-    vrev    = pn_ln_params['vrev_pn']
+    vrev_ex    = pn_ln_params['vrev_ex']
+    vrev_inh   = pn_ln_params['vrev_inh']
     vrest   = pn_ln_params['vrest_pn']
-    vpn_noise = pn_ln_params['vpn_noise']*(.3*np.random.normal(size=np.shape(v0)))
+    vpn_noise = pn_ln_params['vpn_noise']*np.random.standard_normal(size=np.shape(v0))
 
     g_l     = pn_ln_params['g_l_pn']
-    g_s     = pn_ln_params['g_s_pn']
-    
+    g_orn     = pn_ln_params['g_ornpn']
+    g_ln     = pn_ln_params['g_lnpn']
+    g_adapt  = pn_ln_params['g_adapt_pn']
     dt = t[1]-t[0]
-    b = -(g_l + g_s* s)/tau_v
-    a = (g_l*vrest + g_s*s*vrev )/tau_v
+    b = -(g_l + g_orn*s_ornpn + g_ln*y_lnpn + g_adapt*x_pn)/tau_v
+    a = (g_l*vrest + g_orn*s_ornpn*vrev_ex + g_ln*y_lnpn*vrev_inh + g_adapt*x_pn*vrev_inh)/tau_v
     v = (v0 + a/b)*np.exp(b*dt)-a/b + vpn_noise*np.sqrt(dt)
     return v
 
-def pn2ln_v_ex(v0,t, s, pn_ln_params, ):
+def pn2ln_v_ex(v0, t, s_pnln, pn_ln_params, ):
     # LN potential equations:
     tau_v = pn_ln_params['tau_v']
     
-    vrev = pn_ln_params['vrev_ln']
+    vrev_ex = pn_ln_params['vrev_ex']
     vrest = pn_ln_params['vrest_ln']
-    vln_noise = pn_ln_params['vln_noise']*(.3*np.random.normal(size=np.shape(v0)))
+    vln_noise = pn_ln_params['vln_noise']*(np.random.standard_normal(size=np.shape(v0)))
 
     g_l     = pn_ln_params['g_l_ln']
-    g_s     = pn_ln_params['g_s_ln']
+    g_pn     = pn_ln_params['g_pnln']
     
     dt = t[1]-t[0]
-    b = -(g_l + g_s*s)/tau_v
-    a = (g_l *vrest + g_s*s*vrev )/tau_v 
+    b = -(g_l + g_pn*s_pnln)/tau_v
+    a = (g_l*vrest + g_pn*s_pnln*vrev_ex )/tau_v 
     v = (v0 + a/b)*np.exp(b*dt)-a/b + vln_noise*np.sqrt(dt)
     return v
 
 
-def x_adapt_ex(x0,t,u_orn, pn_ln_params,):
-    tau_x = pn_ln_params['tau_x']
-    alpha_x = pn_ln_params['alpha_x']
-    
-    b = -1/tau_x
-    dt = t[1]-t[0]
-    x = x0 *np.exp(b*dt)+ alpha_x*u_orn/tau_x
-    return x
 
 # ************************************************************************
 # main function of the LIF ORN 
-def main(params_al_orn, orn_spikes_t, verbose=False, corr_an=False):
+def main(params_al_orn, spike_orn, verbose=False, corr_an=False):
     
     tic = tictoc()
     
@@ -214,8 +235,6 @@ def main(params_al_orn, orn_spikes_t, verbose=False, corr_an=False):
                       ((recep_id+qq)*n_pns_recep):((recep_id+qq+1)*n_pns_recep)] = 0
         recep_id = recep_id + num_recep
     
-    # Generate input to PNs
-    u_orn = orn_spikes_t.dot(orn_pn_mat) 
       
     # PN and LN PARAMETERS and OUTPUT VECTORS
     x_pn0               = 0
@@ -223,27 +242,27 @@ def main(params_al_orn, orn_spikes_t, verbose=False, corr_an=False):
     v_pn0               = 0
     
     y_ln0               = 0
-    s_ln0               = 0
     v_ln0               = 0
+
+    s_orn           = np.zeros((n2sim, n_orns_tot))
+    s_ornpn        = np.zeros((n2sim, n_pns_tot))
     
     # Initialize LN to PN output vectors
     x_pn            = np.zeros((n2sim, n_pns_tot))
-    u_pn            = np.zeros((n2sim, n_lns_tot))
     s_pn            = np.zeros((n2sim, n_pns_tot))
+    s_pnln          = np.zeros((n2sim, n_lns_tot))
     v_pn            = np.ones((n2sim, n_pns_tot))*pn_ln_params['vrest_pn']
     
-    u_ln            = np.zeros((n2sim, n_pns_tot))
-    y_ln            = np.zeros((n2sim, n_pns_tot))
-    
+    y_ln            = np.zeros((n2sim, n_lns_tot))
+    y_lnpn          = np.zeros((n2sim, n_pns_tot))
+
     # Initialize PN output vectors
-    num_spike_pn    = np.zeros((n2sim, n_pns_tot))
-    
+    spike_pn    = np.zeros((n2sim, n_pns_tot))
     pn_ref_cnt      = np.zeros(n_pns_tot) # Refractory period counter starts from 0
     
     # Initialize LN output vectors
-    s_ln            = np.zeros((n2sim, n_lns_tot))
     v_ln            = np.ones((n2sim, n_lns_tot))*pn_ln_params['vrest_ln']
-    num_spike_ln    = np.zeros((n2sim, n_lns_tot))  
+    spike_ln    = np.zeros((n2sim, n_lns_tot))  
     
     # PN and LN params initial conditions
     s_pn[0, :]      = s_pn0*(1 + np.random.standard_normal((1, n_pns_tot)))
@@ -251,8 +270,7 @@ def main(params_al_orn, orn_spikes_t, verbose=False, corr_an=False):
     v_pn[0,:]       = v_pn0*np.ones((1, n_pns_tot)) \
         + np.random.standard_normal((1, n_pns_tot)) 
     
-    s_ln[0, :]      = s_ln0*(1 + np.random.standard_normal((1, n_lns_tot)))
-    y_ln[0, :]      = y_ln0*(1 + np.random.standard_normal((1, n_pns_tot)))
+    y_ln[0, :]      = y_ln0*(1 + np.random.standard_normal((1, n_lns_tot)))
     v_ln[0,:]       = v_ln0*np.ones((1, n_lns_tot)) \
         + np.random.standard_normal((1, n_lns_tot)) 
     
@@ -264,27 +282,18 @@ def main(params_al_orn, orn_spikes_t, verbose=False, corr_an=False):
         # span for next time step
         tspan = [t[tt-1],t[tt]]
         
-        pp_rnd = np.arange(n_pns_tot) # np.random.permutation(n_pns_tot)
+        #pp_rnd = np.arange(n_pns_tot) # np.random.permutation(n_pns_tot)
         
-        # Adaptation variable of PN neuron
-        x_pn[tt, pp_rnd] = x_adapt_ex(x_pn[tt-1,pp_rnd],tspan, 
-                u_orn[tt, pp_rnd], pn_ln_params, )        
-    
-        # Inhibitory input to PNs
-        y_ln[tt, pp_rnd] = y_ln_fun_ex(y_ln[tt-1, pp_rnd],tspan, 
-                u_ln[tt-1, pp_rnd], pn_ln_params, )
-        
-        # ORN -> PN synapses
-        
+        # ORN input to PNs
+        s_orn[tt, :] = orn2pn_s(s_orn[tt-1, :],tspan, spike_orn[tt, :], pn_ln_params, )
+        # summing inputs:
+        s_ornpn[tt, :] = s_orn[tt, :].dot(orn_pn_mat) 
+        # PN dynamics:
         # PNs whose ref_cnt is equal to zero:
         pn_ref_0 = pn_ref_cnt==0
-        s_pn[tt, :] = orn2pn_s_ex(s_pn[tt-1, :],tspan, 
-            u_orn[tt, :], x_pn[tt-1, :], y_ln[tt-1, :], pn_ln_params, )
-        # s_pn[tt, pn_ref_0] = orn2pn_s_ex(s_pn[tt-1, pn_ref_0],tspan, 
-        #     u_orn[tt, pn_ref_0], x_pn[tt-1, pn_ref_0], y_ln[tt-1, pn_ref_0], pn_ln_params, )
-        v_pn[tt, pn_ref_0] = orn2pn_v_ex(v_pn[tt-1, pn_ref_0],tspan, 
-                s_pn[tt-1, pn_ref_0], pn_ln_params, )
-        
+        v_pn[tt, pn_ref_0] = pn_v(v_pn[tt-1, pn_ref_0],tspan, 
+                                  s_ornpn[tt-1, pn_ref_0], y_lnpn[tt-1, pn_ref_0], x_pn[tt-1, pn_ref_0], pn_ln_params, )
+        # handle spiking:
         # PNs whose ref_cnt is different from zero:
         pn_ref_no0 = pn_ref_cnt!=0
         # Refractory period count down
@@ -292,21 +301,24 @@ def main(params_al_orn, orn_spikes_t, verbose=False, corr_an=False):
         
         # PNs whose Voltage is above threshold AND whose ref_cnt is equal to zero:
         pn_above_thr = (v_pn[tt, :] >= theta) & (pn_ref_cnt==0)
-        num_spike_pn[tt, pn_above_thr] = num_spike_pn[tt, pn_above_thr] + 1
-        u_pn[tt, :] += np.sum(pn_ln_mat[pn_above_thr,:], axis=0)
+        spike_pn[tt, pn_above_thr] = 1
         pn_ref_cnt[pn_above_thr] = t_ref
+
+        # Adaptation variable of PN neuron
+        x_pn[tt, :] = x_adapt(x_pn[tt-1, :],tspan, spike_pn[tt, :], pn_ln_params, )        
+
+        # PN to LN synapses activation
+        s_pn[tt, :] = pn2ln_s(s_pn[tt-1, :], tspan, spike_pn[tt, :], pn_ln_params, )        
+        # summing inputs:
+        s_pnln[tt, :] = s_pn[tt, :].dot(pn_ln_mat)
         
-        # PN -> LN synapses        
-            
+        # LN dynamics:
         # LNs whose ref_cnt is equal to zero:
         ln_ref_0 = ln_ref_cnt==0
-        # s_ln[tt, ln_ref_0] = pn2ln_s_ex(s_ln[tt-1, ln_ref_0], tspan, 
-                    # u_pn[tt, ln_ref_0], pn_ln_params, )
-        s_ln[tt, :] = pn2ln_s_ex(s_ln[tt-1, :], tspan, 
-                    u_pn[tt-1, :], pn_ln_params, )        
         v_ln[tt, ln_ref_0] = pn2ln_v_ex(v_ln[tt-1, ln_ref_0], tspan, 
-                    s_ln[tt-1, ln_ref_0], pn_ln_params, )
+                    s_pnln[tt-1, ln_ref_0], pn_ln_params, )
         
+        # handle spiking:
         # LNs whose ref_cnt is different from zero:
         ln_ref_no0 = ln_ref_cnt!=0
         # Refractory period count down
@@ -314,16 +326,23 @@ def main(params_al_orn, orn_spikes_t, verbose=False, corr_an=False):
         
         # LNs whose Voltage is above threshold AND whose ref_cnt is equal to zero:
         ln_above_thr = (v_ln[tt, :] >= theta) & (ln_ref_cnt==0)
-        num_spike_ln[tt, ln_above_thr] = num_spike_ln[tt, ln_above_thr] + 1
-        u_ln[tt, :] += np.sum(ln_pn_mat[ln_above_thr,:], axis=0)
+        spike_ln[tt, ln_above_thr] = 1
         ln_ref_cnt[ln_above_thr] = t_ref
-        
+
+        # Inhibitory LN input to PNs
+        y_ln[tt, :] = ln2pn_y(y_ln[tt-1, :],tspan, spike_ln[tt, :], pn_ln_params, )
+        # summing inputs:
+        y_lnpn[tt, :] = y_ln[tt, :].dot(ln_pn_mat)
+           
+
+    plt.figure()
+    plt.plot(y_lnpn)
     # Calculate the spike matrix of PNs and LNs
-    pn_spike_matrix = np.asarray(np.where(num_spike_pn))
+    pn_spike_matrix = np.asarray(np.where(spike_pn))
     pn_spike_matrix[0,:] = pn_spike_matrix[0,:]/pts_ms
     pn_spike_matrix = np.transpose(pn_spike_matrix)
     
-    ln_spike_matrix = np.asarray(np.where(num_spike_ln))
+    ln_spike_matrix = np.asarray(np.where(spike_ln))
     ln_spike_matrix[0,:] = ln_spike_matrix[0,:]/pts_ms
     ln_spike_matrix = np.transpose(ln_spike_matrix)
     toc = tictoc()

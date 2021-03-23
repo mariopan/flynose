@@ -80,7 +80,7 @@ def main(params_all_sens, verbose=False, corr_an=False):
         print('In total, there are %d ORNs of %d different types' %(n_orns_tot, n_recep_tot))
         print('')
     
-    orn_spikes_t = np.zeros((n2sim, n_orns_tot))
+    spike_orn = np.zeros((n2sim, n_orns_tot))
     orn_sdf = np.zeros((sdf_size, n_orns_tot))
     
     v_orn_t = np.zeros((n2sim, n_orns_tot))
@@ -103,7 +103,7 @@ def main(params_all_sens, verbose=False, corr_an=False):
         
         ids_orn = np.arange(n_neu*n_orns_recep) + id_orn0 
         
-        orn_spikes_t[:, ids_orn] = n_spikes_orn_tmp
+        spike_orn[:, ids_orn] = n_spikes_orn_tmp
         orn_sdf[:, ids_orn] = orn_sdf_tmp
         v_orn_t[:, ids_orn] = v_orn
         id_orn0 = ids_orn[-1]+1
@@ -152,5 +152,5 @@ def main(params_all_sens, verbose=False, corr_an=False):
         print('ORNs layer sim time: %.2f s' %(toc,))
         
     #collect output variables in 'out_orns_layer'
-    out_orns_layer = [t, u_od,  orn_spikes_t, orn_sdf,orn_sdf_time]
+    out_orns_layer = [t, u_od,  spike_orn, orn_sdf,orn_sdf_time]
     return out_orns_layer
