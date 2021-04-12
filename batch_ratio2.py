@@ -23,8 +23,7 @@ import figure_al_orn
 now = datetime.datetime.now()
 fig_1run        = 0
 
-nsi_ln_par      = [[0,0], [.8, 0], [.4, 0],  #[.6, 0],[.8, 0],
-                   [0, 100], #[0, 200],[0, 400],
+nsi_ln_par      = [[0,0], #[.6, 0], [0, .6], 
                    ]
 n_nsi_ln        = np.shape(nsi_ln_par)[0] #int(sys.argv[1])-1 # jobs run only starting from 1 ...
 
@@ -33,10 +32,10 @@ delay_id        = 0
 delay           = delays2an[delay_id]
 
 n_loops         =  10       # 10
-n_ratios        =  8
+n_ratios        =  45
 n_concs         =  4
 dur2an          =  [10, 20, 50, 100, 200]
-peak2an         =  np.array([2.6e-05, 4.6e-05, 8.6e-05, 1.6e-04])# 2*np.logspace(-5, -2, n_concs) # 2*np.logspace(-4, -3, n_concs)   
+peak2an         =  np.logspace(-3.3, -2, n_concs)
 pr2an           =  np.linspace(1, 20, n_ratios)
 
 n_durs           = np.size(dur2an)
@@ -45,7 +44,8 @@ sims_to_run = n_nsi_ln*n_loops*n_concs*n_ratios*n_durs
 print('Number of Sims to run: %d '%sims_to_run)
 
 # approximately 1.2 secs per run:
-Tot_sim_time = sims_to_run*1.4/60  # mins
+t_single_run = 2.4
+Tot_sim_time = sims_to_run*t_single_run/60  # mins
 run_sim_time = 0
 print('Estimated Sims duration: %.2f hours (%.2f mins):'%(Tot_sim_time/60, Tot_sim_time))
 endsim = now+datetime.timedelta(minutes=Tot_sim_time)
@@ -53,7 +53,7 @@ print('Estimated Sims end data-time:')
 print(endsim)
 
 #%%  LOAD Standard NET PARAMS FROM A FILE
-fld_params      = 'NSI_analysis/trials/' #Olsen2010
+fld_params      = 'NSI_analysis/analysis_ratio/' #Olsen2010
 name_params     = 'params_al_orn.ini'
 params_al_orn   = pickle.load(open(fld_params + name_params,  "rb" ))
 
@@ -66,7 +66,8 @@ pn_ln_params        = params_al_orn['pn_ln_params']
 
 # Stimulus params 
 stim_params['stim_type']    = 'ts' # 'ss'  # 'ts'
-onset_stim                  = 700
+onset_stim                  = 1000
+stim_params['pts_ms']       = 10
 stim_params['conc0']        = 1.85e-4    # 2.85e-4
    
 n_pns_recep         = al_params['n_pns_recep'] # number of PNs per each glomerulus
@@ -74,7 +75,7 @@ n_orns_recep        = orn_layer_params[0]['n_orns_recep']   # number of ORNs per
 
 verbose             = False
 data_save           = 1
-fld_analysis        = 'NSI_analysis/analysis_ratio/trials/'
+fld_analysis        = 'NSI_analysis/analysis_ratio/'
 
 # old folder: /NSI_analysis/ratio/ratio_images/ratio_images_nsi0.3_ln10.0/
 
@@ -88,6 +89,7 @@ if data_save:
 
 #%%            
 date_str            = now.strftime("%Y%m%d")
+n_sens_type       = orn_layer_params.__len__()  # number of type of sensilla
 
 # initialize output variables
 peak_pnw    = np.zeros((n_ratios, n_concs, n_durs, n_loops))
@@ -102,7 +104,8 @@ avg_orns    = np.zeros((n_ratios, n_concs, n_durs, n_loops))
 
 
 for [inh_id, [nsi_str, alpha_ln]] in enumerate(nsi_ln_par):    
-    orn_layer_params[0]['w_nsi']    = nsi_str
+    for sst in range(n_sens_type):
+        orn_layer_params[sst]['w_nsi']    = nsi_str
     pn_ln_params['alpha_ln']        = alpha_ln
     
     for peak_id, peak in enumerate(peak2an):
@@ -194,7 +197,7 @@ for [inh_id, [nsi_str, alpha_ln]] in enumerate(nsi_ln_par):
     data_name  = 'ratio_' +\
             'stim_' + stim_params['stim_type'] +\
             '_nsi_%.1f'%(nsi_str) +\
-            '_ln_%d'%(alpha_ln) +\
+            '_ln_%.1f'%(alpha_ln) +\
             '_delay2an_%d'%(delay) +\
             '.pickle'        
     

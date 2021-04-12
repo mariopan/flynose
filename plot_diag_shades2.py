@@ -191,16 +191,16 @@ n_sens_type         = orn_layer_params.__len__()  # number of type of sensilla
 #%%
 
 # ORN NSI params
-# alpha_ln    = 16.6
-# nsi_str     = .2
 
 fld_analysis = 'NSI_analysis/triangle_stim/'
-nsi_str     = 0.8
-alpha_ln    =  500#1200
+nsi_str     = 0.6
+alpha_ln    =  0.6
 
 n_lines     = 10
 # Stimulus params 
-fig_id = 'ts_a' # 'ts_s' #  'ts_a' # 'pl'
+# fig_id options:  # 'ts_s' #  'ts_a' # 'pl'
+fig_id = 'ts_a' 
+
 if fig_id == 'ts_s':
     # stim params
     delay                       = 0    
@@ -209,7 +209,7 @@ if fig_id == 'ts_s':
     stim_params['t_tot']        = 1000
     ton1                        = 700
     stim_params['conc0']        = 1.85e-4    # 2.85e-4
-    peak                        = 1e-2      
+    peak                        = 3e-4      
     
 elif fig_id == 'ts_a':
     delay                       = 100  
@@ -218,7 +218,7 @@ elif fig_id == 'ts_a':
     stim_params['t_tot']        = 1000+delay
     ton1                        = 700
     stim_params['conc0']        = 1.85e-4    # 2.85e-4
-    peak                        = 1e-2  # 1.8    
+    peak                        = 3e-4  
     
 elif fig_id == 'pl':
     fld_analysis= 'NSI_analysis/real_plumes/example'
@@ -243,7 +243,7 @@ dt_sdf      = params_al_orn['sdf_params']['dt_sdf']
 sdf_size    = int(stim_params['t_tot']/dt_sdf)
 
 # figure and output options
-fig_save    = 1
+fig_save    = 0
 data_save   = 0    
 verbose     = 0
 

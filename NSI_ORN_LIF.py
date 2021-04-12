@@ -140,8 +140,8 @@ def tri_ORN(w_nsi, v_orn, nsi_vect, vrest, vrev, t, ):
     vrev_t = vrev + w_nsi*r_orn[t, vect_a]*(vrest-vrev) \
                     + w_nsi*r_orn[t, vect_b]*(vrest-vrev) 
 
-    vrev_t = (w_nsi*(v_orn[t, vect_a] - vrest)+
-              w_nsi*(v_orn[t, vect_b] - vrest))
+    # vrev_t = (w_nsi*(v_orn[t, vect_a] - vrest)+
+    #           w_nsi*(v_orn[t, vect_b] - vrest))
     return vrev_t
 
 # 4 Co-housed ORNs

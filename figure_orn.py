@@ -87,7 +87,8 @@ def main(params_1sens, output_orn, ):
         weight_od = u_od*transd_mat[0,:]
         
         # PLOT
-        ax_orn[0].plot(t-t_on, weight_od, linewidth=lw+1, )
+        # ax_orn[0].plot(t-t_on, weight_od, linewidth=lw+1, )
+        ax_orn[0].plot(t-t_on, weight_od[:,0], linewidth=lw+1, )
         for rr in range(1, rs):
             X0 = t-t_on
             trsp = .3
@@ -118,11 +119,12 @@ def main(params_1sens, output_orn, ):
         # ax_orn[4].set_ylim(0, 30)
         for rr in range(rs):
             ax_orn[rr].tick_params(axis='both', which='major', labelsize=ticks_fs)
-            ax_orn[rr].text(-.15, 1.25, panels_id[rr], transform=ax_orn[0].transAxes, 
+            ax_orn[rr].text(-.15, 1.25, panels_id[rr], transform=ax_orn[rr].transAxes, 
                          fontsize=panel_fs, fontweight='bold', va='top', ha='right')
             ax_orn[rr].spines['right'].set_color('none')
             ax_orn[rr].spines['top'].set_color('none')
-            ax_orn[rr].set_xlim((t2plot))
+            # ax_orn[rr].set_xlim((t2plot))
+            ax_orn[rr].set_xlim(([-100, 750]))
             
         # for rr in range(rs-1):
         #     ax_orn[rr].set_xticklabels('')
@@ -137,7 +139,7 @@ def main(params_1sens, output_orn, ):
         ll, bb, ww, hh = ax_orn[0].get_position().bounds
         ww_new = ww - 0.08
         bb_plus = 0.015
-        ll_new = ll + 0.075
+        ll_new = ll + 0.075 + .025
         hh_new = hh - 0.05
         ax_orn[0].set_position([ll_new, bb+2.1*bb_plus, ww_new, hh_new])
         

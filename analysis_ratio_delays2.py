@@ -11,6 +11,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pickle        
 import scipy.stats
+from sklearn.metrics import mutual_info_score
+
+def calc_MI(x, y, bins):
+    c_xy = np.histogram2d(x, y, bins)[0]
+    mi = mutual_info_score(None, None, contingency=c_xy)
+    return mi
 
 # import MI
 
@@ -117,17 +123,14 @@ id_peak2plot    = 3
 measure         = 'peak'            # 'avg' # 'peak' # 
 delay_fig       = 0 # Fig.ResumeDelayedStimuli
 # select a subsample of the params to analyse
-nsi_ln_par   = [[0,0],[.6, 0],#[.4, 0],[.6, 0],
-                [0, 100],#[0, 200], [0, 300],[0, 400],
-                ]
+nsi_ln_par   = [[0,0],[.6, 0],[0, .6],]
 
 if delay_fig:
     fld_analysis    = 'NSI_analysis/ratio/delays_data'
     fld_output      = 'NSI_analysis/ratio/delays_images_nsi%.1f'%nsi_ln_par[1][0]+\
                         '_ln%.1f'%nsi_ln_par[2][1]
 else:
-    fld_analysis    = 'NSI_analysis/analysis_ratio/'+\
-                'trials_oldparams_nsi0.2_0.8_ln100_400/'#'trials_nsi0.1_1.0_ln100_400/' # 'NSI_analysis/ratio/ratio_data'
+    fld_analysis    = 'NSI_analysis/analysis_ratio/'                
     fld_output      = fld_analysis    #'NSI_analysis/analysis_ratio/trials_nsi0.1_1.0_ln100_400/' #'NSI_analysis/ratio/ratio_images/ratio_images_nsi%.1f'%nsi_ln_par[1][0]+\
                       #  '_ln%.1f'%nsi_ln_par[2][1]
 
@@ -151,13 +154,13 @@ pn_chess        = 0 # Fig.PNChess
 resumen_bar     = 0 # Fig.ResumeEncodeRatioBar
 pn_distr        = 0 # Fig.PNdistribution
     
-n_bins_mi       = 3
 # *****************************************************************
 n_durs          = np.size(dur2an)
 n_delays        = np.size(delays2an)
 n_ratios        = np.size(conc_ratios)
 n_concs         = np.size(concs2an)
 
+n_bins_mi       = int(np.sqrt(n_ratios/5))
     
 # *****************************************************************
 # IMPLEMENT OUTPUT VARIABLES
@@ -188,7 +191,7 @@ for delay_id, delay in enumerate(delays2an):
         data_name  = 'ratio_' +\
                 'stim_' + stim_params['stim_type'] +\
                 '_nsi_%.1f'%(nsi_str) +\
-                '_ln_%d'%(alpha_ln) +\
+                '_ln_%.1f'%(alpha_ln) +\
                 '_delay2an_%d'%(delay) +\
                 '.pickle'        
         print(data_name)
@@ -308,26 +311,28 @@ for delay_id, delay in enumerate(delays2an):
             for iic in range(n_concs):
                 for iid in range(n_durs):
                     # if linear correlation:
-                    ratio_mi_noin[iic,iid,] = np.corrcoef(conc_ratios, 
-                        np.mean(pn_ratio_avg_noin[:,iic,iid,:], axis=1))[0,1]
+                    # ratio_mi_noin[iic,iid,] = np.corrcoef(conc_ratios, 
+                    #     np.mean(pn_ratio_avg_noin[:,iic,iid,:], axis=1))[0,1]
                     
-                    ratio_mi_ln[iic,iid,] = np.corrcoef(conc_ratios, 
-                        np.mean(pn_ratio_avg_ln[:,iic,iid,:], axis=1))[0,1]
+                    # ratio_mi_ln[iic,iid,] = np.corrcoef(conc_ratios, 
+                    #     np.mean(pn_ratio_avg_ln[:,iic,iid,:], axis=1))[0,1]
                     
-                    ratio_mi_nsi[iic,iid,] = np.corrcoef(conc_ratios, 
-                        np.mean(pn_ratio_avg_nsi[:,iic,iid,:], axis=1))[0,1]
+                    # ratio_mi_nsi[iic,iid,] = np.corrcoef(conc_ratios, 
+                    #     np.mean(pn_ratio_avg_nsi[:,iic,iid,:], axis=1))[0,1]
                     
-                    # ratio_mi_noin[iic,iid,] = MI.main(conc_ratios, 
-                    #     np.mean(pn_ratio_avg_noin[:,iic,iid,:], axis=1),
-                    #     n_bins_mi)
                     
-                    # ratio_mi_ln[iic,iid,] = MI.main(conc_ratios, 
-                    #     np.mean(pn_ratio_avg_ln[:,iic,iid,:], axis=1), 
-                    #     n_bins_mi)
+
+                    ratio_mi_noin[iic,iid,] = calc_MI(conc_ratios, 
+                        np.mean(pn_ratio_avg_noin[:,iic,iid,:], axis=1),
+                        n_bins_mi)
                     
-                    # ratio_mi_nsi[iic,iid,] = MI.main(conc_ratios, 
-                    #     np.mean(pn_ratio_avg_nsi[:,iic,iid,:], axis=1), 
-                    #     n_bins_mi)
+                    ratio_mi_ln[iic,iid,] = calc_MI(conc_ratios, 
+                        np.mean(pn_ratio_avg_ln[:,iic,iid,:], axis=1), 
+                        n_bins_mi)
+                    
+                    ratio_mi_nsi[iic,iid,] = calc_MI(conc_ratios, 
+                        np.mean(pn_ratio_avg_nsi[:,iic,iid,:], axis=1), 
+                        n_bins_mi)
     
             noin_tmp = ((conc_ratios-pn_ratio_avg_noin.T)/
                         (pn_ratio_avg_noin.T + conc_ratios))**2
@@ -359,26 +364,26 @@ for delay_id, delay in enumerate(delays2an):
             for iic in range(n_concs):
                 for iid in range(n_durs):
                     # if linear correlation:
-                    ratio_mi_noin[iic,iid,] = np.corrcoef(conc_ratios, 
-                        np.mean(pn_ratio_peak_noin[:,iic,iid,:], axis=1))[0,1]
+                    # ratio_mi_noin[iic,iid,] = np.corrcoef(conc_ratios, 
+                    #     np.mean(pn_ratio_peak_noin[:,iic,iid,:], axis=1))[0,1]
                     
-                    ratio_mi_ln[iic,iid,] = np.corrcoef(conc_ratios, 
-                        np.mean(pn_ratio_peak_ln[:,iic,iid,:], axis=1))[0,1]
+                    # ratio_mi_ln[iic,iid,] = np.corrcoef(conc_ratios, 
+                    #     np.mean(pn_ratio_peak_ln[:,iic,iid,:], axis=1))[0,1]
                     
-                    ratio_mi_nsi[iic,iid,] = np.corrcoef(conc_ratios, 
-                        np.mean(pn_ratio_peak_nsi[:,iic,iid,:], axis=1))[0,1]
+                    # ratio_mi_nsi[iic,iid,] = np.corrcoef(conc_ratios, 
+                    #     np.mean(pn_ratio_peak_nsi[:,iic,iid,:], axis=1))[0,1]
                     
-                    # ratio_mi_noin[iic,iid,] = MI.main(conc_ratios, 
-                    #     np.mean(pn_ratio_peak_noin[:,iic,iid,:], axis=1),
-                    #     n_bins_mi)
+                    ratio_mi_noin[iic,iid,] = calc_MI(conc_ratios, 
+                        np.mean(pn_ratio_peak_noin[:,iic,iid,:], axis=1),
+                        n_bins_mi)
                     
-                    # ratio_mi_ln[iic,iid,] = MI.main(conc_ratios, 
-                    #     np.mean(pn_ratio_peak_ln[:,iic,iid,:], axis=1), 
-                    #     n_bins_mi)
+                    ratio_mi_ln[iic,iid,] = calc_MI(conc_ratios, 
+                        np.mean(pn_ratio_peak_ln[:,iic,iid,:], axis=1), 
+                        n_bins_mi)
                     
-                    # ratio_mi_nsi[iic,iid,] = MI.main(conc_ratios, 
-                    #     np.mean(pn_ratio_peak_nsi[:,iic,iid,:], axis=1), 
-                    #     n_bins_mi)
+                    ratio_mi_nsi[iic,iid,] = calc_MI(conc_ratios, 
+                        np.mean(pn_ratio_peak_nsi[:,iic,iid,:], axis=1), 
+                        n_bins_mi)
 
             noin_tmp = ((conc_ratios-pn_ratio_peak_noin.T)/
                         (pn_ratio_peak_noin.T + conc_ratios))**2
@@ -758,7 +763,8 @@ if resumen_chess:
         
         axs[c_id].set_xlabel('duration (ms)', fontsize= label_fs)
     
-    axs[0].set_yticklabels(conc2plot, fontsize= ticks_fs)  
+    axs[0].set_yticklabels([5e-4, 1.3e-3, 3.6e-3, 1e-2], fontsize= ticks_fs)  
+    # axs[0].set_yticklabels(conc2plot, fontsize= ticks_fs)  
     axs[0].set_ylabel('input (a.u.)', fontsize= label_fs)    
 
 
@@ -768,7 +774,7 @@ if resumen_chess:
     hh_new = hh*1.0#1.15
     bb_new = bb + 0.02#5
     ll_new = ll
-    e_sx = 0.0
+    e_sx = 0.05
     axs[0].set_position([ll-.05+e_sx, bb_new, ww_new, hh_new])    
     
     ll, bb, ww, hh = axs[1].get_position().bounds
@@ -791,13 +797,13 @@ if resumen_chess:
     
     # adjust bar size and position
     ll, bb, ww, hh = cbar.ax.get_position().bounds
-    cbar.ax.set_position([ll-.015, bb+.085, ww, hh-.12])
+    cbar.ax.set_position([ll-.015+e_sx, bb+.085, ww, hh-.12])
     #cbar.ax.set_position([ll+.035, bb+.085, ww, hh-.05])
    
     #adjust 3rd chess board size and position
     dwdh =1.0125
     ll_a, bb, ww, hh = axs[2].get_position().bounds
-    axs[2].set_position([ll_a -.045, bb_new, ww_new*dwdh, hh_new*dwdh])
+    axs[2].set_position([ll_a -.045+e_sx, bb_new, ww_new*dwdh, hh_new*dwdh])
     #axs[2].set_position([ll_a -.025, bb_new, ww_new*dwdh, hh_new*dwdh])
     plt.show()
     if fig_save:

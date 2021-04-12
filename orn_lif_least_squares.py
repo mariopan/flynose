@@ -23,6 +23,10 @@ derivative, for example), therefore it is quite essential to
    2. don't have data or parameters which span orders of magnitude. The 
    closer everything is around 1 (a few orders of magnitude is certainly ok), 
    the better.
+   
+This function repeats the fit until a good enough result is achieved. 
+The flag bad_fit indicates when stop the loop, that could happen for low 
+cost_goal achieved or for enough number of loops achieved.
 
 @author: mario
 """

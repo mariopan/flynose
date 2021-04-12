@@ -41,100 +41,100 @@ recep_clrs = ['green','purple','cyan','red']
 def tictoc():
     return timeit.default_timer()
 
-"""
-PN to LN synaptic activation s_j (pre-synapse), j=0...nPN-1
-spike_pn is an array of length nPN containing 1 for PN spiking and 0 otherwise
-"""
 
-def pn2ln_s(s0, t, spike_pn, pn_ln_params, ):
-    tau_s = pn_ln_params['tau_s']
-    alpha_pn = pn_ln_params['alpha_pn']
-    
-    # equation of presynatpic activation s:
-    dt = t[1]-t[0]
-    s = s0*np.exp(-dt/tau_s)
-    s += alpha_pn*spike_pn
-    return s
-   
-
-"""
-LN to ORN-PN synapse synaptic activation y_j (pre-synapse), j=0...nLN-1
-spike_ln is an array of length nLN containing 1 for LN spiking and 0 otherwise
-"""
 
 def ln2pn_y(y0, t, spike_ln, pn_ln_params, ):
+    # LN to ORN-PN synapse synaptic activation y_j (pre-synapse), j=0...nLN-1
+    # spike_ln is an array of length nLN containing 1 for LN spiking and 0 otherwise
     alpha_ln = pn_ln_params['alpha_ln']
-    tau_y = pn_ln_params['tau_y']
+    tau_ln = pn_ln_params['tau_ln']
     
     dt = t[1]-t[0]
-    y = y0*np.exp(-dt/tau_y)
-    y += alpha_ln*spike_ln
+    y = y0*np.exp(-dt/tau_ln) + alpha_ln*spike_ln*(1-y0)
+       
     return y
 
-"""
-ORN to PN synaptic activation s_j (pre-synapse) 
-spike_orn is an array of length nORN containing 1 for ORN spiking and 0 otherwise
-"""
+
+
+''' TN version'''
 
 def orn2pn_s(s0, t, spike_orn, pn_ln_params, ):
-    # ORN -> PN equations:
-    tau_s = pn_ln_params['tau_s']
+    # ORN to PN synaptic activation s_j (pre-synapse) 
+    # spike_orn is an array of length nORN containing 1 for ORN spiking and 0 otherwise
+    tau_orn = pn_ln_params['tau_orn']
     alpha_orn = pn_ln_params['alpha_orn']
 
     # per PN inhibition 
     dt = t[1]-t[0]
-    s = s0*np.exp(-dt/tau_s)
-    s += alpha_orn*spike_orn
-    #*(1-x_pn)*(1-y_ln)
+    s = s0*np.exp(-dt/tau_orn) + alpha_orn*spike_orn*(1-s0)
+            
     return s
 
-"""
-PN spike adaptation variable, driven by PN spiking
-spike_pn is an array of length nPN containing 1 for ORN spiking and 0 otherwise
-"""
+
 
 def x_adapt(x0, t, spike_pn, pn_ln_params,):
-    tau_x = pn_ln_params['tau_x']
-    alpha_x = pn_ln_params['alpha_x']
+    # PN spike adaptation variable, driven by PN spiking
+    # spike_pn is an array of length nPN containing 1 for ORN spiking and 0 otherwise
+    tau_ad = pn_ln_params['tau_ad']
+    alpha_ad = pn_ln_params['alpha_ad']
     
     dt = t[1]-t[0]
-    x = x0*np.exp(-dt/tau_x)
-    x += alpha_x*spike_pn
+    x = x0*np.exp(-dt/tau_ad) + alpha_ad*spike_pn*(1-x0)
     return x
+
+
+
 
 def pn_v(v0, t, s_ornpn, y_lnpn, x_pn, pn_ln_params,):
     # PN potential equations:
-    tau_v = pn_ln_params['tau_v']
+    c_pn_ln = pn_ln_params['c_pn_ln']
     
-    vrev_ex    = pn_ln_params['vrev_ex']
-    vrev_inh   = pn_ln_params['vrev_inh']
-    vrest   = pn_ln_params['vrest_pn']
-    vpn_noise = pn_ln_params['vpn_noise']*np.random.standard_normal(size=np.shape(v0))
+    vrev_ex     = pn_ln_params['vrev_ex']
+    vrev_inh    = pn_ln_params['vrev_inh']
+    vrest       = pn_ln_params['vrest_pn']
+    vpn_noise   = pn_ln_params['vpn_noise']*np.random.standard_normal(size=np.shape(v0))
 
-    g_l     = pn_ln_params['g_l_pn']
-    g_orn     = pn_ln_params['g_ornpn']
-    g_ln     = pn_ln_params['g_lnpn']
-    g_adapt  = pn_ln_params['g_adapt_pn']
+    g_l         = pn_ln_params['g_l_pn']
+    g_orn       = pn_ln_params['g_orn']
+    g_ln        = pn_ln_params['g_ln']
+    g_adapt     = pn_ln_params['g_ad']
+    
     dt = t[1]-t[0]
-    b = -(g_l + g_orn*s_ornpn + g_ln*y_lnpn + g_adapt*x_pn)/tau_v
-    a = (g_l*vrest + g_orn*s_ornpn*vrev_ex + g_ln*y_lnpn*vrev_inh + g_adapt*x_pn*vrev_inh)/tau_v
+    # b = -(g_l + g_orn*s_ornpn + g_ln*y_lnpn )/c_pn_ln
+    b = -(g_l + g_orn*s_ornpn + g_ln*y_lnpn + g_adapt*x_pn)/c_pn_ln
+    a = (g_l*vrest + g_orn*s_ornpn*vrev_ex + g_ln*y_lnpn*vrev_inh + g_adapt*x_pn*vrev_inh)/c_pn_ln
     v = (v0 + a/b)*np.exp(b*dt)-a/b + vpn_noise*np.sqrt(dt)
     return v
 
+
+def pn2ln_s(s0, t, spike_pn, pn_ln_params, ):
+    # PN to LN synaptic activation s_j (pre-synapse), j=0...nPN-1
+    # spike_pn is an array of length nPN containing 1 for PN spiking and 0 otherwise
+    tau_pn = pn_ln_params['tau_pn']
+    alpha_pn = pn_ln_params['alpha_pn']
+    
+    # equation of presynatpic activation s:
+    dt = t[1]-t[0]
+    s = s0*np.exp(-dt/tau_pn) + alpha_pn*spike_pn*(1-s0)
+    
+    return s
+
+   
+
 def pn2ln_v_ex(v0, t, s_pnln, pn_ln_params, ):
     # LN potential equations:
-    tau_v = pn_ln_params['tau_v']
+    c_pn_ln = pn_ln_params['c_pn_ln']
     
-    vrev_ex = pn_ln_params['vrev_ex']
-    vrest = pn_ln_params['vrest_ln']
-    vln_noise = pn_ln_params['vln_noise']*(np.random.standard_normal(size=np.shape(v0)))
+    vrev_ex     = pn_ln_params['vrev_ex']
+    vrest       = pn_ln_params['vrest_ln']
+    vln_noise   = pn_ln_params['vln_noise']*(np.random.standard_normal(size=np.shape(v0)))
 
-    g_l     = pn_ln_params['g_l_ln']
-    g_pn     = pn_ln_params['g_pnln']
+    g_l         = pn_ln_params['g_l_ln']
+    g_pn        = pn_ln_params['g_pn']
     
     dt = t[1]-t[0]
-    b = -(g_l + g_pn*s_pnln)/tau_v
-    a = (g_l*vrest + g_pn*s_pnln*vrev_ex )/tau_v 
+    b = -(g_l + g_pn*s_pnln)/c_pn_ln
+    a = (g_l*vrest + g_pn*s_pnln*vrev_ex )/c_pn_ln 
     v = (v0 + a/b)*np.exp(b*dt)-a/b + vln_noise*np.sqrt(dt)
     return v
 
