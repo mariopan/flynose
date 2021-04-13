@@ -51,7 +51,7 @@ def main(n_orn=2):
                         ('vrest', -0.969461053),      # [mV] resting potential
                         ('vrev', 21.1784081),  # [mV] reversal potential
                         # ('v_k', vrest),
-                        ('g_y', .5853575783),       
+                        ('g_y', 0.3), #  .5853575783),       
                         ('g_r', .864162073),  
                         ('r0', 0.15), 
                         ('y0', 2), 
@@ -187,8 +187,8 @@ def main(n_orn=2):
                                                     # variable x_pn
                         # ORN on PN
                         ('tau_orn',     26.8),        # 10 [ms]
-                        ('alpha_orn',   .5),         # 43 [unitless] coeff for the ORN input to PNs                    
-                        ('g_orn',       .6),      # [muS] maximal conductance of ORN to PN synapses
+                        ('alpha_orn',   .3),# .5),         # 43 [unitless] coeff for the ORN input to PNs                    
+                        ('g_orn',       .65),# .4),      # [muS] maximal conductance of ORN to PN synapses
                         
                         # PNs on LNs
                         ('tau_pn',      19),        # 10 [ms]                    
