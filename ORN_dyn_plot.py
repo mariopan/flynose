@@ -288,6 +288,7 @@ elif fig2plot == 'real_plume':
                         ('whiff_max', 3),
                         ('blank_max', 25),
                         ('rho_t_exp', 1),
+                        ('rho_c', 1),
                         ('stim_seed', np.nan),
                         ])
     stim_params['plume_params'] = plume_params
