@@ -2,7 +2,10 @@
 # -*- coding: utf-8 -*-
 """
 Created on Fri Nov 23 17:17:34 2018
-sutdy_rnd_corr_binary_vectors.py
+NSI_corr_uncorr.py
+
+Plot for the explanatory figure of the main hypothesis. It uses the model 
+developed by De Palo et al.
 
 @author: mp525
 """
@@ -11,7 +14,7 @@ import matplotlib.pyplot as plt
 from scipy.integrate import odeint
 
 
-# *****************************************************************
+
 # STANDARD FIGURE PARAMS
 lw = 4
 fs = 13

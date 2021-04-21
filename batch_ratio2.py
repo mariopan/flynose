@@ -16,35 +16,56 @@ import datetime
 
 import ORNs_layer_dyn
 import AL_dyn
-import figure_al_orn
+import set_orn_al_params
+
+import sys
 
 
-# ratio batch params
 now = datetime.datetime.now()
-fig_1run        = 0
 
-nsi_ln_par      = [[0,0], #[.6, 0], [0, .6], 
-                   ]
-n_nsi_ln        = np.shape(nsi_ln_par)[0] #int(sys.argv[1])-1 # jobs run only starting from 1 ...
 
-delays2an       = [0, ]
-delay_id        = 0 
-delay           = delays2an[delay_id]
+n_loops         =  10    # Used for ratio: 10
 
-n_loops         =  10       # 10
-n_ratios        =  45
-n_concs         =  4
+nsi_ln_par      = [[0,0], [.6, 0], [0, .6], ]
+
+if sys.argv == ['']:
+    id_inh2run      = 0 # jobs run only starting from 1 ...
+    analysis_name   = 'delays'
+else:
+    id_inh2run      = int(sys.argv[1])-1 # jobs run only starting from 1 ...
+    analysis_name   = sys.argv[2]
+
+       
+
+
+if analysis_name == 'ratio':
+    print('ratio simulations')
+    n_ratios        =  45
+    pr2an           =  np.linspace(1, 20, n_ratios)
+    delays2an       = [0, ]
+elif analysis_name == 'delays':
+    print('delays simulations')
+    delays2an       = [0,  10, 20, 50, 100, 200, 500,]
+    n_ratios        =  1
+    pr2an           =  np.linspace(1, 1, n_ratios)
+else:
+    print('This script can run only ratio and delays analysis! Write your choice as 2nd input')
+    # break
+
+
 dur2an          =  [10, 20, 50, 100, 200]
-peak2an         =  np.logspace(-3.3, -2, n_concs)
-pr2an           =  np.linspace(1, 20, n_ratios)
+
+peak2an         =  np.array([0.00052, 0.00068, 0.00084, 0.001, 0.005, 0.01])
+n_concs         =  len(peak2an)
+
 
 n_durs           = np.size(dur2an)
 
-sims_to_run = n_nsi_ln*n_loops*n_concs*n_ratios*n_durs
+sims_to_run = len(delays2an)*n_loops*n_concs*n_ratios*n_durs
 print('Number of Sims to run: %d '%sims_to_run)
 
-# approximately 1.2 secs per run:
-t_single_run = 2.4
+# approximately t_single_run secs per run:
+t_single_run = 3.4
 Tot_sim_time = sims_to_run*t_single_run/60  # mins
 run_sim_time = 0
 print('Estimated Sims duration: %.2f hours (%.2f mins):'%(Tot_sim_time/60, Tot_sim_time))
@@ -53,9 +74,10 @@ print('Estimated Sims end data-time:')
 print(endsim)
 
 #%%  LOAD Standard NET PARAMS FROM A FILE
-fld_params      = 'NSI_analysis/analysis_ratio/' #Olsen2010
-name_params     = 'params_al_orn.ini'
-params_al_orn   = pickle.load(open(fld_params + name_params,  "rb" ))
+# fld_params      = 'NSI_analysis/analysis_ratio/' #Olsen2010
+# name_params     = 'params_al_orn.ini'
+# params_al_orn   = pickle.load(open(fld_params + name_params,  "rb" ))
+params_al_orn = set_orn_al_params.main(2)
 
 stim_params         = params_al_orn['stim_params']
 orn_layer_params    = params_al_orn['orn_layer_params']
@@ -68,6 +90,7 @@ pn_ln_params        = params_al_orn['pn_ln_params']
 stim_params['stim_type']    = 'ts' # 'ss'  # 'ts'
 onset_stim                  = 1000
 stim_params['pts_ms']       = 10
+
 stim_params['conc0']        = 1.85e-4    # 2.85e-4
    
 n_pns_recep         = al_params['n_pns_recep'] # number of PNs per each glomerulus
@@ -75,38 +98,48 @@ n_orns_recep        = orn_layer_params[0]['n_orns_recep']   # number of ORNs per
 
 verbose             = False
 data_save           = 1
-fld_analysis        = 'NSI_analysis/analysis_ratio/'
+fld_analysis        = 'NSI_analysis/analysis_'+analysis_name+'/'
+date_str            = now.strftime("%Y%m%d")
 
-# old folder: /NSI_analysis/ratio/ratio_images/ratio_images_nsi0.3_ln10.0/
+
+pn_ln_params['tau_ln']      = 25
+
+time2analyse                = 200
+
+
+
+n_sens_type       = orn_layer_params.__len__()  # number of type of sensilla
+[nsi_str, alpha_ln]  = nsi_ln_par[id_inh2run]
+for sst in range(n_sens_type):
+    orn_layer_params[sst]['w_nsi']    = nsi_str
+pn_ln_params['alpha_ln']        = alpha_ln
+print([nsi_str, alpha_ln])
+
 
 # save batch and net params 
 if data_save:
     batch_params = [n_loops,pr2an,peak2an,nsi_ln_par,dur2an,delays2an,]
-    with open(fld_analysis+'ratio_batch_params.pickle', 'wb') as f:
+    with open(fld_analysis+analysis_name+'_batch_params.pickle', 'wb') as f:
                 pickle.dump(batch_params, f)
-    with open(fld_analysis+'ratio_params_al_orn.ini', 'wb') as f:
+    with open(fld_analysis+analysis_name+'_params_al_orn.ini', 'wb') as f:
                 pickle.dump(params_al_orn, f)            
 
-#%%            
-date_str            = now.strftime("%Y%m%d")
-n_sens_type       = orn_layer_params.__len__()  # number of type of sensilla
-
-# initialize output variables
-peak_pnw    = np.zeros((n_ratios, n_concs, n_durs, n_loops))
-peak_pns    = np.zeros((n_ratios, n_concs, n_durs, n_loops))
-avg_pnw    = np.zeros((n_ratios, n_concs,n_durs, n_loops))
-avg_pns    = np.zeros((n_ratios, n_concs, n_durs, n_loops))
-
-peak_ornw    = np.zeros((n_ratios, n_concs, n_durs, n_loops))
-peak_orns    = np.zeros((n_ratios, n_concs, n_durs, n_loops))
-avg_ornw    = np.zeros((n_ratios, n_concs,n_durs, n_loops))
-avg_orns    = np.zeros((n_ratios, n_concs, n_durs, n_loops))
 
 
-for [inh_id, [nsi_str, alpha_ln]] in enumerate(nsi_ln_par):    
-    for sst in range(n_sens_type):
-        orn_layer_params[sst]['w_nsi']    = nsi_str
-    pn_ln_params['alpha_ln']        = alpha_ln
+#%% RUN sims
+for [delay_id, delay] in enumerate(delays2an):
+    
+    # initialize output variables
+    peak_pnw    = np.zeros((n_ratios, n_concs, n_durs, n_loops))
+    peak_pns    = np.zeros((n_ratios, n_concs, n_durs, n_loops))
+    avg_pnw    = np.zeros((n_ratios, n_concs,n_durs, n_loops))
+    avg_pns    = np.zeros((n_ratios, n_concs, n_durs, n_loops))
+    
+    peak_ornw    = np.zeros((n_ratios, n_concs, n_durs, n_loops))
+    peak_orns    = np.zeros((n_ratios, n_concs, n_durs, n_loops))
+    avg_ornw    = np.zeros((n_ratios, n_concs,n_durs, n_loops))
+    avg_orns    = np.zeros((n_ratios, n_concs, n_durs, n_loops))
+    
     
     for peak_id, peak in enumerate(peak2an):
         
@@ -114,7 +147,7 @@ for [inh_id, [nsi_str, alpha_ln]] in enumerate(nsi_ln_par):
             for dur_id, stim_dur in enumerate(dur2an):
                 
                 # set stim_params
-                stim_params['t_tot']       = onset_stim + stim_dur + max(delay, 200)        # ms 
+                stim_params['t_tot']       = onset_stim + stim_dur + delay + time2analyse        # ms 
                 stim_params['t_on']        = np.array([onset_stim, onset_stim+delay])    # ms
                 stim_params['stim_dur']    = np.array([stim_dur, stim_dur]) # ms
                 stim_params['concs']       = np.array([peak, peak*peak_ratio])
@@ -138,21 +171,20 @@ for [inh_id, [nsi_str, alpha_ln]] in enumerate(nsi_ln_par):
                     toc = timeit.default_timer()
                     eff_dur = (toc-tic)
                     
-                    if fig_1run:
-                        figure_al_orn.main(params_al_orn, output_orn, output_al)
-                    
                     # Calculate avg and peak SDF for ORNs
                     if orn_spikes_t.size >0:
                         id_stim_w = np.flatnonzero((orn_sdf_time>onset_stim) 
-                                                & (orn_sdf_time<onset_stim+100))
+                                                & (orn_sdf_time<onset_stim+time2analyse))
+                        
+                        
                         id_stim_s = np.flatnonzero((orn_sdf_time>onset_stim+delay) 
-                                                & (orn_sdf_time<onset_stim+delay+100))
+                                                & (orn_sdf_time<onset_stim+delay+time2analyse))
                         
                         orn_peak_w  = np.max(np.mean(orn_sdf[id_stim_w, :n_orns_recep], axis=1)) # using average PN
                         orn_peak_s  = np.max(np.mean(orn_sdf[id_stim_s, n_orns_recep:], axis=1)) # using average PN
                         orn_avg_w  = np.mean(orn_sdf[id_stim_w, :n_orns_recep])
                         orn_avg_s  = np.mean(orn_sdf[id_stim_s, n_orns_recep:])
-
+    
                         avg_ornw[pr_id, peak_id, dur_id,ii] = orn_avg_w
                         avg_orns[pr_id, peak_id, dur_id,ii] = orn_avg_s
                         
@@ -162,26 +194,34 @@ for [inh_id, [nsi_str, alpha_ln]] in enumerate(nsi_ln_par):
                     # Calculate avg and peak SDF for PNs 
                     if pn_spike_matrix.size >0:
                         id_stim_w = np.flatnonzero((pn_sdf_time>onset_stim) 
-                                        & (pn_sdf_time<onset_stim+100))
+                                        & (pn_sdf_time<onset_stim+time2analyse))
                         id_stim_s = np.flatnonzero((pn_sdf_time>onset_stim+delay) 
-                                        & (pn_sdf_time<onset_stim+delay+100))
+                                        & (pn_sdf_time<onset_stim+delay+time2analyse))
                         
                         pn_peak_w  = np.max(np.mean(pn_sdf[id_stim_w, :n_pns_recep], axis=1)) # using average PN
                         pn_peak_s  = np.max(np.mean(pn_sdf[id_stim_s, n_pns_recep:], axis=1)) # using average PN
                         pn_avg_w  = np.mean(pn_sdf[id_stim_w, :n_pns_recep])
                         pn_avg_s  = np.mean(pn_sdf[id_stim_s, n_pns_recep:])
-
+    
                         avg_pnw[pr_id, peak_id, dur_id,ii] = pn_avg_w
                         avg_pns[pr_id, peak_id, dur_id,ii] = pn_avg_s
                         
                         peak_pnw[pr_id, peak_id, dur_id,ii] = pn_peak_w
                         peak_pns[pr_id, peak_id, dur_id,ii] = pn_peak_s
                                         
+                        # print('PN avg S:')
+                        # print(np.mean(avg_pns, axis=3))
+                        # print('PN avg w:')
+                        # print(np.mean(avg_pnw, axis=3))
+                        # pn_avg_ratio = np.ma.masked_invalid(avg_pns/avg_pnw)
+                        # print('PN avg ratio: ')
+                        # print(np.mean(pn_avg_ratio, axis=3))
+    
                     sims_to_run = sims_to_run - 1
                     print('run time for sim of %d ms: %.2fs'%(stim_params['t_tot'],eff_dur))
                     print('Remaining Simulations to run: %d '%(sims_to_run))
                     print('Approx Remaining time: %.0f mins'%(sims_to_run*eff_dur/60))
-   
+       
     # SAVE SDF OF ORN  and PNs FIRING RATE and the params
     output2an = dict([
                 ('peak_pnw', peak_pnw),
@@ -194,8 +234,8 @@ for [inh_id, [nsi_str, alpha_ln]] in enumerate(nsi_ln_par):
                 ('avg_orns',avg_orns),
                 ])                            
     
-    data_name  = 'ratio_' +\
-            'stim_' + stim_params['stim_type'] +\
+    data_name  = analysis_name + \
+            '_stim_' + stim_params['stim_type'] +\
             '_nsi_%.1f'%(nsi_str) +\
             '_ln_%.1f'%(alpha_ln) +\
             '_delay2an_%d'%(delay) +\

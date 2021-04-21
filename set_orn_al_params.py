@@ -44,7 +44,7 @@ def main(n_orn=2):
     
     # ORN Parameters 
     orn_params  = dict([
-        # LIF params
+                # LIF params
                         ('t_ref', 2*stim_params['pts_ms']), # ms; refractory period 
                         ('theta', 1),                 # [mV] firing threshold
                         ('tau_v', 2.26183540),        # [ms]
@@ -55,14 +55,14 @@ def main(n_orn=2):
                         ('g_r', .864162073),  
                         ('r0', 0.15), 
                         ('y0', 2), 
-        # Adaptation params
+                # Adaptation params
                         ('alpha_y', .45310619), 
                         ('beta_y', 3.467184e-03), 
                         ])
     
     # SDF/Analysis params
     sdf_params      = dict([
-                        ('tau_sdf', 41),
+                        ('tau_sdf', 21),
                         ('dt_sdf', 5),
                         ])
     
@@ -187,8 +187,8 @@ def main(n_orn=2):
                                                     # variable x_pn
                         # ORN on PN
                         ('tau_orn',     26.8),        # 10 [ms]
-                        ('alpha_orn',   .5),         # 43 [unitless] coeff for the ORN input to PNs                    
-                        ('g_orn',       .6),      # [muS] maximal conductance of ORN to PN synapses
+                        ('alpha_orn',   .5),         # .3), [unitless] coeff for the ORN input to PNs                    
+                        ('g_orn',       .6),      # .8), [muS] maximal conductance of ORN to PN synapses
                         
                         # PNs on LNs
                         ('tau_pn',      19),        # 10 [ms]                    
@@ -196,7 +196,7 @@ def main(n_orn=2):
                         ('g_pn',        2.1),       # [muS] maximal conductance of PN to LN synapses
                         
                         # LNs on PNs
-                        ('tau_ln',      25),
+                        ('tau_ln',      250),
                         ('alpha_ln',    0),       # [unitless]
                         ('g_ln',        1),      # [muS] LN to PN "maximal" conductance
                         

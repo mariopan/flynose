@@ -25,8 +25,8 @@ import AL_dyn
 import ORNs_layer_dyn
 import figure_al_orn
 
-# *****************************************************************
-# STANDARD FIGURE PARAMS
+
+# STANDARD FIGURE PARAMS 
 lw = 2
 fs = 13
 plt.rc('text', usetex=True)  # laTex in the polot
@@ -44,6 +44,8 @@ red     = 'xkcd:red'
 green   = 'xkcd:green'
 purple  = 'xkcd:purple'
 orange  = 'xkcd:orange'
+
+
 cmap    = plt.get_cmap('rainbow')
 recep_clrs = ['green','purple','cyan','red']
 np.set_printoptions(precision=2)
@@ -54,7 +56,7 @@ def tictoc():
 
 
 def fig_npeaks_settings(ax_ornal, params_tmp):
-    # ORN and PN Firing rates figure settings
+    """ ORN and PN Firing rates figure settings """
     
     dx = 0.075
     dy = np.linspace(0.075, 0, 4, )
@@ -64,7 +66,7 @@ def fig_npeaks_settings(ax_ornal, params_tmp):
 
     stim_dur   =   params_tmp['stim_params']['stim_dur'][0]
     
-    t2plot = -200, stim_dur+300
+    t2plot = -200, stim_dur+300+delay
             
     ax_ornal[0].set_xlim(t2plot)
     ax_ornal[1].set_xlim(t2plot)
@@ -108,7 +110,7 @@ def fig_npeaks_settings(ax_ornal, params_tmp):
     ax_ornal[3].spines['top'].set_color('none')
         
 def fig_npeaks(data_tmp, params_tmp, id_c):
-    # plot time course for ONR and PNS for a single concentration value
+    """ plot time course for ONR and PNS for a single concentration value """
     n_orns_recep = params_tmp['orn_layer_params'][0]['n_orns_recep']
     
     t           = data_tmp['t']
@@ -128,44 +130,45 @@ def fig_npeaks(data_tmp, params_tmp, id_c):
     # ****************************************************
     # PLOTTING DATA
     id_col = id_c + 3
-    ax_ornal[0].plot(t-t_zero, 100*u_od[:,0], color=greenmap.to_rgba(id_col), linewidth=lw, 
-                  label='glom : '+'%d'%(1))
+    # Weak ORNs/PNs
+    ax_ornal[0].plot(t-t_zero, 100*u_od[:,0], color=greenmap.to_rgba(id_col), 
+                     linewidth=lw, label='glom : '+'%d'%(1))
     
     ax_ornal[1].plot(orn_sdf_time-t_zero, np.mean(orn_sdf[:,:n_orns_recep], axis=1), 
-                 color=greenmap.to_rgba(id_col), linewidth=lw,label='sdf glo w')
+                 color=greenmap.to_rgba(id_col), linewidth=lw, label='sdf glo w')
     
     ax_ornal[2].plot(pn_sdf_time-t_zero, np.mean(pn_sdf[:,:n_pns_recep], axis=1), 
                color=greenmap.to_rgba(id_col), linewidth=lw, label='PN, glo w')
         
     
-    ax_ornal[3].plot(ln_sdf_time-t_zero, np.mean(ln_sdf[:, n_lns_recep:], axis=1), 
+    ax_ornal[3].plot(ln_sdf_time-t_zero, np.mean(ln_sdf[:, :n_lns_recep], axis=1), 
                      color=greenmap.to_rgba(id_col), linewidth=lw, label='LN, glo w')
     
-    # 2nd ORNs/PNs
-    # ax_ornal[3].plot(ln_sdf_time-t_zero, np.mean(ln_sdf[:,:n_lns_recep], axis=1), 
-    #             color=purplemap.to_rgba(id_col), linewidth=lw-1, label='LN, glo w')
-    # ax_ornal[0].plot(t-t_zero, 100*u_od[:,1], color=purplemap.to_rgba(id_col), 
-    #                  linewidth=lw-1, label='glom : '+'%d'%(2))
+    # Strong ORNs/PNs
+    ax_ornal[0].plot(t-t_zero, 100*u_od[:,1], color=purplemap.to_rgba(id_col), 
+                      linewidth=lw, )#label='glom : '+'%d'%(2))
     
-    # ax_ornal[1].plot(orn_sdf_time-t_zero, np.mean(orn_sdf[:,n_orns_recep:], axis=1), 
-    #                  color=purplemap.to_rgba(id_col), linewidth=lw-1,label='sdf glo s')
+    ax_ornal[1].plot(orn_sdf_time-t_zero, np.mean(orn_sdf[:, n_orns_recep:], axis=1), 
+                      color=purplemap.to_rgba(id_col), linewidth=lw, )#label='sdf glo s')
     
-    # ax_ornal[2].plot(pn_sdf_time-t_zero, np.mean(pn_sdf[:,n_pns_recep:], axis=1), 
-    #                  color=purplemap.to_rgba(id_col), linewidth=lw-1, label='PN, glo s')
+    ax_ornal[2].plot(pn_sdf_time-t_zero, np.mean(pn_sdf[:, n_pns_recep:], axis=1), 
+                      color=purplemap.to_rgba(id_col), linewidth=lw, )#label='PN, glo s')
+    ax_ornal[3].plot(ln_sdf_time-t_zero, np.mean(ln_sdf[:, n_lns_recep:], axis=1), 
+                color=purplemap.to_rgba(id_col), linewidth=lw, )#label='LN, glo w')
     
     
     # ax_ornal[3].legend()
     
 def olsen_orn_pn(nu_orn, sigma, nu_max):
-    # fitting curve used by Olsen et al. 2010 for the relation between PN and ORN rates
+    """ fitting curve used by Olsen et al. 2010 for the relation between PN and ORN rates """
     nu_pn = nu_max * np.power(nu_orn, 1.5)/(np.power(nu_orn, 1.5) + np.power(sigma,1.5))
     return nu_pn
        
 def olsen2010_data(data_tmp, params_tmp):
     pts_ms  =   params_tmp['stim_params']['pts_ms']
 
-    t_on    =   params_tmp['stim_params']['t_on'][0]
-    stim_dur   =   params_tmp['stim_params']['stim_dur'][0]
+    t_on    =   params_tmp['stim_params']['t_on']
+    stim_dur   =   params_tmp['stim_params']['stim_dur']
     t_off   = t_on + stim_dur
     
     n_orns_recep = params_tmp['al_params']['n_orns_recep']
@@ -183,32 +186,39 @@ def olsen2010_data(data_tmp, params_tmp):
     ln_sdf      = data_tmp['ln_sdf']
     ln_sdf_time = data_tmp['ln_sdf_time']
     
-    if stim_dur == 500:
-        orn_id_stim = np.flatnonzero((orn_sdf_time>t_on) & (orn_sdf_time<t_off))
-        pn_id_stim = np.flatnonzero((pn_sdf_time>t_on) & (pn_sdf_time<t_off))
-        ln_id_stim = np.flatnonzero((ln_sdf_time>t_on) & (ln_sdf_time<t_off))
+    if stim_dur[0] == 500:
+        orn_id_stim_s = np.flatnonzero((orn_sdf_time>t_on[1]) & (orn_sdf_time<t_off[1]))
+        pn_id_stim_s = np.flatnonzero((pn_sdf_time>t_on[1]) & (pn_sdf_time<t_off[1]))
+        ln_id_stim_s = np.flatnonzero((ln_sdf_time>t_on[1]) & (ln_sdf_time<t_off[1]))
+        
+        orn_id_stim_w = np.flatnonzero((orn_sdf_time>t_on[0]) & (orn_sdf_time<t_off[0]))
+        pn_id_stim_w = np.flatnonzero((pn_sdf_time>t_on[0]) & (pn_sdf_time<t_off[0]))
+        ln_id_stim_w = np.flatnonzero((ln_sdf_time>t_on[0]) & (ln_sdf_time<t_off[0]))
     else:
-        orn_id_stim = np.flatnonzero((orn_sdf_time>t_on) & (orn_sdf_time<t_on+200))
-        pn_id_stim = np.flatnonzero((pn_sdf_time>t_on) & (pn_sdf_time<t_on+200))
-        ln_id_stim = np.flatnonzero((ln_sdf_time>t_on) & (ln_sdf_time<t_on+200))
+        orn_id_stim_s = np.flatnonzero((orn_sdf_time>t_on[1]) & (orn_sdf_time<t_on[1]+time2analyse))
+        pn_id_stim_s = np.flatnonzero((pn_sdf_time>t_on[1]) & (pn_sdf_time<t_on[1]+time2analyse))
+        ln_id_stim_s = np.flatnonzero((ln_sdf_time>t_on[1]) & (ln_sdf_time<t_on[1]+time2analyse))
+        orn_id_stim_w = np.flatnonzero((orn_sdf_time>t_on[0]) & (orn_sdf_time<t_on[0]+time2analyse))
+        pn_id_stim_w = np.flatnonzero((pn_sdf_time>t_on[0]) & (pn_sdf_time<t_on[0]+time2analyse))
+        ln_id_stim_w = np.flatnonzero((ln_sdf_time>t_on[0]) & (ln_sdf_time<t_on[0]+time2analyse))
         
         
-    nu_orn_w = np.mean(orn_sdf[orn_id_stim, :n_orns_recep])
-    nu_pn_w = np.mean(pn_sdf[pn_id_stim, :n_pns_recep])
+    nu_orn_w = np.mean(orn_sdf[orn_id_stim_w, :n_orns_recep])
+    nu_pn_w = np.mean(pn_sdf[pn_id_stim_w, :n_pns_recep])
     
-    nu_orn_s = np.mean(orn_sdf[orn_id_stim, n_orns_recep:])
-    nu_pn_s = np.mean(pn_sdf[pn_id_stim, n_pns_recep:])
-    nu_ln_s = np.mean(ln_sdf[ln_id_stim, n_lns_recep:])
-    nu_ln_w = np.mean(ln_sdf[ln_id_stim, :n_lns_recep])
-    conc_s = np.mean(u_od[stim_on:stim_off, 0], axis=0)
-    conc_w = np.mean(u_od[stim_on:stim_off, 1], axis=0)
+    nu_orn_s = np.mean(orn_sdf[orn_id_stim_s, n_orns_recep:])
+    nu_pn_s = np.mean(pn_sdf[pn_id_stim_s, n_pns_recep:])
+    nu_ln_s = np.mean(ln_sdf[ln_id_stim_s, n_lns_recep:])
+    nu_ln_w = np.mean(ln_sdf[ln_id_stim_w, :n_lns_recep])
+    conc_s = np.mean(u_od[stim_on[1]:stim_off[1], 1], axis=0)
+    conc_w = np.mean(u_od[stim_on[0]:stim_off[0], 0], axis=0)
     
-    nu_orn_s_err = np.std(orn_sdf[orn_id_stim, :n_orns_recep])/np.sqrt(n_orns_recep)
-    nu_orn_w_err = np.std(orn_sdf[orn_id_stim, n_orns_recep:])/np.sqrt(n_orns_recep)
-    nu_pn_s_err = np.std(pn_sdf[pn_id_stim, :n_pns_recep])/np.sqrt(n_pns_recep)
-    nu_pn_w_err = np.std(pn_sdf[pn_id_stim, n_pns_recep:])/np.sqrt(n_pns_recep)
-    nu_ln_s_err = np.std(ln_sdf[ln_id_stim, :n_lns_recep])/np.sqrt(n_lns_recep)
-    nu_ln_w_err = np.std(ln_sdf[ln_id_stim, n_lns_recep:])/np.sqrt(n_lns_recep)
+    nu_orn_s_err = np.std(orn_sdf[orn_id_stim_s, :n_orns_recep])/np.sqrt(n_orns_recep)
+    nu_orn_w_err = np.std(orn_sdf[orn_id_stim_w, n_orns_recep:])/np.sqrt(n_orns_recep)
+    nu_pn_s_err = np.std(pn_sdf[pn_id_stim_s, :n_pns_recep])/np.sqrt(n_pns_recep)
+    nu_pn_w_err = np.std(pn_sdf[pn_id_stim_w, n_pns_recep:])/np.sqrt(n_pns_recep)
+    nu_ln_s_err = np.std(ln_sdf[ln_id_stim_s, :n_lns_recep])/np.sqrt(n_lns_recep)
+    nu_ln_w_err = np.std(ln_sdf[ln_id_stim_w, n_lns_recep:])/np.sqrt(n_lns_recep)
     
     out_olsen = dict([
         ('conc_s', conc_s),
@@ -250,7 +260,7 @@ n_sens_type       = orn_layer_params.__len__()  # number of type of sensilla
 
 # %%
 # stim params
-delay                       = 0
+delay                       = 500
 t0                          = 1000
 stim_name                   = ''
 stim_params['pts_ms']       = 10
@@ -261,7 +271,7 @@ stim_params['conc0']        = 1.85e-4    # fitted value: 2.85e-4
 
 # PNs average activity during 500ms stimulation (see Olsen et al. 2010)
 nu_obs                      = [8, 75, 130, 150, ]
-
+nu_orn_obs                = [3, 21, 55, 125, ]
 # nsi params
 nsi_str                     = .6
 alpha_ln                    = .6
@@ -273,25 +283,26 @@ data_save                   = 0
 
 # ###########################
 # fig4 options
-stim_durs                   = [500]
-stim_params['stim_type']    = 'ss' # 'ss'  # 'ts' # 'rs' # 'pl'
+stim_durs                   = [10]
+stim_params['stim_type']    = 'ts' # 'ss'  # 'ts' # 'rs' # 'pl'
 peak_ratios                 = np.linspace(1, 20, 1,) 
 peaks                       = [1.85e-4, 5e-4, 1.5e-3, 2e-2,]
-inh_conds                   = ['nsi']
+inh_conds                   = ['noin']
 # figs/data flags
 dataratio_save              = 0
 al_orn_1r_fig               = 0     # single run figure flag
 npeaks_fig                  = 1     # multiple peaks PN and ORN time course 
 olsen_fig                   = 1     # PN vs ORN activity, like Olsen 2010
-figs_save                   = 1
+figs_save                   = 0
 fld_analysis        = 'NSI_analysis/Olsen2010/'
 
+time2analyse                = 200
 
 
-# load PARAMS THE STANDARD FOLDER AND FILE
-params_file = 'params_al_orn.ini'
-with open(fld_analysis+params_file, 'wb') as f:
-    pickle.dump(params_al_orn, f)
+# # load PARAMS THE STANDARD FOLDER AND FILE
+# params_file = 'params_al_orn.ini'
+# with open(fld_analysis+params_file, 'wb') as f:
+#     pickle.dump(params_al_orn, f)
 
 
 tic = tictoc()
@@ -503,8 +514,8 @@ for stim_dur in stim_durs:
                 
                 plt.rc('text', usetex=True)
                 
-                if len(nu_obs)==len(nu_orn_s):
-                    axs[0].plot(nu_orn_s, nu_obs, 'k*')
+                # if len(nu_obs)==len(nu_orn_s):
+                axs[0].plot(nu_orn_obs, nu_obs, 'k*')
                 axs[0].errorbar(nu_orn_s, nu_pn_s, yerr=nu_pn_s_err, fmt='o')
                 axs[0].plot(nuorn_fit , olsen_orn_pn(nuorn_fit , *popt), '--', linewidth=lw, 
                         label=r'fit: $\sigma$=%5.0f, $\nu_{max}$=%5.0f' % tuple(popt))

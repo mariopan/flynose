@@ -4,6 +4,8 @@
 Created on Mon May  4 17:06:08 2020
 plot_hyp1.py
 
+Plot for the explanatory figure of the secondary hypothesis
+
 @author: mario
 """
 
@@ -12,7 +14,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-# *****************************************************************
 # STANDARD FIGURE PARAMS
 lw = 3
 thin = 1.5
