@@ -96,11 +96,12 @@ def main(stim_params, verbose=False):
                blank_min, blank_max, a_conc, b_conc,rho_c, rho_t, quenched, stim_seed]
         
         # PLUME GENERATION
-        out_y, out_w, _, _= corr_plumes.main(*corr_plumes_in)
+        out_corr_plumes = corr_plumes.main(*corr_plumes_in)
         
         for nn in range(n_od):
             stim_on         = t_on[nn]*pts_ms   # [num. of samples]
-            u_od[stim_on:, nn] = out_y*concs[nn]
+            u_od[stim_on:, nn] = out_corr_plumes[nn]*concs[nn]
+
              
     elif (stim_type == 'rs'):
         # baseline stimuli

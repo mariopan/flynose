@@ -325,14 +325,14 @@ if __name__ == '__main__':
     
     # stimulus params
     stim_params     = dict([
-                        ('stim_type' , 'rs'),   # 'rs' # 'ts'  # 'ss' # 'pl' # 'ext'
-                        ('pts_ms' , 5),         # simulated pts per ms 
+                        ('stim_type' , 'ss'),   # 'rs' # 'ts'  # 'ss' # 'pl' # 'ext'
+                        ('pts_ms' , 10),         # simulated pts per ms 
                         ('n_od', 2), 
-                        ('t_tot', 1500),        # ms  
-                        ('conc0', [1.9e-04]),    # 1.9e-4 # fitted value 2.854e-04
-                        ('od_noise', 4.5), #3.5
+                        ('t_tot', 2000),        # ms  
+                        ('conc0', 1.85e-04),    # 1.9e-4 # fitted value 2.854e-04
+                        ('od_noise', 2), #3.5
                         ('od_filter_frq', 0.002), #.002
-                        ('r_noise', 1.10), #6.0
+                        ('r_noise', 0.5), #6.0
                         ('r_filter_frq', 0.002), # 0.002
                         ])    
     
@@ -345,9 +345,9 @@ if __name__ == '__main__':
                         ])
     elif n_od == 2:
         concs_params    = dict([
-                        ('stim_dur' , np.array([500, 500])),  # ms
-                        ('t_on', np.array([500, 500])), # ms
-                        ('concs', np.array([.50, .00])),
+                        ('stim_dur' , np.array([500, 5])),  # ms
+                        ('t_on', np.array([1000, 1200])), # ms
+                        ('concs', np.array([1e-3, 1.85e-4])),
                         ])
     
     stim_params.update(concs_params)
@@ -373,7 +373,7 @@ if __name__ == '__main__':
                         ])
     
     # Sensilla/network parameters
-    transd_params       = (ab3A_params, )#ab3B_params)
+    transd_params       = (ab3A_params, ab3B_params)
     
     n_orns_recep        = 20         # number of ORNs per each receptor
     n_neu               = transd_params.__len__()         # number of ORN cohoused in the sensillum
@@ -400,7 +400,7 @@ if __name__ == '__main__':
                         ('vrest', -33), #-0.969461053),        # [mV] resting potential
                         ('vrev', 0),#21),                   # 21.1784081 [mV] reversal potential
                         # ('v_k', vrest),
-                        ('g_y', .5853575783),       
+                        ('g_y', 0.3), #.5853575783),       
                         ('g_r', .864162073), 
                         # initial values of y anr r
                         ('r0', 0.15), 

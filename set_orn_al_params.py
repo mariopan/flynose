@@ -46,15 +46,15 @@ def main(n_orn=2):
     orn_params  = dict([
                 # LIF params
                         ('t_ref', 2*stim_params['pts_ms']), # ms; refractory period 
-                        ('theta', 1),                 # [mV] firing threshold
+                        ('theta', -30), # 1),                 # [mV] firing threshold
                         ('tau_v', 2.26183540),        # [ms]
-                        ('vrest', -0.969461053),      # [mV] resting potential
-                        ('vrev', 21.1784081),  # [mV] reversal potential
+                        ('vrest', -33), #-0.969461053),      # [mV] resting potential
+                        ('vrev', 0), #21.1784081),  # [mV] reversal potential
                         # ('v_k', vrest),
                         ('g_y', 0.3), #  .5853575783),       
                         ('g_r', .864162073),  
                         ('r0', 0.15), 
-                        ('y0', 2), 
+                        ('y0', .5), 
                 # Adaptation params
                         ('alpha_y', .45310619), 
                         ('beta_y', 3.467184e-03), 
@@ -62,7 +62,7 @@ def main(n_orn=2):
     
     # SDF/Analysis params
     sdf_params      = dict([
-                        ('tau_sdf', 21),
+                        ('tau_sdf', 41),
                         ('dt_sdf', 5),
                         ])
     
@@ -103,7 +103,7 @@ def main(n_orn=2):
     
     # sensillum 0
     if n_orn ==1:
-        transd_params0 = (ab3A_params)
+        transd_params0 = (ab3A_params,)
     elif n_orn == 2:
         transd_params0 = (ab3A_params, ab3B_params)
         

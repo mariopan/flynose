@@ -24,6 +24,7 @@ import matplotlib as mpl
 import AL_dyn
 import ORNs_layer_dyn
 import figure_al_orn
+import set_orn_al_params
 
 
 # STANDARD FIGURE PARAMS 
@@ -239,7 +240,6 @@ def olsen2010_data(data_tmp, params_tmp):
     return out_olsen
     
    
-import set_orn_al_params
 params_al_orn = set_orn_al_params.main(2)
 
 # %% LOAD PARAMS FROM A FILE

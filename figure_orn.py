@@ -116,18 +116,13 @@ def main(params_1sens, output_orn, ):
                                 linewidth=lw-1, color=recep_clrs[0], alpha=trsp)
         
         # SETTINGS
-        # ax_orn[4].set_ylim(0, 30)
         for rr in range(rs):
             ax_orn[rr].tick_params(axis='both', which='major', labelsize=ticks_fs)
             ax_orn[rr].text(-.15, 1.25, panels_id[rr], transform=ax_orn[rr].transAxes, 
                          fontsize=panel_fs, fontweight='bold', va='top', ha='right')
             ax_orn[rr].spines['right'].set_color('none')
             ax_orn[rr].spines['top'].set_color('none')
-            # ax_orn[rr].set_xlim((t2plot))
-            ax_orn[rr].set_xlim(([-100, 750]))
-            
-        # for rr in range(rs-1):
-        #     ax_orn[rr].set_xticklabels('')
+            ax_orn[rr].set_xlim((t2plot))
                  
         ax_orn[0].set_ylabel('Input (a.u.)', fontsize=label_fs)
         ax_orn[3].set_ylabel(r'V (a.u.)', fontsize=label_fs)
