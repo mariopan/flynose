@@ -335,8 +335,6 @@ def main(params_al_orn, spike_orn, verbose=False, corr_an=False):
         y_lnpn[tt, :] = y_ln[tt, :].dot(ln_pn_mat)
            
 
-    # plt.figure()
-    # plt.plot(y_lnpn)
     # Calculate the spike matrix of PNs and LNs
     pn_spike_matrix = np.asarray(np.where(spike_pn))
     pn_spike_matrix[0,:] = pn_spike_matrix[0,:]/pts_ms
@@ -347,7 +345,6 @@ def main(params_al_orn, spike_orn, verbose=False, corr_an=False):
     ln_spike_matrix = np.transpose(ln_spike_matrix)
     toc = tictoc()
 
-        
     # Calculate the SDF for PNs and LNs
     pn_sdf_time = np.linspace(0, dt_sdf*sdf_size, sdf_size)
     pn_sdf = np.zeros((sdf_size, n_pns_tot))

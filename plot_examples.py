@@ -17,7 +17,7 @@ import ORNs_layer_dyn
 import AL_dyn
 import set_orn_al_params
 
-
+import stats_for_plumes as stats
 
 # STANDARD FIGURE PARAMS
 lw = 2
@@ -38,65 +38,7 @@ green   = 'xkcd:green'
 purple  = 'xkcd:purple'
 orange  = 'xkcd:orange'
 #cmap    = plt.get_cmap('rainbow')
-
-def olsen2010_data(data_tmp, params_tmp):
-    """ return the average activity of PNs and ORNs during stimulation"""
-    
-    pts_ms  =   params_tmp['stim_params']['pts_ms']
-
-    t_on    =   params_tmp['stim_params']['t_on'][0]
-    stim_dur   =   params_tmp['stim_params']['stim_dur'][0]
-    t_off   = t_on + stim_dur
-    
-    n_orns_recep = params_tmp['al_params']['n_orns_recep']
-    n_pns_recep = params_tmp['al_params']['n_pns_recep']
-    
-    stim_on  = t_on*pts_ms 
-    stim_off = t_off*pts_ms 
-    
-    u_od        = data_tmp['u_od']
-    orn_sdf     = data_tmp['orn_sdf']
-    orn_sdf_time = data_tmp['orn_sdf_time']
-    pn_sdf      = data_tmp['pn_sdf']
-    pn_sdf_time = data_tmp['pn_sdf_time']
-    
-    if stim_dur == 500:
-        orn_id_stim = np.flatnonzero((orn_sdf_time>t_on) & (orn_sdf_time<t_off))
-        pn_id_stim = np.flatnonzero((pn_sdf_time>t_on) & (pn_sdf_time<t_off))
-    else:
-        orn_id_stim = np.flatnonzero((orn_sdf_time>t_on) & (orn_sdf_time<t_on+200))
-        pn_id_stim = np.flatnonzero((pn_sdf_time>t_on) & (pn_sdf_time<t_on+200))
-        
-        
-    nu_orn_w = np.mean(orn_sdf[orn_id_stim, :n_orns_recep])
-    nu_pn_w = np.mean(pn_sdf[pn_id_stim, :n_pns_recep])
-    
-    nu_orn_s = np.mean(orn_sdf[orn_id_stim, n_orns_recep:])
-    nu_pn_s = np.mean(pn_sdf[pn_id_stim, n_pns_recep:])
-    conc_s = np.mean(u_od[stim_on:stim_off, 0], axis=0)
-    conc_w = np.mean(u_od[stim_on:stim_off, 1], axis=0)
-    
-    nu_orn_s_err = np.std(orn_sdf[orn_id_stim, :n_orns_recep])/np.sqrt(n_orns_recep)
-    nu_orn_w_err = np.std(orn_sdf[orn_id_stim, n_orns_recep:])/np.sqrt(n_orns_recep)
-    nu_pn_s_err = np.std(pn_sdf[pn_id_stim, :n_pns_recep])/np.sqrt(n_pns_recep)
-    nu_pn_w_err = np.std(pn_sdf[pn_id_stim, n_pns_recep:])/np.sqrt(n_pns_recep)
-    
-    out_olsen = dict([
-        ('conc_s', conc_s),
-        ('conc_w', conc_w),
-        ('nu_orn_s', nu_orn_s),
-        ('nu_orn_w', nu_orn_w),
-        ('nu_pn_s', nu_pn_s),
-        ('nu_pn_w', nu_pn_w),
-        ('nu_orn_s_err', nu_orn_s_err),
-        ('nu_orn_w_err', nu_orn_w_err),
-        ('nu_pn_s_err', nu_pn_s_err),
-        ('nu_pn_w_err', nu_pn_w_err),
-        ])
-    return out_olsen
-    
-   
-    
+ 
 
 
 def orn_al_settings(axs):
@@ -231,7 +173,7 @@ def orn_al_diag_settings(axs):
             axs[id_row, id_col].set_xlim(t2plot)
             axs[id_row, id_col].tick_params(axis='both', labelsize=label_fs)
             axs[id_row, id_col].set_xticklabels('')
-            # axs[id_row, id_col].axis('off')
+            axs[id_row, id_col].axis('off')
     
     for id_row in range(3):
         axs[id_row, 1].set_ylim((0, 250))
@@ -364,13 +306,14 @@ orn_layer_params    = params_al_orn['orn_layer_params']
 sdf_params          = params_al_orn['sdf_params']
 al_params           = params_al_orn['al_params']
 pn_ln_params        = params_al_orn['pn_ln_params']
+plume_params        = stim_params['plume_params']
 
 n_sens_type         = orn_layer_params.__len__()  # number of type of sensilla
 
 # ORN NSI params
 
 # fig_id options:  # 'ts_s' #  'ts_a' # 'pl'
-fig_id                  = 'pl' 
+fig_id                  = 'ts_a' 
 
 fld_analysis            = 'NSI_analysis/triangle_stim/'
 nsi_str                 = 0.6
@@ -379,36 +322,35 @@ pn_ln_params['tau_ln']  = 250
 
 
 # figure and output options
-fig_save    = 1
+fig_save    = 0
 data_save   = 0    
 verbose     = 0
 olsen_fig   = 0
 
 
-n_lines     = 10
+n_lines     = 1
 
 if fig_id == 'ts_s':
     # stim params
     delay                       = 0    
     stim_params['stim_type']    = 'ts' # 'id_l'  # 'ts'
     stim_params['stim_dur']     = np.array([50, 50])
-    stim_params['t_tot']        = 1000
-    t_on                        = 700
+    stim_params['t_tot']        = 1500
+    t_on                        = 1000
     stim_params['conc0']        = 1.85e-4    # 2.85e-4
-    peak                        = 2e-2
     
 elif fig_id == 'ts_a':
     # Stimulus params 
-    delay                       = 100
+    delay                       = 25
     stim_params['stim_type']    = 'ts' # 'id_l'  # 'ts'
-    stim_params['stim_dur']     = np.array([50, 50])
-    stim_params['t_tot']        = 1000+delay
+    stim_params['stim_dur']     = np.array([100, 100])
+    stim_params['t_tot']        = 1500+delay
     t_on                        = 700
     stim_params['conc0']        = 1.85e-4    # 2.85e-4
-    peak                        = 1e-3  
-    
+    params_al_orn['sdf_params']['tau_sdf'] = 3
+    params_al_orn['sdf_params']['dt_sdf'] = 2
 elif fig_id == 'pl':
-    fld_analysis        = 'NSI_analysis/real_plumes/example'
+    fld_analysis        = 'NSI_analysis/analysis_real_plumes/example'
     fig_orn_dyn         = 1
     max_stim_seed       = 3
     orn_fig_name        = '/ORN_lif_dyn_realplume.png'
@@ -416,55 +358,46 @@ elif fig_id == 'pl':
     # stim params
     delay                       = 0    
     stim_params['stim_type']    = 'pl' # 'ts' # 'ss' # 'rs'# 'pl'
-    stim_params['t_tot']        = 4300        # ms 
-    t_on                        = 700
+    stim_params['t_tot']        = 200000        # ms 
+    t_on                        = 1000
     stim_params['conc0']        = 1.85e-4
-    stim_params['stim_dur']     = np.array([4000, 4000])
-    peak                        = np.array([5e-4])         # concentration value for ORN1
    
     # real plumes params
-    plume_params = dict([
-                        ('whiff_max', 3),
-                        ('blank_max', 25),
-                        ('rho_t_exp', 0),#[0, 1, 3, 5]
-                        ('stim_seed', 10),
-                        ])
+    plume_params['whiff_max']   = 3
+    plume_params['rho_t_exp']   = 0   #[0, 1, 3, 5]
+    plume_params['stim_seed']   = 280
+    
+    params_al_orn['sdf_params']['tau_sdf'] = 3
+    params_al_orn['sdf_params']['dt_sdf'] = 2
+    
     stim_params['plume_params'] = plume_params
     
-    
+conc0           = stim_params['conc0']
+t_tot           = stim_params['t_tot']
+stim_dur        = stim_params['stim_dur'][0]
 peak_ratio      = 1
 stim_params['t_on'] = np.array([t_on, t_on+delay])      # ms 
 
+pts_ms          =   params_al_orn['stim_params']['pts_ms']
 
-dt_sdf      = params_al_orn['sdf_params']['dt_sdf']
-sdf_size    = int(stim_params['t_tot']/dt_sdf)
+dt_sdf          = params_al_orn['sdf_params']['dt_sdf']
+sdf_size        = int(stim_params['t_tot']/dt_sdf)
 
 
-n_neu       = params_al_orn['orn_layer_params'][0]['n_neu']
-n_orns_recep = n_neu*al_params['n_orns_recep']# number of ORNs per each receptor
-n_pns_recep = n_neu*al_params['n_pns_recep'] # number of PNs per each receptor
+n_neu           = params_al_orn['orn_layer_params'][0]['n_neu']
+n_orns_recep    = al_params['n_orns_recep']# number of ORNs per each receptor
+n_pns_recep     = al_params['n_pns_recep'] # number of PNs per each receptor
 
-orn_sdf = np.zeros((n_lines, sdf_size, n_orns_recep))
-pn_sdf = np.zeros((n_lines, sdf_size, n_pns_recep))
+orn_sdf_all     = np.zeros((n_lines, sdf_size, n_neu*n_orns_recep))
+pn_sdf_all      = np.zeros((n_lines, sdf_size, n_neu*n_pns_recep))
 
 
 tic = timeit.default_timer()
 
-peaks                       = [1.5e-3] #[1.85e-4, 5e-4, 1.5e-3, 2e-2, 2e-1]
+peaks                       = [5e-4] #[1.85e-4, 5e-4, 1.5e-3, 2e-2, 2e-1]
 n_peaks = len(peaks)
 
-# INITIALIZE OUTPUT VARIABLES    
-conc_s    = np.zeros((n_peaks, 3))
-conc_th = np.zeros((n_peaks, 3))
-nu_orn_s = np.zeros((n_peaks, 3))
-nu_pn_s  = np.zeros((n_peaks, 3))
-nu_orn_w = np.zeros((n_peaks, 3))
-nu_pn_w = np.zeros((n_peaks, 3))
 
-nu_orn_s_err  = np.zeros((n_peaks, 3))
-nu_pn_s_err   = np.zeros((n_peaks, 3))
-nu_orn_w_err  = np.zeros((n_peaks, 3))
-nu_pn_w_err   = np.zeros((n_peaks, 3))
 
 for id_p, peak in enumerate(peaks):
     stim_params['concs'] = np.array([peak, peak*peak_ratio])
@@ -493,7 +426,7 @@ for id_p, peak in enumerate(peaks):
         orn_al_settings(axs)
         
     # simulations and append to figure         
-    for id_inh, inh_cond in enumerate(inh_conds):
+    for inh_id, inh_cond in enumerate(inh_conds):
                                 
         # setting NSI params
         for sst in range(n_sens_type):
@@ -512,26 +445,90 @@ for id_p, peak in enumerate(peaks):
             # Run flynose 
             
             # ORNs layer dynamics
-            [t, u_od,  orn_spikes_t, orn_sdf_tmp, orn_sdf_time] = \
+            [t, u_od,  orn_spikes_t, orn_sdf, orn_sdf_time] = \
                 ORNs_layer_dyn.main(params_al_orn, verbose=verbose, )
             
-            orn_sdf[id_l,:,:] = orn_sdf_tmp
+            orn_sdf_all[id_l,:,:] = orn_sdf
             
             # AL dynamics
-            [t, pn_spike_matrix, pn_sdf_tmp, pn_sdf_time,
-                ln_spike_matrix, ln_sdf_tmp, ln_sdf_time,] = \
+            [t, pn_spike_matrix, pn_sdf, pn_sdf_time,
+                ln_spike_matrix, ln_sdf, ln_sdf_time,] = \
                 AL_dyn.main(params_al_orn, orn_spikes_t, verbose=verbose, )
-            pn_sdf[id_l,:,:] = pn_sdf_tmp
+            pn_sdf_all[id_l,:,:] = pn_sdf
             
+            if fig_id == 'pl':
+                #%% CALCULATE AND SAVE DATA
+                t_id_stim = np.flatnonzero((t>t_on) & (t<t_tot))
+                
+                od_avg_1 = np.mean(u_od[t_id_stim, 0])
+                od_avg_2 = np.mean(u_od[t_id_stim, 1])
+                cor_stim        = -2
+                overlap_stim    = -2
+                cor_whiff       = -2
+                out_1 = u_od[t_id_stim, 0]
+                out_2 = u_od[t_id_stim, 1]
+                                    
+                interm_est_1 = np.sum(out_1>0)/(t_tot*pts_ms)
+                interm_est_2 = np.sum(out_2>0)/(t_tot*pts_ms)
+                
+                if (np.sum(out_2)!=0) & (np.sum(out_1)!=0):
+                    cor_stim        = np.corrcoef(out_2, out_1)[1,0]
+                    overlap_stim    = stats.overlap(out_2, out_1, conc0, conc0)
+                    nonzero_concs1  = out_2[(out_2>0) & (out_1>0)]
+                    nonzero_concs2  = out_1[(out_2>0) & (out_1>0)]
+                    cor_whiff       = np.corrcoef(nonzero_concs1, nonzero_concs2)[0, 1] # np.corrcoef(concs1, concs2)[0, 1]
+                
+        
+        
+        # INITIALIZE OUTPUT VARIABLES    
+conc_s    = np.zeros((n_peaks, 3))
+conc_th = np.zeros((n_peaks, 3))
+nu_orn_s = np.zeros((n_peaks, 3))
+nu_pn_s  = np.zeros((n_peaks, 3))
+nu_orn_w = np.zeros((n_peaks, 3))
+nu_pn_w = np.zeros((n_peaks, 3))
+
+nu_orn_s_err  = np.zeros((n_peaks, 3))
+nu_pn_s_err   = np.zeros((n_peaks, 3))
+nu_orn_w_err  = np.zeros((n_peaks, 3))
+nu_pn_w_err   = np.zeros((n_peaks, 3))
+        
+        # id_stim_1 = np.flatnonzero((pn_sdf_time>t_on) & 
+        #                            (pn_sdf_time<t_on + stim_dur))
+        # id_stim_2 = np.flatnonzero((pn_sdf_time>t_on + delay) & 
+        #                            (pn_sdf_time<t_on + delay + stim_dur))
+        
+        # pn_peak_1[id_p, inh_id]  = np.max(np.mean(pn_sdf[id_stim_1, :n_pns_recep], axis=1)) # using average PN
+        # pn_peak_2[id_p, inh_id]  = np.max(np.mean(pn_sdf[id_stim_2, n_pns_recep:], axis=1)) # using average PN
+        # pn_avg_1[id_p, inh_id]  = np.mean(pn_sdf[id_stim_1, :n_pns_recep])
+        # pn_avg_2[id_p, inh_id]  = np.mean(pn_sdf[id_stim_2, n_pns_recep:])
+        
+        # orn_peak_1[id_p, inh_id]  = np.max(np.mean(orn_sdf[id_stim_1, :n_orns_recep], axis=1)) # using average PN
+        # orn_peak_2[id_p, inh_id]  = np.max(np.mean(orn_sdf[id_stim_2, n_orns_recep:], axis=1)) # using average PN
+        
+        # orn_avg_1[id_p, inh_id]  = np.mean(orn_sdf[id_stim_1, :n_orns_recep])
+        # orn_avg_2[id_p, inh_id]  = np.mean(orn_sdf[id_stim_2, n_orns_recep:])
+        
+        # # Calculate the mean and the peak for PN responses
+        # pn_sdf_dt = pn_sdf_time[1]-pn_sdf_time[0]
+        # pn_tmp = np.zeros((np.size(id_stim_1),2))
+        
+        # pn_tmp[:,0] = np.mean(pn_sdf[id_stim_1, :n_pns_recep], axis=1)
+        # pn_tmp[:,1] = np.mean(pn_sdf[id_stim_1, n_pns_recep:], axis=1)
+        # perf_time = np.zeros((2, 3))
+        # perf_avg = np.zeros((2, 3))
+            
+            
+            #%%
             
             
         
         data2plot = dict([
                         ('t', t),
                         ('u_od', u_od),
-                        ('orn_sdf', orn_sdf),
+                        ('orn_sdf', orn_sdf_all),
                         ('orn_sdf_time',orn_sdf_time), 
-                        ('pn_sdf', pn_sdf),
+                        ('pn_sdf', pn_sdf_all),
                         ('pn_sdf_time',pn_sdf_time), 
                         ])          
     
@@ -541,26 +538,6 @@ for id_p, peak in enumerate(peaks):
         else:
             orn_al_plot(data2plot, params_al_orn, inh_cond)
         
-        output2an = dict([
-                            ('t', t),
-                            ('u_od',u_od),
-                            ('orn_sdf', np.mean(orn_sdf, axis=0)),
-                            ('orn_sdf_time',orn_sdf_time), 
-                            ('pn_sdf', np.mean(pn_sdf, axis=0)),
-                            ('pn_sdf_time', pn_sdf_time), 
-                            ]) 
-        out_olsen       = olsen2010_data(output2an, params_al_orn,)
-        conc_th[id_p, id_inh]   = peak
-        conc_s[id_p, id_inh]      = out_olsen['conc_s']
-        nu_orn_s[id_p, id_inh]    = out_olsen['nu_orn_s']
-        nu_orn_w[id_p, id_inh]    = out_olsen['nu_orn_w']
-        nu_orn_s_err[id_p, id_inh] = out_olsen['nu_orn_s_err']
-        nu_orn_w_err[id_p, id_inh] = out_olsen['nu_orn_w_err']
-        
-        nu_pn_s[id_p, id_inh]     = out_olsen['nu_pn_s']
-        nu_pn_w[id_p, id_inh]     = out_olsen['nu_pn_w']
-        nu_pn_s_err[id_p, id_inh] = out_olsen['nu_pn_s_err']
-        nu_pn_w_err[id_p, id_inh] = out_olsen['nu_pn_s_err']
         
     
     plt.show()    
@@ -573,84 +550,3 @@ for id_p, peak in enumerate(peaks):
 toc = timeit.default_timer()-tic
 
 print('Diag shade plot elapsed time: %.1f'%(toc))
-
-#%% FIGURE Olsen 2010: ORN vs PN during step stimulus
-if olsen_fig:
-    rs = 1
-    cs = 2
-    fig3, axs = plt.subplots(rs,cs, figsize=(11, 4), )
-    plt.rc('text', usetex=True)
-    
-    # PLOT
-    for id_inh, inh_cond in enumerate(inh_conds):
-        tmp_conc_th = conc_th[:, id_inh]
-        tmp_conc_s = conc_s[:, id_inh]
-        tmp_nu_orn_s = nu_orn_s[:, id_inh]
-        tmp_nu_orn_w = nu_orn_w[:, id_inh]
-        tmp_nu_orn_s_err = nu_orn_s_err[:, id_inh]
-        tmp_nu_orn_w_err = nu_orn_w_err[:, id_inh]
-        
-        tmp_nu_pn_s = nu_pn_s[:, id_inh]
-        tmp_nu_pn_w = nu_pn_w[:, id_inh]
-        tmp_nu_pn_s_err = nu_pn_s_err[:, id_inh]
-        tmp_nu_pn_w_err = nu_pn_w_err[:, id_inh]    
-        
-        
-        if id_inh == 0:
-            linest = '-'
-        elif id_inh == 1:
-            linest = '--'
-        elif id_inh == 2:
-            linest = '-.'
-            
-        axs[0].errorbar(tmp_nu_orn_s, tmp_nu_pn_s, yerr = tmp_nu_pn_s_err, 
-                        fmt='o', label=inh_cond, linestyle=linest)
-        
-        # strong side
-        axs[1].errorbar(tmp_conc_th+1e-5, tmp_nu_orn_s, yerr = tmp_nu_orn_s_err, 
-                linewidth=lw, color='blue', ms=15, label='ORNs '+inh_cond, linestyle=linest)
-        axs[1].errorbar(tmp_conc_th-1e-5, tmp_nu_pn_s, yerr = tmp_nu_pn_s_err, 
-                linewidth=lw, color='orange', ms=15, label='PNs '+inh_cond, linestyle=linest)
-     
-     
-    # SETTINGS
-    axs[0].set_ylabel(r'PN (Hz)', fontsize=label_fs)
-    axs[0].set_xlabel(r'ORN (Hz)', fontsize=label_fs)
-    axs[0].legend(loc='upper left', fontsize=legend_fs)
-    
-    
-    axs[1].legend(loc='upper left', fontsize=legend_fs)
-
-    axs[1].set_ylabel(r'Firing rates (Hz)', fontsize=label_fs)
-
-    axs[1].set_xlabel(r'concentration (au)', fontsize=label_fs)
-    axs[1].legend(loc=0, fontsize=legend_fs, frameon=False)
-    
-    axs[0].text(-.2, 1.0, 'b', transform=axs[0].transAxes, 
-         fontsize=panel_fs, fontweight='bold', va='top', ha='right')
-    axs[1].text(-.2, 1.0, 'c', transform=axs[1].transAxes,
-         fontsize=panel_fs, fontweight='bold', va='top', ha='right')
-    axs[1].set_xscale('log')
-    
-    for j in [0,1]:
-        axs[j].tick_params(axis='both', labelsize=label_fs)
-        axs[j].spines['right'].set_color('none')
-        axs[j].spines['top'].set_color('none')
-    
-    
-    
-    ll, bb, ww, hh = axs[0].get_position().bounds
-    axs[0].set_position([ll, bb+.1, ww, hh])
-    
-    ll, bb, ww, hh = axs[1].get_position().bounds
-    axs[1].set_position([ll+.1, bb+.05, ww, hh])
-
-    plt.show()
-    
-    if fig_save:
-        fig_name = 'Olsen2010_inh_' + inh_cond +  \
-            '_stim_'+ stim_params['stim_type'] +'_dur_%d'%stim_params['stim_dur'][0]
-            
-        print('saving Olsen2010 PN-ORN figure in '+fld_analysis)
-        fig3.savefig(fld_analysis+ fig_name +'.png')
-

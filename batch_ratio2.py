@@ -222,26 +222,6 @@ for [delay_id, delay] in enumerate(delays2an):
                     print('Remaining Simulations to run: %d '%(sims_to_run))
                     print('Approx Remaining time: %.0f mins'%(sims_to_run*eff_dur/60))
        
-    # SAVE SDF OF ORN  and PNs FIRING RATE and the params
-    output2an = dict([
-                ('peak_pnw', peak_pnw),
-                ('peak_pns',peak_pns),
-                ('avg_pnw',avg_pnw),
-                ('avg_pns',avg_pns),
-                ('peak_ornw',peak_ornw),
-                ('peak_orns',peak_orns),
-                ('avg_ornw',avg_ornw),
-                ('avg_orns',avg_orns),
-                ])                            
-    
-    data_name  = analysis_name + \
-            '_stim_' + stim_params['stim_type'] +\
-            '_nsi_%.1f'%(nsi_str) +\
-            '_ln_%.1f'%(alpha_ln) +\
-            '_delay2an_%d'%(delay) +\
-            '.pickle'        
-    
-    
     # print('PN S:')
     # print(np.mean(peak_pns, axis=3))
     # print('PN w:')
@@ -267,7 +247,25 @@ for [delay_id, delay] in enumerate(delays2an):
     # print(np.mean(orn_pk_ratio, axis=3))
     
     
-    # print(output2an)
+    # SAVE SDF OF ORN  and PNs FIRING RATE and the params
+    output2an = dict([
+                ('peak_pnw', peak_pnw),
+                ('peak_pns',peak_pns),
+                ('avg_pnw',avg_pnw),
+                ('avg_pns',avg_pns),
+                ('peak_ornw',peak_ornw),
+                ('peak_orns',peak_orns),
+                ('avg_ornw',avg_ornw),
+                ('avg_orns',avg_orns),
+                ])                            
+    
+    data_name  = analysis_name + \
+            '_stim_' + stim_params['stim_type'] +\
+            '_nsi_%.1f'%(nsi_str) +\
+            '_ln_%.1f'%(alpha_ln) +\
+            '_delay2an_%d'%(delay) +\
+            '.pickle'            
+    
     if data_save:
         print(data_name)
         with open(fld_analysis+data_name , 'wb') as f:

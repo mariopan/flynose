@@ -56,9 +56,9 @@ def cdf_mylne_75m(x, a1, b1):
          np.heaviside(x-.3, 0.5)* (1-10**(-(a1+b1*x))))
     return y
 
-def overlap(a,b):
-    a = (a>0)*1.0
-    b = (b>0)*1.0
+def overlap(a,b,min_a=0,min_b=0):
+    a = (a>min_a)*1.0
+    b = (b>min_b)*1.0
     return np.sum(a*b)*2.0/(np.sum(a)+np.sum(b))
 
 

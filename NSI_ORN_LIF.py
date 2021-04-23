@@ -133,19 +133,16 @@ def duo_ORN(w_nsi, r_orn, nsi_vect, vrest, vrev, t, ):
     return vrev_t
 
 # 3 Co-housed ORNs
-def tri_ORN(w_nsi, v_orn, nsi_vect, vrest, vrev, t, ):
+def tri_ORN(w_nsi, r_orn, nsi_vect, vrest, vrev, t, ):
     vect_a = [nsi_vect[x, 1] for x in range(0, len(nsi_vect[:, 0]), 2)]
     vect_b = [nsi_vect[x, 1] for x in range(1, len(nsi_vect[:, 0]), 2)]
      
     vrev_t = vrev + w_nsi*r_orn[t, vect_a]*(vrest-vrev) \
                     + w_nsi*r_orn[t, vect_b]*(vrest-vrev) 
-
-    # vrev_t = (w_nsi*(v_orn[t, vect_a] - vrest)+
-    #           w_nsi*(v_orn[t, vect_b] - vrest))
     return vrev_t
 
 # 4 Co-housed ORNs
-def quad_ORN(w_nsi, v_orn, nsi_vect, vrest, vrev, t, ):
+def quad_ORN(w_nsi, r_orn, nsi_vect, vrest, vrev, t, ):
     vect_a = [nsi_vect[x, 1] for x in range(0, len(nsi_vect[:, 0]), 3)]
     vect_b = [nsi_vect[x, 1] for x in range(1, len(nsi_vect[:, 0]), 3)]
     vect_c = [nsi_vect[x, 1] for x in range(2, len(nsi_vect[:, 0]), 3)]
@@ -153,10 +150,6 @@ def quad_ORN(w_nsi, v_orn, nsi_vect, vrest, vrev, t, ):
     vrev_t = vrev + w_nsi*r_orn[t, vect_a]*(vrest-vrev) \
                 + w_nsi*r_orn[t, vect_b]*(vrest-vrev) \
               + w_nsi*r_orn[t, vect_c]*(vrest-vrev) 
-                    
-    # vrev_t = (w_nsi*(v_orn[t, vect_a] - vrest)+
-               # w_nsi*(v_orn[t, vect_b] - vrest)+
-              # w_nsi*(v_orn[t, vect_c] - vrest))
     return vrev_t
 
                 

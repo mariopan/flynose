@@ -42,6 +42,19 @@ def main(n_orn=2):
     
     stim_params.update(concs_params)
     
+    # real plumes params
+    plume_params = dict([
+                        ('g', -1/2),
+                        ('blank_min', 3e-3),
+                        ('whiff_min', 3e-3),
+                        ('blank_max', 25),
+                        ('whiff_max', 3),
+                        ('rho_t_exp', 0),#[0, 1, 3, 5]
+                        ('rho_c', 1),
+                        ('stim_seed', 10),
+                        ])
+    stim_params['plume_params'] = plume_params
+    
     # ORN Parameters 
     orn_params  = dict([
                 # LIF params

@@ -39,7 +39,6 @@ def main(stim_params, verbose=False):
     u_od = np.ones((n2sim+extra_t, n_od)) * conc0*(1 + filt_ts*np.sqrt(1/pts_ms))    
     u_od = u_od[extra_t:, :]
     
-    
     if stim_type == 'ext':
         if verbose:
             print('ext stimuli, from Kim et al. 2011')
@@ -73,11 +72,11 @@ def main(stim_params, verbose=False):
         n_sample2       = 5             # [ms] num of samples with constant concentration
 
         #  PARAMS FOR WHIFF AND BLANK DISTRIOBUTIONS
-        g               = -1/2# 1    # -1/2 for a power law of -3/2, 1 for uniform distribution
-        whiff_min       = 3e-3      # [s]
-        whiff_max       = plume_params['whiff_max']        # [s] 3, 50,150
+        g               = plume_params['g']            # -1/2 for a power law of -3/2, 1 for uniform distribution
+        whiff_min       = plume_params['whiff_min']    # 3e-3 [s]
+        whiff_max       = plume_params['whiff_max']    # [s] 3, 50,150
         
-        blank_min       = 3e-3      # [s]
+        blank_min       = plume_params['blank_min']      # 3e-3 [s]
         blank_max       = plume_params['blank_max']       # [s]  25, 35
         
         # PARAMS FOR CONCENTRATION DISTRIBUTIONS
@@ -85,7 +84,7 @@ def main(stim_params, verbose=False):
         b_conc          = -(np.log10(1-.997) + np.log10(1-.5))/10.7
         a_conc          = -0.3*b_conc - np.log10(1-.5)
         
-        rho_c           = 1      # correlation between normal distribution to generate whiffs and blanks
+        rho_c           = plume_params['rho_c']      # correlation between normal distribution to generate whiffs and blanks
         rho_t_exp       = plume_params['rho_t_exp']     # correlation between normal distribution to generate concentration        
         rho_t           = 1-10**-rho_t_exp
         
@@ -100,7 +99,7 @@ def main(stim_params, verbose=False):
         
         for nn in range(n_od):
             stim_on         = t_on[nn]*pts_ms   # [num. of samples]
-            u_od[stim_on:, nn] = out_corr_plumes[nn]*concs[nn]
+            u_od[stim_on:, nn] = out_corr_plumes[nn]*concs[nn] #+u_od[stim_on:, nn]
 
              
     elif (stim_type == 'rs'):

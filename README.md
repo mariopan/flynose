@@ -1,12 +1,12 @@
 # flynose
 
-The goal of this project is to develop a model of the early olfactory system of *Drosophila*. 
+In this project we develop a model of the early olfactory system of *Drosophila*. 
 
 The model consists of a subset of the early olfactory system of insects from ORNs to the AL using only two groups of ORNs (ORN_a and ORN_b) and their respective PNs and LNs. Each ORN type, *a* and *b*, is though to be tuned to a specific set of odorants (e.g. individual pheromone component) and converges onto its corresponding PNs. 
 
 <img src="images/Topology_NSI.png" title="Model topology of the early olfactory areas of a *Drosophila*" style="zoom:60%;" />  
 
-Each pair of ORNs is cohoused in a same sensillum and therefore they interact via Non-synaptic mechanism (see figure below). PNs impinge into their respective LNs, but receive inhibitory input from LNs of the other type.
+Each pair of ORNs is co-housed in a same sensillum and therefore they interact via Non-synaptic mechanism (see figure below). PNs impinge into their respective LNs, but receive inhibitory input from LNs of the other type.
 
 <img src="images/NSI_figure.png" title="Model of the Non-synaptic interaction between ORNs" style="zoom:60%;" />
 
@@ -14,47 +14,19 @@ Each pair of ORNs is cohoused in a same sensillum and therefore they interact vi
 
 
 
-## Structure
+## Program structure
 
-Python is the present programming language. The core script is **flynose.py**. It consists of three separated parts:
+Python is the present programming language. It consists of three separated parts:
 
-1. stimulus generation: four kinds of stimuli can be generated (each have different id): triangular (*'ts'*), step (*'ss'*), real plumes (*'pl'*) and loaded from an external file (undefined)
-2. ORNs simulation
-3. AL simulation
-
-To run, **flynose.py** uses other scripts:
-
-- **sdf_krofczik.py**: 
-- **stats_for_plumes.py** 
-- **corr_plumes.py** 
-
-
-
-### Syntax
-
->  [t, u_d, orn_sp_mat, pn_sp_mat, ln_sp_mat] = flynose(params2an, flig_opts)
+1. stimulus generation: four kinds of stimuli can be generated (each have different id): triangular (*'ts'*), step (*'ss'*), real plumes (*'pl'*) and loaded from an external file (undefined). The function managing this part is **stim_fcn.py**. To generate the *real plumes* we used the scripts **stats_for_plumes.py** and **corr_plumes.py**.
+2. ORNs simulation. The function managing this part is **NSI_ORN_LIF.py** for a single sensillum and **ORNs_layer_dyn.py** for the dynamics of all the ORN's types. NSI_ORN_LIF receives the input from stim_fcn, and it is repeated in ORNs_layer_dyn for a number of times equal to the implemented number of receptor types. Both functions return a spike matrix and spike density function (calculated with **sdf_krofczik.py**) of the ORNs.
+3. Antennal lobe (AL) simulation. The function managing this part is **AL_dyn.py**. It receives the output from both NSI_ORN_LIF or ORNs_layer_dyn as they are homogeneous.  It returns spike matrix and spike density function (calculated with sdf_krofczik) of the PNs and LNs.
 
 
 
 ### Parameters
 
-*params2an* is a list containing the main parameters that are used for the most common simulations: the strength of the NSI, *nsi_str* and the strength of the AL lateral inhibition, *alpha_ln*. The third element is another list with the parameters for the stimulus: *stim_params*.
-
-*fig_opts* is a list containing several flags to decide from outside **flynose.py** whether for exanple if we want the figure of the ORNs dynamics, *orn_fig*, or to save the figure, *fig_save*, or to simulate the AL, *al_dyn*.
-
-
-
-### Return
-
-> [t, u_d, orn_sp_mat, pn_sp_mat, ln_sp_mat] : list of five ndarray
-
-The output is a single variable that consists of 5 vectors:
-
-* t: 1d np array, the time series of the time used for the simulation (ms)
-* u_od: 2d np array of the odorant concentration input to the ORNs
-* orn_sp_mat: 2d np array of the spikes trains of the ORNs. The first column is spike time and the second column is the ORN id
-* pn_sp_mat:2d np array of the spikes trains of the PNs. The first column is spike time and the second column is the PN id
-* ln_sp_mat: 2d np array of the spikes trains of the LNs. The first column is spike time and the second column is the LN id
+All the parameters of the model are collected into the dictionary **params_al_orn**, that is formed by several dictionaries.
 
 
 
@@ -62,16 +34,16 @@ The output is a single variable that consists of 5 vectors:
 
 There are four different  types of stimuli: 
 
-1. single step - constant concentration to both ORNs, with different onsets and offsets, different peaks
-2. triangle - linear increase and decrease, with different onsets and offsets, different peaks
-3. real plumes - two correlated realistic plumes, with a given distribution of whiffs, clean air and concentration. To simulate the correlated naturalistic plumes use **corr_plumes.py**.
-4. external - input given from an external file. For example, we used the data observed by Kim, Lazar and colleagues and saved in the folder *lazar_data_hr*.
+1. single step - ss - constant concentration to both ORNs, with different onsets and offsets, different peaks
+2. triangle - ts - linear increase and decrease, with different onsets and offsets, different peaks
+3. real plumes - pl - two correlated realistic plumes, with a given distribution of whiffs, clean air and concentration. To simulate the correlated naturalistic plumes use corr_plumes.
+4. external - ext - input given from an external file. For example, we used the data observed by Kim, Lazar and colleagues and saved in the folder *lazar_data_hr*.
 
 
 
 ### Analysis and visualization
 
-There are several scripts to lauch the core **flynose.py**. For example, to explore the parameters using different kind of stimuli: **flynose_examples.py**, **batch_ratio.py**, **batch_delays.py**, **batch_real_plumes.py**.
+There are several scripts to launch the core **flynose.py**. For example, to explore the parameters using different kind of stimuli: **flynose_examples.py**, **batch_ratio.py**, **batch_delays.py**, **batch_real_plumes.py**.
 
 To analyse the output of the batch files, use **analysis_ratio_delays.py** and **analysis_real_plumes.py**.
 
@@ -131,7 +103,7 @@ To analyse the output of the batch files, use **analysis_ratio_delays.py** and *
 
 #### ... for the paper
 
-see the resuing table to generate the figures 'figures.md'
+see the resuming table to generate the figures 'figures.md'
 
 
 

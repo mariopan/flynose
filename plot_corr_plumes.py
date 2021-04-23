@@ -4,6 +4,10 @@
 Created on Wed Apr 22 14:14:13 2020
 plot_corr_plumes.py
 
+Run statistics and makes the plot of the output of corr_plumes.py. 
+The plot shows in a violin plot the distribution of the intermittency, the 
+correlation, the overlap and the average value of the two output.
+
 @author: mario
 """
 
@@ -15,8 +19,6 @@ import matplotlib.pyplot as plt
 import corr_plumes 
 import stats_for_plumes as stats
 
-#import flynose.corr_plumes as corr_plumes
-#import flynose.stats_for_plumes as stats
 
 def overlap(a,b):
     a = (a>0)*1.0
@@ -26,6 +28,8 @@ def overlap(a,b):
 import pandas as pd 
 import seaborn as sns
 import matplotlib
+
+
 # *****************************************************************
 # STANDARD FIGURE PARAMS
 fs = 20
@@ -52,8 +56,7 @@ quenched        = True      # if True Tbl and Twh are chosen to compensate the d
 
 n_loop          = 30
 n_repet_loop    = 1         # repeat n_loop n_repet_loop times
-fig_plumes_tc   = 1         # time course figure
-fig_plumes_dist = 1     
+fig_plumes_tc   = 0         # time course figure
 fig_save        = 0
 
 fld_output    = 'NSI_analysis/real_plumes/example/'
@@ -61,8 +64,8 @@ rhos            = [0, 1, 3, 5]
 
 # *******************************************************************
 # PARAMS FOR STIMULUS GENERATION
-t2sim           = 199.7              # [s] time duration of whole simulated stimulus
-pts_ms          = 5
+t2sim           = 200#199.7              # [s] time duration of whole simulated stimulus
+pts_ms          = 10
 sample_rate     = pts_ms*1000       # [Hz] num of samples per each sec
 n_sample2       = 5                 # [ms] num of samples with constant concentration
 
@@ -77,7 +80,9 @@ whiff_max       = 3     # [s] 3, 50,150
 blank_min       = 3e-3   # [s]
 blank_max       = 25     # [s]  25
 
-# *******************************************************************
+
+
+
 # PARAMS FOR CONCENTRATION DISTRIBUTIONS
 # fit of average concentration at 75 m, Mylne and Mason 1991, Fig.10 
 b_conc = -(np.log10(1-.997) + np.log10(1-.5))/10.7
@@ -88,6 +93,7 @@ rho_c       = 1     # corr. between normal distribution to generate concentratio
 # CALCULATE THE THEORETICAL MEAN WHIFF, MEAN BLANK DURATIONS AND INTERMITTENCY
 pdf_wh, logbins, wh_mean = stats.whiffs_blanks_pdf(whiff_min, whiff_max, g)
 pdf_bl, logbins, bl_mean = stats.whiffs_blanks_pdf(blank_min, blank_max, g)
+interm_th = wh_mean/(wh_mean+bl_mean) # Theoretical intermittency
 
 print('main Stim. params:')
 print('durs:%.2fs'%t2sim)
@@ -97,17 +103,14 @@ print('rho_{conc}: %.3f' %rho_c)
 # still not set params
 rho_t       = np.nan
 seed_num    = np.nan
-# *******************************************************************
+
 # arguments for the generation of stimuli function
 stim_params = [t2sim, sample_rate, n_sample2, g, whiff_min, whiff_max, 
        blank_min, blank_max, a_conc, b_conc,rho_c, rho_t, quenched, seed_num, ]   
 
 
-# *******************************************************************
 # REPEATED STIMULI GENERATION
-n_rhos = len(rhos)
-# n_loop = 30
-n_obs = n_rhos*n_loop
+n_obs = len(rhos)*n_loop
 
 cor_stim        = -np.ones((n_obs,1))*2
 overlap_stim    = -np.ones((n_obs,1))*2
@@ -123,6 +126,9 @@ th_rhos         = -np.ones((n_obs,1))*2
 th_rhos_4 = [0, .9, .999, .99999]
 start_seed      = np.random.randint(1, 1000, n_repet_loop)
 print('seed: %d'%start_seed)
+
+
+
 for pp in range(n_repet_loop):
     
     rr =-1 
@@ -139,7 +145,6 @@ for pp in range(n_repet_loop):
             out_y, out_w, t_dyn, t_dyn_cor, = corr_plumes.main(*stim_params)
             
             th_rhos[rr, 0] = th_rhos_4[id_rho]
-           # np.round(100*rho_t)/100
             seeds[rr, 0] = stim_params[-1]
             
             conc_est[rr, 0] = 1.5*np.mean(out_y)
@@ -152,40 +157,37 @@ for pp in range(n_repet_loop):
                 overlap_stim[rr, 0] = overlap(out_y, out_w)
                 nonzero_concs1  = out_y[(out_y>0) & (out_w>0)]
                 nonzero_concs2  = out_w[(out_y>0) & (out_w>0)]
-                if np.size(nonzero_concs1)>0 & np.size(nonzero_concs2)>0:
+                if (len(nonzero_concs1)>0) & (len(nonzero_concs2)>0):
                     cor_whiff[rr, 0]   = np.corrcoef(nonzero_concs1, nonzero_concs2)[0, 1] 
     
         perc_dif[pp] = (np.mean(conc_est) - np.mean(conc_est2))/np.mean(conc_est)
-        #cor_stim = cor_stim[cor_stim>=-1.0]
-        #overlap_stim = overlap_stim[overlap_stim>=-1.0]
-    
-        interm_th = wh_mean/(wh_mean+bl_mean)
+       
+        toc = timeit.default_timer()
+        print('Tot time, %d repetition: %.1f s' %(n_loop, (toc-tic)))
+        print('Time single repetition: %.1f s' %((toc-tic)/n_loop))
+        print(' ')
+
         print('Theor. Interm.: %.2g'%interm_th)
         print('')
         print('Estimated values:')
-        print('stim., Mean: %.2f'%np.mean(conc_est) +', std: %.2g' %(np.std(conc_est)))
-        print('stim.2, Mean: %.2f'%np.mean(conc_est2) +', std: %.2g' %(np.std(conc_est2)))
-        print('percent difference: %.2g'%(perc_dif[pp]))
+        print('Odorant concentration:   Mean= %.2f'%np.mean(conc_est[rr-n_loop+1:rr+1,0]) 
+              +', std= %.2g' %(np.std(conc_est[rr-29:rr+1,0])))
+        # print('stim.2: Mean= %.2f'%np.mean(conc_est2) +', std= %.2g' %(np.std(conc_est2)))
+        # print('percent difference: %.2g'%(perc_dif[pp]))
         print('')
-        print('Interm., Mean: %.2g'%np.mean(interm_est) +', std: %.2g' %(np.std(interm_est)))
-        print('Interm. 2, Mean: %.2g'%np.mean(interm_est2)+', std: %.2g' %(np.std(interm_est2)))
-        print('Corr blank+whiff, Mean: %.2g' %(np.mean(cor_stim))+
-                     ', std: %.2g' %(np.std(cor_stim)))
-        print('Overlap, Mean: %.2g' %(np.mean(overlap_stim))+
-                     ', std: %.2g' %(np.std(overlap_stim)))
-        print('Corr whiff, Mean: %.2g' %(np.mean(cor_whiff))+
-                     ', std: %.2g' %(np.std(cor_whiff)))
+        print('Intermittency:           Mean= %.2g'%np.mean(interm_est[rr-n_loop+1:rr+1,0]) +
+              ', std= %.2g' %(np.std(interm_est[rr-n_loop+1:rr+1,0])))
+        # print('Interm. 2: Mean= %.2g'%np.mean(interm_est2)+', std= %.2g' %(np.std(interm_est2)))
+        print('Corr blank+whiff:        Mean= %.2g' %(np.mean(cor_stim[rr-n_loop+1:rr+1,0]))+
+                      ', std= %.2g' %(np.std(cor_stim)))
+        print('Overlap:                 Mean= %.2g' %(np.mean(overlap_stim[rr-n_loop+1:rr+1,0]))+
+                      ', std= %.2g' %(np.std(overlap_stim[rr-n_loop+1:rr+1,0])))
+        print('Corr whiff:              Mean= %.2g' %(np.mean(cor_whiff[rr-n_loop+1:rr+1,0]))+
+                      ', std= %.2g' %(np.std(cor_whiff[rr-n_loop+1:rr+1,0])))
         
-    #    print(perc_dif)
-    #    print('Mean perc_dif: %.2f'%np.mean(perc_dif))
-    
-        toc = timeit.default_timer()
-        print('Tot time, %d repetition: %.3fs' %(n_loop, (toc-tic)))
-        print('Time single repetition: %.3fs' %((toc-tic)/n_loop))
+        
 
-#*********************************************************
 # SAVE DATA INTO PANDAS DATAFRAME
-
 # create a DataFrame
 data2fr = np.concatenate((seeds, th_rhos, overlap_stim, cor_stim), axis = 1)
 
@@ -221,6 +223,7 @@ cs = 4
 
 fig, axs = plt.subplots(rs, cs, figsize=(9, 3.2))
 
+# PLOT
 axs[0] = sns.violinplot(x="rho_ts", y="intmt", hue="glo", split=True, 
                         data=df_2,palette=flatui, ax=axs[0])
 axs[1] = sns.violinplot(x="rho_ts", y="overlap_stim", data=df, palette="Blues", ax=axs[1])
@@ -229,7 +232,7 @@ axs[3] = sns.violinplot(x="rho_ts", y="avg_conc", hue="glo", split=True,
                         data=df_2,palette=flatui, ax=axs[3])
 
 
-# FIGURE SETTINGS
+# SETTINGS
 axs[0].set_title('Intermittency', fontsize=title_fs)
 axs[1].set_title('Overlap ', fontsize=title_fs)
 axs[2].set_title('Correlation', fontsize=title_fs)
@@ -271,12 +274,11 @@ for cc in range(4):
     ll, bb, ww, hh = axs[cc].get_position().bounds
     axs[cc].set_position([ll+.01, bb+.15, ww*1.2, hh*0.8])
 
-
+plt.show()
 if fig_save:
     fig.savefig(fld_output + '/sim_plumes_stats_violins.png')
 
-#%%
-#********************************************************************
+#%%********************************************************************
 # FIGURE STIMULI TIME COURSE
     
 if fig_plumes_tc:
@@ -306,59 +308,8 @@ if fig_plumes_tc:
     ax_st2.set_ylabel('Concentration', fontsize=label_fs)
     ll, bb, ww, hh = ax_st2.get_position().bounds
     ax_st2.set_position([ll, bb+.04, ww, hh])
+    plt.show()
     if fig_save:
         fig.savefig(fld_output + 
                             '/corr_plumes_timecourse_dur%.1fs_rhoT%d_rhoC%d.png'%(t2sim, rho,100*rho_c))
         
-#%%********************************************************************
-# FIGURE STIMULI DISTRIBUTION OF CORRELATION, AVERAGE ETC ...
-if fig_plumes_dist:
-    
-    n_bins  = 20
-    
-    rs      = 1
-    cs      = 3
-    fig2, (ax_int, ax_ov, ax_cor) = plt.subplots(rs, cs, figsize=(13, 5), )    
-
-    n_tmp, _, _= ax_int.hist(interm_est, bins=n_bins, label='Stim 1', color=green, alpha=.5, density=True,)  
-    n_tmp2, _, _= ax_int.hist(interm_est2, bins=n_bins, label='Stim 2', color=purple, alpha=.5, density=True,)  
-    ax_int.plot([interm_th, interm_th], [0, np.max([n_tmp,n_tmp2])], '--', label='theor.', color=black,)
-    
-    ax_cor.hist(cor_stim, bins=n_bins, label='corr blank+whiff', color=blue, alpha=.5, density=True,)  
-    
-    ax_ov.hist(overlap_stim, bins=n_bins, label='overlap', color=red, alpha=.5, density=True,)  
-#    ax_cor.hist(cor_whiff, bins=n_bins, label='corr whiff', color=green, alpha=.5, density=True,)  
-    
-    # FIGURE SETTINGS
-    ax_cor.set_xlabel('Correlation', fontsize=label_fs)
-    
-    ax_ov.set_xlabel('Overlap', fontsize=label_fs)
-    
-    ax_int.set_xlabel('Intermittency', fontsize=label_fs)
-    ax_int.set_ylabel('probab distr funct', fontsize=label_fs)
-    ax_int.legend(fontsize=label_fs-5, frameon=False)
-    
-    ax_int.text(-.2, 1.2, 'a', transform=ax_int.transAxes, 
-                  fontsize=panel_fs, fontweight='bold', va='top', ha='right')
-    ax_ov.text(-.2, 1.2, 'b', transform=ax_ov.transAxes, 
-                  fontsize=panel_fs, fontweight='bold', va='top', ha='right')
-    ax_cor.text(-.2, 1.2, 'c', transform=ax_cor.transAxes, 
-                  fontsize=panel_fs, fontweight='bold', va='top', ha='right')
-    
-    ax_int.spines['top'].set_color('none')
-    ax_int.spines['right'].set_color('none')
-    ax_ov.spines['top'].set_color('none')
-    ax_ov.spines['right'].set_color('none')
-    ax_cor.spines['top'].set_color('none')
-    ax_cor.spines['right'].set_color('none')
-
-    ll, bb, ww, hh = ax_int.get_position().bounds
-    ax_int.set_position([ll, bb+.05, ww, hh])
-    ll, bb, ww, hh = ax_ov.get_position().bounds
-    ax_ov.set_position([ll, bb+.05, ww, hh])
-    ll, bb, ww, hh = ax_cor.get_position().bounds
-    ax_cor.set_position([ll, bb+.05, ww, hh])
-    
-    
-    if fig_save:
-        fig2.savefig(fld_output + '/corr_plumes_distr_dur%.1fs_rhoT%d_rhoC%d.png'%(t2sim, rho,100*rho_c))

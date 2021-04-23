@@ -240,9 +240,9 @@ def olsen2010_data(data_tmp, params_tmp):
     return out_olsen
     
    
+# %% LOAD PARAMS FROM A FILE
 params_al_orn = set_orn_al_params.main(2)
 
-# %% LOAD PARAMS FROM A FILE
 # fld_analysis = 'NSI_analysis/trials/' #Olsen2010
 # name_data = 'params_al_orn.ini'
 # params_al_orn = pickle.load(open(fld_analysis+ name_data,  "rb" ))
