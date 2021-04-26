@@ -30,7 +30,7 @@ nsi_ln_par      = [[0,0], [.6, 0], [0, .6], ]
 
 if sys.argv == ['']:
     id_inh2run      = 0 # jobs run only starting from 1 ...
-    analysis_name   = 'delays'
+    analysis_name   = 'delays' # 'ratio' #
 else:
     id_inh2run      = int(sys.argv[1])-1 # jobs run only starting from 1 ...
     analysis_name   = sys.argv[2]
@@ -103,7 +103,7 @@ date_str            = now.strftime("%Y%m%d")
 
 
 pn_ln_params['tau_ln']      = 25
-
+sdf_params['tau_sdf']       = 6
 time2analyse                = 200
 
 

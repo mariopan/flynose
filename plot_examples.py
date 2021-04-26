@@ -344,11 +344,11 @@ elif fig_id == 'ts_a':
     delay                       = 25
     stim_params['stim_type']    = 'ts' # 'id_l'  # 'ts'
     stim_params['stim_dur']     = np.array([100, 100])
-    stim_params['t_tot']        = 1500+delay
-    t_on                        = 700
+    stim_params['t_tot']        = 1300+delay
+    t_on                        = 1000
     stim_params['conc0']        = 1.85e-4    # 2.85e-4
-    params_al_orn['sdf_params']['tau_sdf'] = 3
-    params_al_orn['sdf_params']['dt_sdf'] = 2
+    sdf_params['tau_sdf'] = 6
+    sdf_params['dt_sdf'] = 5
 elif fig_id == 'pl':
     fld_analysis        = 'NSI_analysis/analysis_real_plumes/example'
     fig_orn_dyn         = 1
@@ -367,8 +367,8 @@ elif fig_id == 'pl':
     plume_params['rho_t_exp']   = 0   #[0, 1, 3, 5]
     plume_params['stim_seed']   = 280
     
-    params_al_orn['sdf_params']['tau_sdf'] = 3
-    params_al_orn['sdf_params']['dt_sdf'] = 2
+    sdf_params['tau_sdf'] = 3
+    sdf_params['dt_sdf'] = 2
     
     stim_params['plume_params'] = plume_params
     
@@ -378,13 +378,13 @@ stim_dur        = stim_params['stim_dur'][0]
 peak_ratio      = 1
 stim_params['t_on'] = np.array([t_on, t_on+delay])      # ms 
 
-pts_ms          =   params_al_orn['stim_params']['pts_ms']
+pts_ms          =   stim_params['pts_ms']
 
-dt_sdf          = params_al_orn['sdf_params']['dt_sdf']
+dt_sdf          = sdf_params['dt_sdf']
 sdf_size        = int(stim_params['t_tot']/dt_sdf)
 
 
-n_neu           = params_al_orn['orn_layer_params'][0]['n_neu']
+n_neu           = orn_layer_params[0]['n_neu']
 n_orns_recep    = al_params['n_orns_recep']# number of ORNs per each receptor
 n_pns_recep     = al_params['n_pns_recep'] # number of PNs per each receptor
 
@@ -397,6 +397,18 @@ tic = timeit.default_timer()
 peaks                       = [5e-4] #[1.85e-4, 5e-4, 1.5e-3, 2e-2, 2e-1]
 n_peaks = len(peaks)
 
+
+conc_s    = np.zeros((n_peaks, 3))
+conc_th = np.zeros((n_peaks, 3))
+nu_orn_s = np.zeros((n_peaks, 3))
+nu_pn_s  = np.zeros((n_peaks, 3))
+nu_orn_w = np.zeros((n_peaks, 3))
+nu_pn_w = np.zeros((n_peaks, 3))
+
+nu_orn_s_err  = np.zeros((n_peaks, 3))
+nu_pn_s_err   = np.zeros((n_peaks, 3))
+nu_orn_w_err  = np.zeros((n_peaks, 3))
+nu_pn_w_err   = np.zeros((n_peaks, 3))
 
 
 for id_p, peak in enumerate(peaks):
@@ -419,7 +431,7 @@ for id_p, peak in enumerate(peaks):
         orn_al_diag_settings(axs)
         
     else:
-        t2plot = -20, stim_params['t_tot']-t_on
+        t2plot = -50, stim_params['t_tot']-t_on
         rs = 1 # number of rows
         cs = 3 # number of cols
         fig_pn, axs = plt.subplots(rs, cs, figsize=[9, 3])
@@ -481,17 +493,7 @@ for id_p, peak in enumerate(peaks):
         
         
         # INITIALIZE OUTPUT VARIABLES    
-conc_s    = np.zeros((n_peaks, 3))
-conc_th = np.zeros((n_peaks, 3))
-nu_orn_s = np.zeros((n_peaks, 3))
-nu_pn_s  = np.zeros((n_peaks, 3))
-nu_orn_w = np.zeros((n_peaks, 3))
-nu_pn_w = np.zeros((n_peaks, 3))
 
-nu_orn_s_err  = np.zeros((n_peaks, 3))
-nu_pn_s_err   = np.zeros((n_peaks, 3))
-nu_orn_w_err  = np.zeros((n_peaks, 3))
-nu_pn_w_err   = np.zeros((n_peaks, 3))
         
         # id_stim_1 = np.flatnonzero((pn_sdf_time>t_on) & 
         #                            (pn_sdf_time<t_on + stim_dur))
@@ -506,8 +508,8 @@ nu_pn_w_err   = np.zeros((n_peaks, 3))
         # orn_peak_1[id_p, inh_id]  = np.max(np.mean(orn_sdf[id_stim_1, :n_orns_recep], axis=1)) # using average PN
         # orn_peak_2[id_p, inh_id]  = np.max(np.mean(orn_sdf[id_stim_2, n_orns_recep:], axis=1)) # using average PN
         
-        # orn_avg_1[id_p, inh_id]  = np.mean(orn_sdf[id_stim_1, :n_orns_recep])
-        # orn_avg_2[id_p, inh_id]  = np.mean(orn_sdf[id_stim_2, n_orns_recep:])
+        # orn_avg_1  = np.mean(orn_sdf[id_stim_1, :n_orns_recep])
+        # orn_avg_2  = np.mean(orn_sdf[id_stim_2, n_orns_recep:])
         
         # # Calculate the mean and the peak for PN responses
         # pn_sdf_dt = pn_sdf_time[1]-pn_sdf_time[0]

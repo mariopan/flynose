@@ -71,7 +71,9 @@ n_sample2       = 5                 # [ms] num of samples with constant concentr
 
 tot_n_samples   = int(t2sim*sample_rate) # [] duration of whole simulated stimulus in number of samples
 
-# *******************************************************************
+
+
+
 #  PARAMS FOR WHIFF AND BLANK DISTRIOBUTIONS
 g               = -1/2  # -1/2 for a power law of -3/2, 1 for uniform distribution
 whiff_min       = 3e-3  # [s]
@@ -79,9 +81,6 @@ whiff_max       = 3     # [s] 3, 50,150
 
 blank_min       = 3e-3   # [s]
 blank_max       = 25     # [s]  25
-
-
-
 
 # PARAMS FOR CONCENTRATION DISTRIBUTIONS
 # fit of average concentration at 75 m, Mylne and Mason 1991, Fig.10 

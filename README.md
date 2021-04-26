@@ -43,51 +43,29 @@ There are four different  types of stimuli:
 
 ### Analysis and visualization
 
-There are several scripts to launch the core **flynose.py**. For example, to explore the parameters using different kind of stimuli: **flynose_examples.py**, **batch_ratio.py**, **batch_delays.py**, **batch_real_plumes.py**.
-
-To analyse the output of the batch files, use **analysis_ratio_delays.py** and **analysis_real_plumes.py**.
+There are several scripts to analyse the model. For example, to explore the parameters using different kind of stimuli: **ORN_dyn_plot.py**, **AL_dyn_batch.py**, **batch_ratio2.py**, and **batch_real_plumes2.py**. To analyse the output of the batch files, use **analysis_ratio_delays2.py** and **analysis_real_plumes2.py**.
 
 
 
-**plot_flynose.py** produces plots for:
+**ORN_dyn_plot.py** produces plots for ORN layer (ORNs_layer_dyn.py) multiple times with a single pulse for several peak values (a la Martelli et al. 2013) and with different shapes (step, ramp and parabola a la Kim et al. 2011). It can even loads old data and plots them.
 
-1. the simulations with external stimuli (*Lazar et al. 2019*). It loads data from the folder *NSI_analysis/lazar_sim* that are produced with **flynose_example.py**.
-2. the simulations showing the Intensity invariance of the ORNs response for several concentration values (*Martelli et al. 2013*). It loads data from the folder *Olsen2010_Martelli2013/data* that were produced with  **flynose_example.py**.
-3. the simulations showing the sigmoidal curve of the relation between ORNs responses and PNs responses (Olsen and Wilson 2010). It loads data from the folder *Olsen2010_Martelli2013/data* that were produced with  **flynose_example.py**.
+**AL_dyn_batch.py** runs AL and ORNs layer dynamics for multiple values of peaks and inhibitory conditions. Then it loads and plots dynamics to do a plot like Olsen et al. 2010.
 
+**figure_orn.py** plots the dynamics of a single simulation from the output of NSI_ORN_LIF.py  
 
+**figure_al_orn.py** plots the dynamics of a single simulation from the output of **ORNs_layer_dyn.py** and **AL_dyn.py**.
 
-**plot_plumes_stats.py** helps visualize the temporal and statistical properties of the naturalistic plumes reproducing the data furnished in literature (i.e. *Yee et al. 1995, Murlis et al. 1991*).
+**plot_plumes_stats.py** helps visualize the temporal and statistical properties of the naturalistic plumes reproducing the data furnished in literature (i.e. *Yee et al. 1995, Murlis et al. 1991*). This script compares experimental probability distribution as observed by Mylne et al. 1991, with a truncated power law, for whiff and blank durations. Moreover, it plots the intermittency values obtained by Yee et al. 1993 for several downwind distances going from 20 to 330 m.
 
+**plot_corr_plumes.py** helps visualize the temporal and statistical properties of the simulated naturalistic plumes. It runs launching multiple times the function **corr_plumes.py**. It runs statistics and makes the plot of the output of corr_plumes.py. The plot shows in a violin plot the distribution of the intermittency, the correlation, the overlap and the average value of the two output.
 
+**flynose_examples.py** plots the network response  for multiple runs for three different models (*NSI-model, LN-model and ctrl-model*) to three kind of stimuli:
 
-**plot_corr_plumes.py** helps visualize the temporal and statistical properties of the simulated naturalistic plumes. It runs launching multiple times the function **corr_plumes.py**.
+* Real plumes (fig_is='ts_s') runs flynose for the three inhibitory conditions with a real plume 
+* Impulse response (fig_is='ts_a') runs flynose for the three inhibitory conditions with two triangular asynchronous stimuli (50ms duration)
+* Delayed impulse response (fig_is='pl') runs flynose for the three inhibitory conditions with two triangular synchronous stimuli (50ms durations, 100ms delay)
 
-
-
-**plot_diag_shades.py** plots the network response  for multiple runs for three different models (*NSI-model, LN-model and ctrl-model*) to three kind of stimuli:
-
-* Real plumes (fig_is='pl') runs **flynose.py** with a real plume 
-* Impulse response (fig_is='pl') runs **flynose.py** with two triangular syncrhonous stimuli (50ms durations)
-* Delayed impulse response (fig_is='pl') runs **flynose.py** with two triangular syncrhonous stimuli (50ms durations, 100ms delay)
-
-
-
-**flynose_example.py** is a collection of different examples of how to use flynose.py (6 of them were used in the publication *Pannunzi et al.*: 
-
-* ORN_response
-  * run **flynose.py** a single time the 3 networks (*indep*, *LN-inhib*, *NSI*) with step stimulus for 500ms and make the figure for ORN_response
-* Olsen-Wilson 2010
-  * Run **flynose.py** multiple times with a step stimulation (constant stimuli lasting 500ms) for the three different networks (*indep*,*LN-inhib*, *NSI*)
-* Lazar and Kim data reproduction
-  * Run **flynose.py** with an external input. The input are extracted from the fig.4 of Lazar et al. (2019).
-* Real plumes, example figure
-  * Run **flynose.py** for a single run with a real plume 
-* ImpulseResponse
-  * Run **flynose** with two triangular syncrhonous stimuli (50ms durations), for the three different networks 
-* DelayResponse
-  * Run **flynose** with two triangular syncrhonous stimuli (50ms durations, 100ms delay), for the three different networks 
-* (Trials and errors)
+**plot_hyp1.py**  and **NSI_corr_uncorr.py**  plot the first and the second hypotheses of the possible role of the NSI in the insects' olfaction illustrated in Pannunzi and Nowotny (*writing*).
 
 
 
@@ -96,14 +74,6 @@ To analyse the output of the batch files, use **analysis_ratio_delays.py** and *
 **NSI_analysis.zip** contains figures and data of the results of Pannunzi and Nowotny (*writing*).
 
 **Olsen2010_Martelli2013.zip** contains figures and data to show the model reproduction of the results from *Olsen et al. 2010* and *Martelli et al. 2013*.
-
-**plot_hyp1.py** and **NSI_corr_uncorr.py** to plot the first and the second hypotheses of the possible role of the NSI in the insects' olfaction illustrated in Pannunzi and Nowotny (*writing*).
-
-
-
-#### ... for the paper
-
-see the resuming table to generate the figures 'figures.md'
 
 
 
