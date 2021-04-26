@@ -71,9 +71,11 @@ There are several scripts to analyse the model. For example, to explore the para
 
 #### ... in the same folder
 
-**NSI_analysis.zip** contains figures and data of the results of Pannunzi and Nowotny (*writing*).
+**flynose0_backup_10112020.zip** contains the source code of the first version of the model described in Pannunzi and Nowotny (*bioRxiv* 2020).
 
-**Olsen2010_Martelli2013.zip** contains figures and data to show the model reproduction of the results from *Olsen et al. 2010* and *Martelli et al. 2013*.
+**NSI_analysis.zip** contains figures and data of the results of the first version of the model described in Pannunzi and Nowotny (*bioRxiv* 2020).
+
+**Olsen2010_Martelli2013.zip** contains figures and data to show the model reproduction of the results from *Olsen et al. 2010* and *Martelli et al. 2013* of the first version of the model described in Pannunzi and Nowotny (*bioRxiv* 2020).
 
 
 
