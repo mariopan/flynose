@@ -119,7 +119,7 @@ def fig_pn_distr():
 # *****************************************************************
 fig_save        = 1
 
-id_peak2plot    = 2
+id_peak2plot    = 0
 measure         = 'avg'            # 'avg' # 'peak' # 
 corr_mi         = 'mi'            # 'corr' # 'mi'
 delay_fig       = 1              # Fig.ResumeDelayedStimuli
@@ -129,7 +129,7 @@ nsi_ln_par   = [[0,0],[.6, 0],[0, .6],]
 
 if delay_fig:
     print('Delays analysis, rate measured on '+measure)
-    fld_analysis    = 'NSI_analysis/analysis_delays_tauln250/'
+    fld_analysis    = 'NSI_analysis/analysis_delays/'
     fld_output      = fld_analysis
     name_analysis   = 'delays'
 else:
@@ -460,9 +460,9 @@ if delay_fig:
     
     if fig_save:
         if measure == 'avg':
-            fig.savefig(fld_output+  '/ratio_avg_delays0-500_dur20-200_conc%.2g'%conc2plot +'.png')
+            fig.savefig(fld_output+  '/delays_avg_delays0-500_dur20-200_conc%.2g'%conc2plot +'.png')
         elif measure == 'peak':
-            fig.savefig(fld_output+  '/ratio_peak_delays0-500_dur20-200_conc%.2g'%conc2plot +'.png')
+            fig.savefig(fld_output+  '/delays_peak_delays0-500_dur20-200_conc%.2g'%conc2plot +'.png')
    
 
 #%% *********************************************************

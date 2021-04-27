@@ -3,7 +3,11 @@
 """
 Created on Thu Apr  2 12:30:03 2020
 
-plot_diag_shades2.py
+plot_examples.py
+
+Plot the dynamics of AL and ORN for the three conditions (ctrl, NSI, LN inh) 
+in a fancy diagonal way or overlapped in a single row.
+
 
 @author: mario
 """
@@ -313,7 +317,7 @@ n_sens_type         = orn_layer_params.__len__()  # number of type of sensilla
 # ORN NSI params
 
 # fig_id options:  # 'ts_s' #  'ts_a' # 'pl'
-fig_id                  = 'ts_a' 
+fig_id                  = 'pl' 
 
 fld_analysis            = 'NSI_analysis/triangle_stim/'
 nsi_str                 = 0.6
@@ -341,34 +345,35 @@ if fig_id == 'ts_s':
     
 elif fig_id == 'ts_a':
     # Stimulus params 
-    delay                       = 25
+    delay                       = 50
     stim_params['stim_type']    = 'ts' # 'id_l'  # 'ts'
-    stim_params['stim_dur']     = np.array([100, 100])
+    stim_params['stim_dur']     = np.array([200, 200])
     stim_params['t_tot']        = 1300+delay
     t_on                        = 1000
     stim_params['conc0']        = 1.85e-4    # 2.85e-4
-    sdf_params['tau_sdf'] = 6
-    sdf_params['dt_sdf'] = 5
+    sdf_params['tau_sdf']       = 6
+    sdf_params['dt_sdf']        = 5
+    
 elif fig_id == 'pl':
-    fld_analysis        = 'NSI_analysis/analysis_real_plumes/example'
-    fig_orn_dyn         = 1
-    max_stim_seed       = 3
-    orn_fig_name        = '/ORN_lif_dyn_realplume.png'
+    fld_analysis                = 'NSI_analysis/analysis_real_plumes/example'
+    fig_orn_dyn                 = 1
+    max_stim_seed               = 3
+    orn_fig_name                = '/ORN_lif_dyn_realplume.png'
        
     # stim params
     delay                       = 0    
     stim_params['stim_type']    = 'pl' # 'ts' # 'ss' # 'rs'# 'pl'
-    stim_params['t_tot']        = 200000        # ms 
+    stim_params['t_tot']        = 20000        # ms 
     t_on                        = 1000
     stim_params['conc0']        = 1.85e-4
    
     # real plumes params
     plume_params['whiff_max']   = 3
     plume_params['rho_t_exp']   = 0   #[0, 1, 3, 5]
-    plume_params['stim_seed']   = 280
+    plume_params['stim_seed']   = 0
     
-    sdf_params['tau_sdf'] = 3
-    sdf_params['dt_sdf'] = 2
+    sdf_params['tau_sdf']       = 6
+    sdf_params['dt_sdf']        = 5
     
     stim_params['plume_params'] = plume_params
     
@@ -489,42 +494,7 @@ for id_p, peak in enumerate(peaks):
                     nonzero_concs1  = out_2[(out_2>0) & (out_1>0)]
                     nonzero_concs2  = out_1[(out_2>0) & (out_1>0)]
                     cor_whiff       = np.corrcoef(nonzero_concs1, nonzero_concs2)[0, 1] # np.corrcoef(concs1, concs2)[0, 1]
-                
-        
-        
-        # INITIALIZE OUTPUT VARIABLES    
-
-        
-        # id_stim_1 = np.flatnonzero((pn_sdf_time>t_on) & 
-        #                            (pn_sdf_time<t_on + stim_dur))
-        # id_stim_2 = np.flatnonzero((pn_sdf_time>t_on + delay) & 
-        #                            (pn_sdf_time<t_on + delay + stim_dur))
-        
-        # pn_peak_1[id_p, inh_id]  = np.max(np.mean(pn_sdf[id_stim_1, :n_pns_recep], axis=1)) # using average PN
-        # pn_peak_2[id_p, inh_id]  = np.max(np.mean(pn_sdf[id_stim_2, n_pns_recep:], axis=1)) # using average PN
-        # pn_avg_1[id_p, inh_id]  = np.mean(pn_sdf[id_stim_1, :n_pns_recep])
-        # pn_avg_2[id_p, inh_id]  = np.mean(pn_sdf[id_stim_2, n_pns_recep:])
-        
-        # orn_peak_1[id_p, inh_id]  = np.max(np.mean(orn_sdf[id_stim_1, :n_orns_recep], axis=1)) # using average PN
-        # orn_peak_2[id_p, inh_id]  = np.max(np.mean(orn_sdf[id_stim_2, n_orns_recep:], axis=1)) # using average PN
-        
-        # orn_avg_1  = np.mean(orn_sdf[id_stim_1, :n_orns_recep])
-        # orn_avg_2  = np.mean(orn_sdf[id_stim_2, n_orns_recep:])
-        
-        # # Calculate the mean and the peak for PN responses
-        # pn_sdf_dt = pn_sdf_time[1]-pn_sdf_time[0]
-        # pn_tmp = np.zeros((np.size(id_stim_1),2))
-        
-        # pn_tmp[:,0] = np.mean(pn_sdf[id_stim_1, :n_pns_recep], axis=1)
-        # pn_tmp[:,1] = np.mean(pn_sdf[id_stim_1, n_pns_recep:], axis=1)
-        # perf_time = np.zeros((2, 3))
-        # perf_avg = np.zeros((2, 3))
             
-            
-            #%%
-            
-            
-        
         data2plot = dict([
                         ('t', t),
                         ('u_od', u_od),

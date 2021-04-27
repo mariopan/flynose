@@ -36,8 +36,8 @@ def main(stim_params, verbose=False):
     filt_ts         = np.zeros_like(rand_ts)
     filt_ts         = signal.filtfilt(b, a, rand_ts.T).T    
 
-    u_od = np.ones((n2sim+extra_t, n_od)) * conc0*(1 + filt_ts*np.sqrt(1/pts_ms))    
-    u_od = u_od[extra_t:, :]
+    u_od        = np.ones((n2sim+extra_t, n_od)) * conc0*(1 + filt_ts*np.sqrt(1/pts_ms))    
+    u_od        = u_od[extra_t:, :]
     
     if stim_type == 'ext':
         if verbose:
@@ -99,7 +99,7 @@ def main(stim_params, verbose=False):
         
         for nn in range(n_od):
             stim_on         = t_on[nn]*pts_ms   # [num. of samples]
-            u_od[stim_on:, nn] = out_corr_plumes[nn]*concs[nn] #+u_od[stim_on:, nn]
+            u_od[stim_on:, nn] = out_corr_plumes[nn]*concs[nn] + .0*u_od[stim_on:, nn]
 
              
     elif (stim_type == 'rs'):

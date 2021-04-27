@@ -57,14 +57,14 @@ quenched        = True      # if True Tbl and Twh are chosen to compensate the d
 n_loop          = 30
 n_repet_loop    = 1         # repeat n_loop n_repet_loop times
 fig_plumes_tc   = 0         # time course figure
-fig_save        = 0
+fig_save        = 1
 
-fld_output    = 'NSI_analysis/real_plumes/example/'
+fld_output    = 'NSI_analysis/real_plumes_example/'
 rhos            = [0, 1, 3, 5]
 
 # *******************************************************************
 # PARAMS FOR STIMULUS GENERATION
-t2sim           = 200#199.7              # [s] time duration of whole simulated stimulus
+t2sim           = 100                # [s] time duration of whole simulated stimulus
 pts_ms          = 10
 sample_rate     = pts_ms*1000       # [Hz] num of samples per each sec
 n_sample2       = 5                 # [ms] num of samples with constant concentration
@@ -72,7 +72,7 @@ n_sample2       = 5                 # [ms] num of samples with constant concentr
 tot_n_samples   = int(t2sim*sample_rate) # [] duration of whole simulated stimulus in number of samples
 
 
-
+peak            = 1 # 5e-4
 
 #  PARAMS FOR WHIFF AND BLANK DISTRIOBUTIONS
 g               = -1/2  # -1/2 for a power law of -3/2, 1 for uniform distribution
@@ -108,7 +108,7 @@ stim_params = [t2sim, sample_rate, n_sample2, g, whiff_min, whiff_max,
        blank_min, blank_max, a_conc, b_conc,rho_c, rho_t, quenched, seed_num, ]   
 
 
-# REPEATED STIMULI GENERATION
+#%% REPEATED STIMULI GENERATION
 n_obs = len(rhos)*n_loop
 
 cor_stim        = -np.ones((n_obs,1))*2
@@ -143,11 +143,14 @@ for pp in range(n_repet_loop):
             stim_params[-1] = ll + start_seed[pp]
             out_y, out_w, t_dyn, t_dyn_cor, = corr_plumes.main(*stim_params)
             
+            out_w = peak*out_w
+            out_y = peak*out_y
+            
             th_rhos[rr, 0] = th_rhos_4[id_rho]
             seeds[rr, 0] = stim_params[-1]
             
-            conc_est[rr, 0] = 1.5*np.mean(out_y)
-            conc_est2[rr, 0] = 1.5*np.mean(out_w)
+            conc_est[rr, 0] = np.mean(out_y)
+            conc_est2[rr, 0] = np.mean(out_w)
             interm_est[rr, 0] = np.sum(out_y>0)/(t2sim*sample_rate)
             interm_est2[rr, 0] = np.sum(out_w>0)/(t2sim*sample_rate)
     
@@ -310,5 +313,5 @@ if fig_plumes_tc:
     plt.show()
     if fig_save:
         fig.savefig(fld_output + 
-                            '/corr_plumes_timecourse_dur%.1fs_rhoT%d_rhoC%d.png'%(t2sim, rho,100*rho_c))
+                            '/corr_plumes_timecourse_dur%.1fs_rhoT%d_rhoC%d.png'%(t2sim, rho, 100*rho_c))
         

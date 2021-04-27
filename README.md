@@ -53,7 +53,7 @@ There are several scripts to analyse the model. For example, to explore the para
 
 **figure_orn.py** plots the dynamics of a single simulation from the output of NSI_ORN_LIF.py  
 
-**figure_al_orn.py** plots the dynamics of a single simulation from the output of **ORNs_layer_dyn.py** and **AL_dyn.py**.
+**plot_al_orn.py** plots the dynamics of a single simulation from the output of **ORNs_layer_dyn.py** and **AL_dyn.py**.
 
 **plot_plumes_stats.py** helps visualize the temporal and statistical properties of the naturalistic plumes reproducing the data furnished in literature (i.e. *Yee et al. 1995, Murlis et al. 1991*). This script compares experimental probability distribution as observed by Mylne et al. 1991, with a truncated power law, for whiff and blank durations. Moreover, it plots the intermittency values obtained by Yee et al. 1993 for several downwind distances going from 20 to 330 m.
 

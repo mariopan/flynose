@@ -244,7 +244,7 @@ if __name__ == '__main__':
     n_loop          = 1
     n_repet_loop    = 1
     fig_plumes      = 1
-    fig_save        = 1
+    fig_save        = 0
     
     fld_output      = 'open_field_stimuli/images/'
     
@@ -317,8 +317,8 @@ if __name__ == '__main__':
 #            print(stim_params[-1])
             out_y, out_w, t_dyn, t_dyn_cor, = main(*stim_params)
             
-            y_avg[rr] = 1.5*np.mean(out_y)
-            w_avg[rr] = 1.5*np.mean(out_w)
+            y_avg[rr] = np.mean(out_y)
+            w_avg[rr] = np.mean(out_w)
             interm_est[rr] = np.sum(out_y>0)/(t2sim*sample_rate)
             interm_est2[rr] = np.sum(out_w>0)/(t2sim*sample_rate)
     

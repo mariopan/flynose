@@ -40,20 +40,23 @@ print('real plumes simulations')
     
 
 ## ORN NSI params
-stim_dur  = 200000        # 201000[ms]
+stim_dur  = 100000        # 201000[ms]
 n_seeds   = 1           # 50
     
-w_maxs  = [.01,.03,.3, 3, 25, 50, ]#[.01,.03,.3, 3, 25, 50, ] # max value in the whiff distribution
+w_maxs      = [3, ]#[.01,.03,.3, 3, 25, 50, ] # max value in the whiff distribution
+rhos        = [0, 5] 
+
+# w_maxs  = [.01,.03,.3, 3, 25, 50, ]#[.01,.03,.3, 3, 25, 50, ] # max value in the whiff distribution
 b_maxs  = [25]                      # max value in the blank distribution
-rhos    = [0,1,3,5] #[0, 1, 3, 5]
-peak    = 5e-4
+# rhos    = [0,1,3,5] #[0, 1, 3, 5]
+peak    = .5e-4
 peak_ratio = 1
 
 sims_to_run = n_seeds*len(nsi_ln_par)*len(w_maxs)*len(b_maxs)*len(rhos)
 print('Number of Simulations to run: %d '%sims_to_run)
 
 # approx 3s per each second of simulation
-Tot_sim_time = sims_to_run*4.5*stim_dur/1000/60/60  # hours
+Tot_sim_time = sims_to_run*2.5*stim_dur/1000/60/60  # hours
 run_sim_time = 0
 print('Estimated Simulation time: %.3g hours (%.1f mins)'%(Tot_sim_time, Tot_sim_time*60))
 endsim = now+datetime.timedelta(hours=Tot_sim_time)

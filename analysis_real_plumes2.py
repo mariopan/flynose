@@ -43,7 +43,7 @@ fld_analysis    = 'NSI_analysis/analysis_'+name_analysis+'/' #'NSI_analysis/anal
 
 # ORN NSI params
 nsi_ln_par      = [[0,0],  [0, .6], [.6, 0],]
-seeds           = [1, 15] #np.arange(1, 31)
+seeds           = np.arange(1, 45)
 
 fld_output      = fld_analysis
 
@@ -58,9 +58,9 @@ stim_params     = params_al_orn['stim_params']
 
 avg_fig         = 1     # Fig.AverPNActivity
 peak_fig        = 1     # Figsupp.PeakPN_thr
-avgplume_fig    = 1    # FigSupp.AverCorr (Supp materials)
-resumen_fig     = 1     # Fig.PeakPN_resumen
-thrwmax_fig     = 1     # Fig.PeakPN_wmax
+avgplume_fig    = 0    # FigSupp.AverCorr (Supp materials)
+resumen_fig     = 0     # Fig.PeakPN_resumen
+thrwmax_fig     = 0     # Fig.PeakPN_wmax
 
 thrs        = [50, 100, 150] # thr
 fig_save    = 0

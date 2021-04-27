@@ -23,7 +23,7 @@ import matplotlib as mpl
 
 import AL_dyn
 import ORNs_layer_dyn
-import figure_al_orn
+import plot_al_orn
 import set_orn_al_params
 
 
@@ -259,7 +259,7 @@ n_sens_type       = orn_layer_params.__len__()  # number of type of sensilla
 
 
 # %%
-# stim params
+# Stimulus parameters
 delay                       = 500
 t0                          = 1000
 stim_name                   = ''
@@ -271,7 +271,7 @@ stim_params['conc0']        = 1.85e-4    # fitted value: 2.85e-4
 
 # PNs average activity during 500ms stimulation (see Olsen et al. 2010)
 nu_obs                      = [8, 75, 130, 150, ]
-nu_orn_obs                = [3, 21, 55, 125, ]
+nu_orn_obs                  = [3, 21, 55, 125, ]
 # nsi params
 nsi_str                     = .6
 alpha_ln                    = .6
@@ -283,8 +283,8 @@ data_save                   = 0
 
 # ###########################
 # fig4 options
-stim_durs                   = [10]
-stim_params['stim_type']    = 'ts' # 'ss'  # 'ts' # 'rs' # 'pl'
+stim_durs                   = [200]      # [ms]
+stim_params['stim_type']    = 'ts'      # 'ss'  # 'ts' # 'rs' # 'pl'
 peak_ratios                 = np.linspace(1, 20, 1,) 
 peaks                       = [1.85e-4, 5e-4, 1.5e-3, 2e-2,]
 inh_conds                   = ['noin']
@@ -294,7 +294,7 @@ al_orn_1r_fig               = 0     # single run figure flag
 npeaks_fig                  = 1     # multiple peaks PN and ORN time course 
 olsen_fig                   = 1     # PN vs ORN activity, like Olsen 2010
 figs_save                   = 0
-fld_analysis        = 'NSI_analysis/Olsen2010/'
+fld_analysis                = 'NSI_analysis/Olsen2010/'
 
 time2analyse                = 200
 
@@ -424,7 +424,7 @@ for stim_dur in stim_durs:
                                 
                     # FIGURE ORN, PN, LN
                     if al_orn_1r_fig:
-                        fig_al_orn = figure_al_orn.main(params_al_orn, output_orn, output_al)
+                        fig_al_orn = plot_al_orn.main(params_al_orn, output_orn, output_al)
                         if figs_save:
                             fig_name  = 'ORN_AL_timecourse_inh_' + inh_cond +  \
                         '_stim_'+ stim_params['stim_type'] +'_dur_%d'%stim_dur + '_p' + str(peak) 
