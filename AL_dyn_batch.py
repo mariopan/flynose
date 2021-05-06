@@ -145,17 +145,17 @@ def fig_npeaks(data_tmp, params_tmp, id_c):
     ax_ornal[3].plot(ln_sdf_time-t_zero, np.mean(ln_sdf[:, :n_lns_recep], axis=1), 
                      color=greenmap.to_rgba(id_col), linewidth=lw, label='LN, glo w')
     
-    # Strong ORNs/PNs
-    ax_ornal[0].plot(t-t_zero, 100*u_od[:,1], color=purplemap.to_rgba(id_col), 
-                      linewidth=lw, )#label='glom : '+'%d'%(2))
+    # # Strong ORNs/PNs
+    # ax_ornal[0].plot(t-t_zero, 100*u_od[:,1], color=purplemap.to_rgba(id_col), 
+    #                   linewidth=lw, )#label='glom : '+'%d'%(2))
     
-    ax_ornal[1].plot(orn_sdf_time-t_zero, np.mean(orn_sdf[:, n_orns_recep:], axis=1), 
-                      color=purplemap.to_rgba(id_col), linewidth=lw, )#label='sdf glo s')
+    # ax_ornal[1].plot(orn_sdf_time-t_zero, np.mean(orn_sdf[:, n_orns_recep:], axis=1), 
+    #                   color=purplemap.to_rgba(id_col), linewidth=lw, )#label='sdf glo s')
     
-    ax_ornal[2].plot(pn_sdf_time-t_zero, np.mean(pn_sdf[:, n_pns_recep:], axis=1), 
-                      color=purplemap.to_rgba(id_col), linewidth=lw, )#label='PN, glo s')
-    ax_ornal[3].plot(ln_sdf_time-t_zero, np.mean(ln_sdf[:, n_lns_recep:], axis=1), 
-                color=purplemap.to_rgba(id_col), linewidth=lw, )#label='LN, glo w')
+    # ax_ornal[2].plot(pn_sdf_time-t_zero, np.mean(pn_sdf[:, n_pns_recep:], axis=1), 
+    #                   color=purplemap.to_rgba(id_col), linewidth=lw, )#label='PN, glo s')
+    # ax_ornal[3].plot(ln_sdf_time-t_zero, np.mean(ln_sdf[:, n_lns_recep:], axis=1), 
+    #             color=purplemap.to_rgba(id_col), linewidth=lw, )#label='LN, glo w')
     
     
     # ax_ornal[3].legend()
@@ -260,7 +260,7 @@ n_sens_type       = orn_layer_params.__len__()  # number of type of sensilla
 
 # %%
 # Stimulus parameters
-delay                       = 500
+delay                       = 0
 t0                          = 1000
 stim_name                   = ''
 stim_params['pts_ms']       = 10
@@ -272,6 +272,7 @@ stim_params['conc0']        = 1.85e-4    # fitted value: 2.85e-4
 # PNs average activity during 500ms stimulation (see Olsen et al. 2010)
 nu_obs                      = [8, 75, 130, 150, ]
 nu_orn_obs                  = [3, 21, 55, 125, ]
+
 # nsi params
 nsi_str                     = .6
 alpha_ln                    = .6
@@ -280,29 +281,27 @@ alpha_ln                    = .6
 run_sims                    = 1     # Run sims or just load the data
 data_save                   = 0
 
+time2analyse                = 200
 
-# ###########################
+#############################
 # fig4 options
-stim_durs                   = [200]      # [ms]
+stim_durs                   = [500]      # [ms]
 stim_params['stim_type']    = 'ts'      # 'ss'  # 'ts' # 'rs' # 'pl'
 peak_ratios                 = np.linspace(1, 20, 1,) 
-peaks                       = [1.85e-4, 5e-4, 1.5e-3, 2e-2,]
-inh_conds                   = ['noin']
+peaks                       = [1.85e-4, 3e-4, .8e-3, 3e-3,]#np.logspace(-3.3, -2.6, 4)
+inh_conds                   = ['nsi']
+#############################
+
+
 # figs/data flags
 dataratio_save              = 0
 al_orn_1r_fig               = 0     # single run figure flag
 npeaks_fig                  = 1     # multiple peaks PN and ORN time course 
 olsen_fig                   = 1     # PN vs ORN activity, like Olsen 2010
-figs_save                   = 0
+figs_save                   = 1
 fld_analysis                = 'NSI_analysis/Olsen2010/'
+data_save                   = 1
 
-time2analyse                = 200
-
-
-# # load PARAMS THE STANDARD FOLDER AND FILE
-# params_file = 'params_al_orn.ini'
-# with open(fld_analysis+params_file, 'wb') as f:
-#     pickle.dump(params_al_orn, f)
 
 
 tic = tictoc()
@@ -515,7 +514,8 @@ for stim_dur in stim_durs:
                 plt.rc('text', usetex=True)
                 
                 # if len(nu_obs)==len(nu_orn_s):
-                axs[0].plot(nu_orn_obs, nu_obs, 'k*')
+                if stim_dur==500:
+                    axs[0].plot(nu_orn_obs, nu_obs, 'k*')
                 axs[0].errorbar(nu_orn_s, nu_pn_s, yerr=nu_pn_s_err, fmt='o')
                 axs[0].plot(nuorn_fit , olsen_orn_pn(nuorn_fit , *popt), '--', linewidth=lw, 
                         label=r'fit: $\sigma$=%5.0f, $\nu_{max}$=%5.0f' % tuple(popt))
@@ -572,6 +572,9 @@ for stim_dur in stim_durs:
                         
                     print('saving Olsen2010 PN-ORN figure in '+fld_analysis)
                     fig3.savefig(fld_analysis+ fig_name +'.png')
+                    if data_save:
+                        with open(fld_analysis+ 'params_al_orn'+'_dur_%d'%stim_dur+'.pickle', 'wb') as f:
+                            pickle.dump(params_al_orn, f)
                     
         if inh_cond == 'nsi':
             nsi_ratio = nu_pn_ratio

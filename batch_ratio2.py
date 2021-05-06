@@ -41,22 +41,22 @@ else:
 if analysis_name == 'ratio':
     print('ratio simulations')
     n_ratios        =  45
-    pr2an           =  np.linspace(1, 20, n_ratios)
+    conc_ratios           =  np.linspace(1, 20, n_ratios)
     delays2an       = [0, ]
 elif analysis_name == 'delays':
     print('delays simulations')
-    delays2an       = [0,  10, 20, 50, 100, 200, 500,]
+    delays2an       = [20,] #[0,  10, 20, 50, 100, 200, 500,]
     n_ratios        =  1
-    pr2an           =  np.linspace(1, 1, n_ratios)
+    conc_ratios           =  np.linspace(1, 1, n_ratios)
 else:
     print('This script can run only ratio and delays analysis! Write your choice as 2nd input')
     # break
 
 
-dur2an          =  [10, 20, 50, 100, 200]
+dur2an          = [200]# [10, 20, 50, 100, 200]
 
-peak2an         =  np.array([0.00052, 0.00068, 0.00084, 0.001, 0.005, 0.01])
-n_concs         =  len(peak2an)
+concs2an         = np.array([.0005, .01])# np.array([0.00052, 0.00068, 0.00084, 0.001, 0.005, 0.01])
+n_concs         =  len(concs2an)
 
 
 n_durs           = np.size(dur2an)
@@ -103,7 +103,7 @@ date_str            = now.strftime("%Y%m%d")
 
 
 pn_ln_params['tau_ln']      = 25
-sdf_params['tau_sdf']       = 6
+sdf_params['tau_sdf']       = 20
 time2analyse                = 200
 
 
@@ -118,7 +118,10 @@ print([nsi_str, alpha_ln])
 
 # save batch and net params 
 if data_save:
-    batch_params = [n_loops,pr2an,peak2an,nsi_ln_par,dur2an,delays2an,]
+    batch_params = dict([
+        ('n_loops', n_loops), ('conc_ratios', conc_ratios), 
+        ('concs2an',concs2an  ), ('nsi_ln_par', nsi_ln_par), 
+        ('dur2an', dur2an), ('delays2an', delays2an),])
     with open(fld_analysis+analysis_name+'_batch_params.pickle', 'wb') as f:
                 pickle.dump(batch_params, f)
     with open(fld_analysis+analysis_name+'_params_al_orn.ini', 'wb') as f:
@@ -141,9 +144,9 @@ for [delay_id, delay] in enumerate(delays2an):
     avg_orns    = np.zeros((n_ratios, n_concs, n_durs, n_loops))
     
     
-    for peak_id, peak in enumerate(peak2an):
+    for peak_id, peak in enumerate(concs2an):
         
-        for pr_id, peak_ratio in enumerate(pr2an):
+        for pr_id, peak_ratio in enumerate(conc_ratios):
             for dur_id, stim_dur in enumerate(dur2an):
                 
                 # set stim_params
@@ -222,6 +225,23 @@ for [delay_id, delay] in enumerate(delays2an):
                     print('Remaining Simulations to run: %d '%(sims_to_run))
                     print('Approx Remaining time: %.0f mins'%(sims_to_run*eff_dur/60))
        
+    
+    print('PN avg S:')
+    print(np.mean(avg_pns, axis=3))
+    print('PN avg w:')
+    print(np.mean(avg_pnw, axis=3))
+    pn_avg_ratio = np.ma.masked_invalid(avg_pns/avg_pnw)
+    print('PN avg ratio: ')
+    print(np.mean(pn_avg_ratio, axis=3))
+    
+    print('ORN S:')
+    print(np.mean(avg_orns, axis=3))
+    print('ORN w:')
+    print(np.mean(avg_ornw, axis=3))
+    orn_avg_ratio = np.ma.masked_invalid(avg_orns/avg_ornw)
+    print('ORN peak ratio: ')
+    print(np.mean(orn_avg_ratio, axis=3))
+    
     # print('PN S:')
     # print(np.mean(peak_pns, axis=3))
     # print('PN w:')
@@ -229,15 +249,7 @@ for [delay_id, delay] in enumerate(delays2an):
     # pn_pk_ratio = np.ma.masked_invalid(peak_pns/peak_pnw)
     # print('PN peak ratio: ')
     # print(np.mean(pn_pk_ratio, axis=3))
-    
-    # print('PN avg S:')
-    # print(np.mean(avg_pns, axis=3))
-    # print('PN avg w:')
-    # print(np.mean(avg_pnw, axis=3))
-    # pn_avg_ratio = np.ma.masked_invalid(avg_pns/avg_pnw)
-    # print('PN avg ratio: ')
-    # print(np.mean(pn_avg_ratio, axis=3))
-    
+
     # print('ORN S:')
     # print(np.mean(peak_orns, axis=3))
     # print('ORN w:')

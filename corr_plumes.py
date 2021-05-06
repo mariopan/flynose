@@ -78,7 +78,6 @@ def main(*stim_params):
     
     quenched        = stim_params[12]
     seed_num        = stim_params[13]
-    
     # *********************************************************
     # GENERATE CORRELATED BLANKS AND WHIFFS
     if not(np.isnan(seed_num)):
@@ -251,7 +250,7 @@ if __name__ == '__main__':
     # *******************************************************************
     # PARAMS FOR STIMULUS GENERATION
     t2sim           = 200      # [s] time duration of whole simulated stimulus
-    pts_ms          = 5
+    pts_ms          = 10
     sample_rate     = pts_ms*1000       # [Hz] num of samples per each sec
     n_sample2       = 5                 # [ms] num of samples with constant concentration
     
@@ -275,7 +274,7 @@ if __name__ == '__main__':
     # *******************************************************************
     # PARAMS FOR CORRELATED STIMULI
     rho_c       = 1     # corr. between normal distribution to generate concentration        
-    rho_t_exp   = 3      # 0,1,3,5, correlation between normal distribution to generate whiffs and blanks
+    rho_t_exp   = 5      # 0,1,3,5, correlation between normal distribution to generate whiffs and blanks
     rho_t       = 1-10**-rho_t_exp
     
     # *******************************************************************
@@ -284,7 +283,7 @@ if __name__ == '__main__':
     pdf_bl, logbins, bl_mean = stats.whiffs_blanks_pdf(blank_min, blank_max, g)
     
     print('main Stim. params:')
-    print('durs:%.2gs'%t2sim)
+    print('durs:%d s'%t2sim)
     print('rho_{wh,bl}:1-10^{%d}' %round(np.log10(1-rho_t)))
     print('rho_{conc}: %.3f' %rho_c)
     
@@ -361,24 +360,40 @@ if __name__ == '__main__':
     #********************************************************************
     # Stimuli FIGURE
     if fig_plumes:
+        #%%
         t2plot = np.linspace(0, t2sim, np.size(out_y))
+        overlap_t = (out_y>0) & (out_w>0)
+        
         t2plot_lim = 0, t2sim
         t2plot_lim2 = 0, .5
         
-        rs = 2
+        rs = 3
         cs = 1
         fig = plt.figure(figsize=(10, 5), )    
         
-        ax_st = plt.subplot(rs,cs,1)
+        ax_st0  = plt.subplot(rs,cs, 1)
+        ax_st   = plt.subplot(rs,cs, 2)
+        ax_st2  = plt.subplot(rs,cs, 3)
+        
+        # PLOT 
+        ax_st0.plot(t2plot, overlap_t, '.', color=blue, label='Overlap Stimuli')  
+        
         ax_st.plot(t2plot, out_y, color=green, label='Stimulus 1')  
         ax_st.plot(t2plot, out_w, color=purple, label='Stimulus 2')  
         
+        # SETTINGS
+        ax_st0.set_xlim(t2plot_lim)
+        ax_st0.set_ylabel('Overlap', fontsize=label_fs)
+        
+        ll, bb, ww, hh = ax_st0.get_position().bounds
+        ax_st0.set_position([ll, bb+.04, ww, hh])
+        
         ax_st.set_xlim(t2plot_lim)
         ax_st.set_ylabel('Concentration', fontsize=label_fs)
+        
         ll, bb, ww, hh = ax_st.get_position().bounds
         ax_st.set_position([ll, bb+.04, ww, hh])
         
-        ax_st2 = plt.subplot(rs,cs, 2)
         ax_st2.plot(t2plot, out_y, color=green, label='Stimulus 1')  
         ax_st2.plot(t2plot, out_w, color=purple, label='Stimulus 2')  
         
@@ -387,6 +402,10 @@ if __name__ == '__main__':
         ax_st2.set_ylabel('Concentration', fontsize=label_fs)
         ll, bb, ww, hh = ax_st2.get_position().bounds
         ax_st2.set_position([ll, bb+.04, ww, hh])
+        
+        plt.show()
+        
+        
         if fig_save:
             fig.savefig(fld_output + '/stimuli_timecourse_dur20s_cor_%d.png'%rho_t_exp)
       

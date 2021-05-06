@@ -74,7 +74,10 @@ def main(params_al_orn, output_orn_layer, output_al):
     
     t_tot               = stim_params['t_tot']
     t_on    = np.min(stim_params['t_on'])
-    t2plot = -t_on, t_tot-t_on, 
+    stim_dur = np.max(stim_params['stim_dur'])
+    t2plot = -150, stim_dur+300, 
+    # t2plot = -t_on, t_tot-t_on, 
+    # t2plot = [12000, 13000]
     n_orns_recep = al_params['n_orns_recep']
     n_lns_recep = al_params['n_lns_recep']
     n_pns_recep = al_params['n_pns_recep']
@@ -89,17 +92,18 @@ def main(params_al_orn, output_orn_layer, output_al):
         ax_ln = plt.subplot(rs, cs, 4)
         
         
-        ax_conc.plot(t-t_on, 100*u_od[:,0], color=green, linewidth=lw+2, 
-                           label='glom : '+'%d'%(1))
-        ax_conc.plot(t-t_on, 100*u_od[:,1], color=purple, linewidth=lw+1, 
-                          label='glom : '+'%d'%(2))
+        ax_conc.plot(t-t_on, 100*u_od[:,1], color=purple, linewidth=lw, 
+                          label='glom : '+'%d'%(2),  )
+        
+        ax_conc.plot(t-t_on, 100*u_od[:,0],'--', color=green, linewidth=lw,
+                           label='glom : '+'%d'%(1), )
         
         for rr in range(num_recep):
             X1 = orn_sdf[:, recep_id*n_orns_recep:((recep_id+1)*n_orns_recep)] # np.mean(orn_sdf_norm[:,:,num_orns_glo:], axis=2)
             mu1 = X1.mean(axis=1)
             sigma1 = X1.std(axis=1)
             ax_orn.plot(orn_sdf_time-t_on, mu1, 
-                        color=recep_clrs[rr], linewidth=lw-1, )
+                        color=recep_clrs[rr], linewidth=lw, )
             ax_orn.fill_between(orn_sdf_time-t_on, mu1+sigma1, mu1-sigma1, 
                                 facecolor=recep_clrs[rr], alpha=trsp)
                     
@@ -142,9 +146,9 @@ def main(params_al_orn, output_orn_layer, output_al):
         ax_pn.tick_params(axis='both', labelsize=label_fs)
         ax_ln.tick_params(axis='both', labelsize=label_fs)
         
-        ax_conc.set_xticklabels('')
-        ax_orn.set_xticklabels('')
-        ax_pn.set_xticklabels('')
+        # ax_conc.set_xticklabels('')
+        # ax_orn.set_xticklabels('')
+        # ax_pn.set_xticklabels('')
         
         ax_conc.set_title(['NSI: %.1f, LN:%.0f'%(nsi_str, alpha_ln)], fontsize=label_fs)
         ax_conc.set_ylabel('Input ORN ', fontsize=label_fs)

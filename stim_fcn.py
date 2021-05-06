@@ -17,10 +17,15 @@ def main(stim_params, verbose=False):
     
     tmp_ks = \
         ['stim_type', 'stim_dur', 'pts_ms', 't_tot', 
-         't_on', 'concs', 'conc0', 'od_noise', 'od_filter_frq']    
-    [stim_type, stim_dur, pts_ms, t_tot, t_on, concs, conc0, od_noise, od_filter_frq] = [
+         't_on', 'concs', 'conc0', 'od_noise', 'od_filter_frq', 'stim_seed']    
+    [stim_type, stim_dur, pts_ms, t_tot, t_on, concs, conc0, 
+     od_noise, od_filter_frq, stim_seed] = [
         stim_params[x] for x in tmp_ks]  
     
+           
+    if not(np.isnan(stim_seed)):
+        np.random.seed(seed=stim_seed)
+        
     # Stimulus params    
     n_od            = len(concs)
     t_off           = t_on+stim_dur
@@ -88,8 +93,7 @@ def main(stim_params, verbose=False):
         rho_t_exp       = plume_params['rho_t_exp']     # correlation between normal distribution to generate concentration        
         rho_t           = 1-10**-rho_t_exp
         
-        stim_seed       = plume_params['stim_seed']
-        
+
         # arguments for the generation of stimuli function
         corr_plumes_in = [t2sim_s, sample_rate, n_sample2, g, whiff_min, whiff_max, 
                blank_min, blank_max, a_conc, b_conc,rho_c, rho_t, quenched, stim_seed]
@@ -99,7 +103,7 @@ def main(stim_params, verbose=False):
         
         for nn in range(n_od):
             stim_on         = t_on[nn]*pts_ms   # [num. of samples]
-            u_od[stim_on:, nn] = out_corr_plumes[nn]*concs[nn] + .0*u_od[stim_on:, nn]
+            u_od[stim_on:, nn] = out_corr_plumes[nn]*concs[nn] + .9*u_od[stim_on:, nn]
 
              
     elif (stim_type == 'rs'):

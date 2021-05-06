@@ -51,7 +51,7 @@ from scipy import signal
 
 import sdf_krofczik
 import stim_fcn
-import figure_orn
+import plot_orn
 
 # %% STANDARD FIGURE PARAMS
 lw = 2
@@ -427,7 +427,7 @@ if __name__ == '__main__':
     [t, u_od, r_orn, v_orn, y_orn, num_spikes, spike_matrix, orn_sdf,
      orn_sdf_time,]  = output_orn
     
-    figure_orn.main(params_1sens, output_orn, )
+    plot_orn.main(params_1sens, output_orn, )
     #print(np.mean(orn_sdf))
     
     # #%% FIGURE, time course and histogram of ISI and POTENTIAL of ORNs

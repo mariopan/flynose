@@ -317,14 +317,14 @@ n_sens_type         = orn_layer_params.__len__()  # number of type of sensilla
 # ORN NSI params
 
 # fig_id options:  # 'ts_s' #  'ts_a' # 'pl'
-fig_id                  = 'pl' 
+fig_id                  = 'ts_a' 
 
 fld_analysis            = 'NSI_analysis/triangle_stim/'
 nsi_str                 = 0.6
 alpha_ln                = 0.6
 pn_ln_params['tau_ln']  = 250
 
-
+    
 # figure and output options
 fig_save    = 0
 data_save   = 0    
@@ -332,7 +332,7 @@ verbose     = 0
 olsen_fig   = 0
 
 
-n_lines     = 1
+n_lines     = 3
 
 if fig_id == 'ts_s':
     # stim params
@@ -345,12 +345,12 @@ if fig_id == 'ts_s':
     
 elif fig_id == 'ts_a':
     # Stimulus params 
-    delay                       = 50
+    delay                       = 20
     stim_params['stim_type']    = 'ts' # 'id_l'  # 'ts'
     stim_params['stim_dur']     = np.array([200, 200])
     stim_params['t_tot']        = 1300+delay
     t_on                        = 1000
-    stim_params['conc0']        = 1.85e-4    # 2.85e-4
+    stim_params['conc0']        = 0*1.85e-4    # 2.85e-4
     sdf_params['tau_sdf']       = 6
     sdf_params['dt_sdf']        = 5
     
@@ -372,7 +372,7 @@ elif fig_id == 'pl':
     plume_params['rho_t_exp']   = 0   #[0, 1, 3, 5]
     plume_params['stim_seed']   = 0
     
-    sdf_params['tau_sdf']       = 6
+    sdf_params['tau_sdf']       = 30
     sdf_params['dt_sdf']        = 5
     
     stim_params['plume_params'] = plume_params
@@ -399,21 +399,23 @@ pn_sdf_all      = np.zeros((n_lines, sdf_size, n_neu*n_pns_recep))
 
 tic = timeit.default_timer()
 
-peaks                       = [5e-4] #[1.85e-4, 5e-4, 1.5e-3, 2e-2, 2e-1]
+peaks                       = [0.001, 0.005] #[5e-4] #[1.85e-4, 5e-4, 1.5e-3, 2e-2, 2e-1]
 n_peaks = len(peaks)
+time2analyse = 200
 
+conc_s    = np.zeros((n_peaks, len(inh_conds)))
+conc_th = np.zeros((n_peaks, len(inh_conds)))
 
-conc_s    = np.zeros((n_peaks, 3))
-conc_th = np.zeros((n_peaks, 3))
-nu_orn_s = np.zeros((n_peaks, 3))
-nu_pn_s  = np.zeros((n_peaks, 3))
-nu_orn_w = np.zeros((n_peaks, 3))
-nu_pn_w = np.zeros((n_peaks, 3))
+avg_ornw = np.zeros((n_peaks, n_lines, len(inh_conds)))
+avg_orns = np.zeros((n_peaks, n_lines, len(inh_conds))) 
+avg_pnw = np.zeros((n_peaks, n_lines, len(inh_conds)))
+avg_pns = np.zeros((n_peaks, n_lines, len(inh_conds)))
 
-nu_orn_s_err  = np.zeros((n_peaks, 3))
-nu_pn_s_err   = np.zeros((n_peaks, 3))
-nu_orn_w_err  = np.zeros((n_peaks, 3))
-nu_pn_w_err   = np.zeros((n_peaks, 3))
+peak_ornw = np.zeros((n_peaks, n_lines, len(inh_conds)))
+peak_orns  = np.zeros((n_peaks, n_lines, len(inh_conds)))
+peak_pnw = np.zeros((n_peaks, n_lines, len(inh_conds)))
+peak_pns = np.zeros((n_peaks, n_lines, len(inh_conds)))
+
 
 
 for id_p, peak in enumerate(peaks):
@@ -443,7 +445,7 @@ for id_p, peak in enumerate(peaks):
         orn_al_settings(axs)
         
     # simulations and append to figure         
-    for inh_id, inh_cond in enumerate(inh_conds):
+    for id_inh, inh_cond in enumerate(inh_conds):
                                 
         # setting NSI params
         for sst in range(n_sens_type):
@@ -473,8 +475,47 @@ for id_p, peak in enumerate(peaks):
                 AL_dyn.main(params_al_orn, orn_spikes_t, verbose=verbose, )
             pn_sdf_all[id_l,:,:] = pn_sdf
             
+            
+            
+            # Calculate avg and peak SDF for ORNs
+            if orn_spikes_t.size >0:
+                id_stim_w = np.flatnonzero((orn_sdf_time>t_on) 
+                                        & (orn_sdf_time<t_on+time2analyse))
+                
+                
+                id_stim_s = np.flatnonzero((orn_sdf_time>t_on+delay) 
+                                        & (orn_sdf_time<t_on+delay+time2analyse))
+                
+                orn_peak_w  = np.max(np.mean(orn_sdf[id_stim_w, :n_orns_recep], axis=1)) # using average PN
+                orn_peak_s  = np.max(np.mean(orn_sdf[id_stim_s, n_orns_recep:], axis=1)) # using average PN
+                orn_avg_w  = np.mean(orn_sdf[id_stim_w, :n_orns_recep])
+                orn_avg_s  = np.mean(orn_sdf[id_stim_s, n_orns_recep:])
+
+                avg_ornw[id_p, id_l, id_inh] = orn_avg_w
+                avg_orns[id_p, id_l, id_inh] = orn_avg_s
+                
+                peak_ornw[id_p, id_l, id_inh] = orn_peak_w
+                peak_orns[id_p, id_l, id_inh] = orn_peak_s
+            
+            # Calculate avg and peak SDF for PNs 
+            if pn_spike_matrix.size >0:
+                id_stim_w = np.flatnonzero((pn_sdf_time>t_on) 
+                                & (pn_sdf_time<t_on+time2analyse))
+                id_stim_s = np.flatnonzero((pn_sdf_time>t_on+delay) 
+                                & (pn_sdf_time<t_on+delay+time2analyse))
+                
+                pn_peak_w  = np.max(np.mean(pn_sdf[id_stim_w, :n_pns_recep], axis=1)) # using average PN
+                pn_peak_s  = np.max(np.mean(pn_sdf[id_stim_s, n_pns_recep:], axis=1)) # using average PN
+                pn_avg_w  = np.mean(pn_sdf[id_stim_w, :n_pns_recep])
+                pn_avg_s  = np.mean(pn_sdf[id_stim_s, n_pns_recep:])
+
+                avg_pnw[id_p, id_l, id_inh] = pn_avg_w
+                avg_pns[id_p, id_l, id_inh] = pn_avg_s
+                
+                peak_pnw[id_p, id_l, id_inh] = pn_peak_w
+                peak_pns[id_p, id_l, id_inh] = pn_peak_s
             if fig_id == 'pl':
-                #%% CALCULATE AND SAVE DATA
+                # CALCULATE AND SAVE DATA
                 t_id_stim = np.flatnonzero((t>t_on) & (t<t_tot))
                 
                 od_avg_1 = np.mean(u_od[t_id_stim, 0])
@@ -510,6 +551,7 @@ for id_p, peak in enumerate(peaks):
         else:
             orn_al_plot(data2plot, params_al_orn, inh_cond)
         
+ 
         
     
     plt.show()    
@@ -518,6 +560,22 @@ for id_p, peak in enumerate(peaks):
         print('saving figure in '+fld_analysis)
         fig_pn.savefig(fld_analysis + '/'+ fig_name + '.png')
 
+       
+print('PN avg S:')
+print(np.mean(avg_pns, axis=1))
+print('PN avg w:')
+print(np.mean(avg_pnw, axis=1))
+pn_avg_ratio = np.ma.masked_invalid(avg_pns/avg_pnw)
+print('PN avg ratio: ')
+print(np.mean(pn_avg_ratio, axis=1))
+
+print('ORN S:')
+print(np.mean(avg_orns, axis=1))
+print('ORN w:')
+print(np.mean(avg_ornw, axis=1))
+orn_avg_ratio = np.ma.masked_invalid(avg_orns/avg_ornw)
+print('ORN peak ratio: ')
+print(np.mean(orn_avg_ratio, axis=1))
 
 toc = timeit.default_timer()-tic
 

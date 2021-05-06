@@ -24,6 +24,7 @@ def main(n_orn=2):
                         ('od_filter_frq', 0.002), #.002
                         ('r_noise', .50),       # .5
                         ('r_filter_frq', 0.002), # 0.002
+                        ('stim_seed', np.nan),
                         ])
     
     n_od = stim_params['n_od']
@@ -51,7 +52,6 @@ def main(n_orn=2):
                         ('whiff_max', 3),
                         ('rho_t_exp', 0),#[0, 1, 3, 5]
                         ('rho_c', 1),
-                        ('stim_seed', 10),
                         ])
     stim_params['plume_params'] = plume_params
     

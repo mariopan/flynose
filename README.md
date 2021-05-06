@@ -51,7 +51,7 @@ There are several scripts to analyse the model. For example, to explore the para
 
 **AL_dyn_batch.py** runs AL and ORNs layer dynamics for multiple values of peaks and inhibitory conditions. Then it loads and plots dynamics to do a plot like Olsen et al. 2010.
 
-**figure_orn.py** plots the dynamics of a single simulation from the output of NSI_ORN_LIF.py  
+**plot_orn.py** plots the dynamics of a single simulation from the output of NSI_ORN_LIF.py  
 
 **plot_al_orn.py** plots the dynamics of a single simulation from the output of **ORNs_layer_dyn.py** and **AL_dyn.py**.
 

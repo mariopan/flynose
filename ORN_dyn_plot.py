@@ -23,7 +23,7 @@ from os import mkdir
 import matplotlib as mpl
 
 import NSI_ORN_LIF
-import figure_orn  
+import plot_orn  
 import set_orn_al_params
 
 # tic toc
@@ -49,8 +49,9 @@ def figure_multipeaks(data2an, params2an, id_c):
               label='glom : '+'%d'%(1))
     
     orn2plot    = np.mean(orn_sdf[:, :n_orns_recep], axis=1)
-    # print('normalized to the peak') 
-    # orn2plot = orn2plot/np.max(orn2plot)
+    if fig2plot == 'martelli2013':
+        print('normalized to the peak') 
+        orn2plot = orn2plot/np.max(orn2plot)
     ax_orn_m.plot(orn_sdf_time-t_on, orn2plot, 
              color=greenmap.to_rgba(id_col), linewidth=lw-1,)
     
@@ -171,19 +172,19 @@ sdf_params          = params_al_orn['sdf_params']
 # pn_ln_params        = params_al_orn['pn_ln_params']
 
 # fig2plot options:  
-# 'trials' 'martelli2013' 'ramp' 'parabola' 'step' 'orn_response' 'real_plume'
-fig2plot = 'real_plume' 
+# 'trials' 'martelli2013' 'ramp' 'parabola' 'step' 'orn_response' 
+fig2plot = 'orn_response' 
 
 # default output options
 data_load       = 0
-fig_save        = 0
+fig_save        = 1
 fig_orn_dyn     = 0
 fig_multipeaks  = 0
 
 max_stim_seed   = 1
 # nsi params
 inh_conds   = ['noin'] #['nsi', 'ln', 'noin'] #
-data_save   = 0
+data_save   = 1
 
 
     
@@ -229,7 +230,7 @@ elif fig2plot == 'martelli2013':
     sens_params['w_nsi']  = 0.0
     
     t2plot          = -200,stim_dur+300
-    fig_name   = '/ORN-Martelli2013_dur_%d'%stim_dur
+    fig_name   = 'ORN-Martelli2013_dur_%d'%stim_dur
 
 elif (fig2plot == 'ramp') | (fig2plot == 'parabola') | (fig2plot == 'step'):
     # Lazar and Kim data reproduction    
@@ -238,7 +239,7 @@ elif (fig2plot == 'ramp') | (fig2plot == 'parabola') | (fig2plot == 'step'):
     
     # stim params 
     stim_params['stim_type']    = 'ext'
-    stim_params['stim_data_name'] = 'lazar_data_hr/'+fig2plot+'_1' #.dat
+    stim_params['stim_data_name'] = 'lazar_data_hr/'+fig2plot+'_1/' #.dat
     stim_params['t_on']         =  np.array([0, 0])
     
     peaks       = np.array([1, 2, 3])
@@ -247,20 +248,21 @@ elif (fig2plot == 'ramp') | (fig2plot == 'parabola') | (fig2plot == 'step'):
     # dt_sdf      = 5      
     t2plot = 0, 3500
 
-    fig_name   = '/lazar_'+fig2plot
+    fig_name   = 'lazar_'+fig2plot
     data_load       = 0
 
 elif fig2plot == 'orn_response':
     
-    fld_analysis = 'NSI_analysis/ORN_LIF_dynamics' #/sdf_test
-    orn_fig_name = '/ORN_lif_dyn_500ms.png'
+    fld_analysis = 'NSI_analysis/ORN_LIF_dynamics/' #/sdf_test
+    orn_fig_name = 'ORN_lif_dyn_500ms.png'
     
     # stim params
     delay                       = 0
+    stim_dur                    = 500
     stim_params['stim_type']    = 'ss' # 'ts' # 'ss' # 'rp'# '
     stim_params['t_tot']        = 2000        # ms 
     stim_params['t_on']         =  np.array([1000, 1000])
-    stim_params['stim_dur']     = np.array([500, 500])
+    stim_params['stim_dur']     = np.array([stim_dur, stim_dur])
     stim_params['conc0']        = 1.85e-4
     peaks                       = np.array([1e-3])         # concentration value for ORN1
     peak_ratio                  = 1         # concentration ratio: ORN2/ORN1    
@@ -268,34 +270,7 @@ elif fig2plot == 'orn_response':
     
     fig_orn_dyn = 1
     t2plot          = -200,stim_dur+300
-    
-elif fig2plot == 'real_plume':
-    
-    fld_analysis = 'NSI_analysis/ORN_LIF_dynamics/' #/sdf_test
-    
-    # stim params
-    stim_params['stim_type']    = 'pl' # 'ts' # 'ss' # 'rs'# 'pl'
-    stim_params['t_tot']        = 10000        # ms 
-    delay                       = 0
-    stim_params['t_on']         =  np.array([500, 500+delay])
-    stim_params['conc0']        = 1.85e-4
-    
-    peaks                       = np.array([5e-4])         # concentration value for ORN1
-    peak_ratio                  = 1e-6                  # concentration ratio: ORN2/ORN1    
-    
-    # plume params    
-    plume_params = dict([
-                        ('whiff_max', 3),
-                        ('blank_max', 25),
-                        ('rho_t_exp', 1),
-                        ('rho_c', 1),
-                        ('stim_seed', np.nan),
-                        ])
-    stim_params['plume_params'] = plume_params
-    
-    fig_orn_dyn = 1
-    max_stim_seed = 3
-    orn_fig_name = '/ORN_lif_dyn_realplume.png'
+
 
 n_lines     = np.size(peaks)
 
@@ -377,14 +352,19 @@ for stim_seed in range(max_stim_seed):
             
             # FIGURE ORN DYNAMICS OR MULTIPLTE PEAKS 
             if fig_orn_dyn:
-                fig_orn = figure_orn.main(params_1sens, orn_lif_out)
+                fig_orn = plot_orn.main(params_1sens, orn_lif_out)
                     
                 if fig_save:
                     fig_orn.savefig(fld_analysis + orn_fig_name)
+                    with open(fld_analysis+'param_1sens.pickle', 'wb') as f:
+                        pickle.dump([params_1sens, ], f)
                                 
             elif fig_multipeaks:
                 figure_multipeaks(output2an, params_1sens, id_c)
                 if fig_save:
                     fig_pn_m.savefig(fld_analysis + fig_name + '.png')
+                    if data_save:
+                        with open(fld_analysis+'param_1sens.pickle', 'wb') as f:
+                            pickle.dump([params_1sens, ], f)
             plt.show()
                         

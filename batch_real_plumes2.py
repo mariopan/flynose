@@ -10,7 +10,7 @@ script name: batch_real_plumes2.py
 
 import timeit
 import pickle        
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import numpy as np
 import datetime
 
@@ -18,14 +18,18 @@ import ORNs_layer_dyn
 import AL_dyn
 import set_orn_al_params
 import stats_for_plumes as stats
-
+import stim_fcn
 import sys
+
+
+
+def tictoc():
+    return timeit.default_timer()
 
 
 now = datetime.datetime.now()
 
 analysis_name   = 'real_plumes'
-n_loops         =  1    # Used for ratio: 10
 
 nsi_ln_par      = [[0,0], [.6, 0], [0, .6], ]
 
@@ -40,23 +44,23 @@ print('real plumes simulations')
     
 
 ## ORN NSI params
-stim_dur  = 100000        # 201000[ms]
+stim_dur  = 10000        # 201000[ms]
 n_seeds   = 1           # 50
     
-w_maxs      = [3, ]#[.01,.03,.3, 3, 25, 50, ] # max value in the whiff distribution
-rhos        = [0, 5] 
+w_maxs      = [.03,.3, 3, 25, 50, ] # max value in the whiff distribution
+rhos        = [0, 1, 3, 5] 
+rhocs       = [0, 0.33, .66, 1] 
 
 # w_maxs  = [.01,.03,.3, 3, 25, 50, ]#[.01,.03,.3, 3, 25, 50, ] # max value in the whiff distribution
 b_maxs  = [25]                      # max value in the blank distribution
-# rhos    = [0,1,3,5] #[0, 1, 3, 5]
-peak    = .5e-4
+peak    = 10e-4
 peak_ratio = 1
 
 sims_to_run = n_seeds*len(nsi_ln_par)*len(w_maxs)*len(b_maxs)*len(rhos)
 print('Number of Simulations to run: %d '%sims_to_run)
 
 # approx 3s per each second of simulation
-Tot_sim_time = sims_to_run*2.5*stim_dur/1000/60/60  # hours
+Tot_sim_time = sims_to_run*3.4*stim_dur/1000/60/60  # hours
 run_sim_time = 0
 print('Estimated Simulation time: %.3g hours (%.1f mins)'%(Tot_sim_time, Tot_sim_time*60))
 endsim = now+datetime.timedelta(hours=Tot_sim_time)
@@ -76,13 +80,13 @@ plume_params        = stim_params['plume_params']
 
 # Stimulus params 
 stim_params['stim_type']    = 'pl' # 'ss'  # 'ts'
-onset_stim                  = 1000
+t0                          = 1000
 stim_params['pts_ms']       = 10
 stim_params['conc0']        = 1.85e-4    # 2.85e-4
 
 
-stim_params['t_tot']       = onset_stim + stim_dur                  # ms 
-stim_params['t_on']        = np.array([onset_stim, onset_stim])    # ms
+stim_params['t_tot']       = t0 + stim_dur                  # ms 
+stim_params['t_on']        = np.array([t0, t0])    # ms
 stim_params['stim_dur']    = np.array([stim_dur, stim_dur]) # ms
 stim_params['concs']       = np.array([peak, peak*peak_ratio])
 
@@ -92,9 +96,9 @@ n_orns_recep                = orn_layer_params[0]['n_orns_recep']   # number of 
 
 verbose                     = False
 data_save                   = 1
-fld_analysis                = 'NSI_analysis/analysis_'+analysis_name+'/'
+fld_analysis                = 'NSI_analysis/analysis_'+analysis_name+'_1/'
 
-sdf_params['tau_sdf']       = 6
+sdf_params['tau_sdf']       = 20
 pn_ln_params['tau_ln']      = 25
 
 n_sens_type       = orn_layer_params.__len__()  # number of type of sensilla
@@ -108,7 +112,17 @@ blank_min   = plume_params['blank_min']      # [s]
 t_tot       = stim_params['t_tot']
 pts_ms      = stim_params['pts_ms']
 
-batch_params = [n_loops,nsi_ln_par,stim_dur,w_maxs,b_maxs, rhos,peak,peak_ratio  ]
+batch_params = dict([
+    ('nsi_ln_par', nsi_ln_par),
+    ('stim_dur', stim_dur),
+    ('w_maxs', w_maxs),
+    ('b_maxs', b_maxs),
+    ('rhos', rhos),
+    ('rhocs', rhocs),
+    ('peak', peak),
+    ('peak_ratio', peak_ratio),
+    ])
+
 
 # save batch and net params 
 if data_save:
@@ -118,28 +132,69 @@ if data_save:
                 pickle.dump(params_al_orn, f)  
 
 #%% RUN BATCHES OF SIMULATIONS
+tic_whole = tictoc()
+
+for id_seed in np.arange(stim_seed_start, stim_seed_start+n_seeds):
     
-for stim_seed in np.arange(stim_seed_start, stim_seed_start+n_seeds):
-    plume_params['stim_seed'] = stim_seed
-    for nsi_str, alpha_ln in nsi_ln_par:
-        for sst in range(n_sens_type):
-            orn_layer_params[sst]['w_nsi']    = nsi_str
-            pn_ln_params['alpha_ln']        = alpha_ln
-        for b_max in b_maxs:
-            plume_params['blank_max'] = b_max
-            for w_max in w_maxs:
-                plume_params['whiff_max'] = w_max
+# for id_seed in range(n_seeds):
+    for b_max in b_maxs:
+        plume_params['blank_max'] = b_max
+        for w_max in w_maxs:
+            plume_params['whiff_max'] = w_max
                 
-                # CALCULATE THE THEORETICAL MEAN WHIFF, MEAN BLANK DURATIONS AND INTERMITTENCY
-                pdf_wh, logbins, wh_mean = stats.whiffs_blanks_pdf(whiff_min, w_max, g)
-                pdf_bl, logbins, bl_mean = stats.whiffs_blanks_pdf(blank_min, b_max, g)
-                
-                interm_th = wh_mean/(wh_mean+bl_mean)
-                for rho_t_exp in rhos:
-                    # set stim_params
-                    plume_params['rho_t_exp'] = rho_t_exp
+            # CALCULATE THE THEORETICAL MEAN WHIFF, MEAN BLANK DURATIONS AND INTERMITTENCY
+            pdf_wh, logbins, wh_mean = stats.whiffs_blanks_pdf(whiff_min, w_max, g)
+            pdf_bl, logbins, bl_mean = stats.whiffs_blanks_pdf(blank_min, b_max, g)
             
+            interm_th = wh_mean/(wh_mean+bl_mean)
+            
+            ########################################################
+            # choose a good seed for all inh and rho conditions
+            n_attempts = 500
+            diff_ab = np.ones((n_attempts))
+            
+            rand_list  = np.random.randint(2000, size=n_attempts)
+            diff_min = .05#0.01
+
+            
+            for ii in range(n_attempts):
+                stim_params['stim_seed']   = rand_list[ii]
+                plume_params['rho_t_exp']   = 0         # [0, 5]
+                plume_params['rho_c']       = 0         # [0, 1]
+                u_od = stim_fcn.main(stim_params)
+                out_w = u_od[t0:, 0]
+                out_s = u_od[t0:, 1]
+                diff_ab[ii] = abs(np.mean(out_s) -np.mean(out_w))/np.mean(out_s+out_w)
+                
+                plume_params['rho_t_exp']   = 5         # [0, 5]
+                plume_params['rho_c']       = 1         # [0, 1]
+                u_od = stim_fcn.main(stim_params)
+                out_w_hi = u_od[t0:, 0]
+                
+                diff_ab[ii] += abs(np.mean(out_w_hi) -np.mean(out_w))/np.mean(out_w_hi+out_w)
+            
+                min_diff_ab = np.min(diff_ab)
+                if min_diff_ab<diff_min:
+                    break
+             
+            stim_seed   = rand_list[np.argmin(diff_ab,)]    
+            stim_params['stim_seed'] = stim_seed
+            print('seed: %d'%stim_seed)
+            ############################################
+            
+            for id_rho, rho_t_exp in enumerate(rhos):
+                
+                # set stim_params
+                plume_params['rho_t_exp'] = rho_t_exp
+                rho_c = rhocs[id_rho]
+                plume_params['rho_c'] = rho_c
+        
                             
+                for nsi_str, alpha_ln in nsi_ln_par:
+                    pn_ln_params['alpha_ln']        = alpha_ln
+                    for sst in range(n_sens_type):
+                        orn_layer_params[sst]['w_nsi']    = nsi_str
+                        
                     tic = timeit.default_timer()
                     
                     # RUN flynose SIMULATIONS                    
@@ -156,7 +211,7 @@ for stim_seed in np.arange(stim_seed_start, stim_seed_start+n_seeds):
                     eff_dur = (toc-tic)
                     
                     # CALCULATE AND SAVE DATA
-                    t_id_stim = np.flatnonzero((t>onset_stim) & (t<onset_stim + stim_dur))
+                    t_id_stim = np.flatnonzero((t>t0) & (t<t0 + stim_dur))
                     
                     od_avg_1 = np.mean(u_od[t_id_stim, 0])
                     od_avg_2 = np.mean(u_od[t_id_stim, 1])
@@ -178,10 +233,10 @@ for stim_seed in np.arange(stim_seed_start, stim_seed_start+n_seeds):
                     
                     
                     
-                    id_stim_1 = np.flatnonzero((pn_sdf_time>onset_stim) & 
-                                               (pn_sdf_time<onset_stim + stim_dur))
-                    id_stim_2 = np.flatnonzero((pn_sdf_time>onset_stim) & 
-                                               (pn_sdf_time<onset_stim + stim_dur))
+                    id_stim_1 = np.flatnonzero((pn_sdf_time>t0) & 
+                                               (pn_sdf_time<t0 + stim_dur))
+                    id_stim_2 = np.flatnonzero((pn_sdf_time>t0) & 
+                                               (pn_sdf_time<t0 + stim_dur))
                     
                     pn_peak_1  = np.max(np.mean(pn_sdf[id_stim_1, :n_pns_recep], axis=1)) # using average PN
                     pn_peak_2  = np.max(np.mean(pn_sdf[id_stim_2, n_pns_recep:], axis=1)) # using average PN
@@ -216,7 +271,7 @@ for stim_seed in np.arange(stim_seed_start, stim_seed_start+n_seeds):
                         '_ln_%.1f'%(alpha_ln) +\
                         '_rho_%d'%(rho_t_exp) +\
                         '_wmax_%.2f'%(w_max) +\
-                        '_seed_%d'%stim_seed +\
+                        '_seed_%d'%id_seed +\
                         '.pickle'
 
                     output2an = dict([
@@ -246,5 +301,6 @@ for stim_seed in np.arange(stim_seed_start, stim_seed_start+n_seeds):
                     print('Remaining Simulations to run: %d '%(sims_to_run))
                     print('Approx Remaining time: %.0f mins'%(sims_to_run*(toc-tic)/60))
     
-    print('Tot sim time:%.0f mins'%(run_sim_time))
 	    
+toc_whole = (tictoc()-tic_whole)/3600 # [hours]
+print('Tot time: %.2f hours'%toc_whole)

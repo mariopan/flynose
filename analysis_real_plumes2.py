@@ -4,7 +4,8 @@
 Created on Thu Jul 11 13:49:09 2019
 
 @author: mp525
-analysis_loops_real_plumes.py
+analysis_real_plumes2.py
+
 """
 
 import numpy as np
@@ -39,36 +40,69 @@ cmap    = plt.get_cmap('rainbow')
 # *****************************************************************
 name_analysis   = 'real_plumes'
 
-fld_analysis    = 'NSI_analysis/analysis_'+name_analysis+'/' #'NSI_analysis/analysis_real_plumes_30s_peak1.5/'     
-
+fld_analysis    = 'NSI_analysis/analysis_'+name_analysis+'_1/'
+fld_analysis    = 'NSI_analysis/analysis_real_plumes_10s_peak2e-4_tauln250_tausdf20_rhocs0-1_rhos0-5/'
+fld_analysis    = 'NSI_analysis/analysis_real_plumes_10s_peak10e-4_tauln250_tausdf20_rhocs0-1_rhos0-5/'
+fld_analysis    = 'NSI_analysis/analysis_real_plumes_10s_peak20e-4_tauln250_tausdf20_rhocs1-1_rhos0-5/'
+fld_analysis    = 'NSI_analysis/analysis_real_plumes_10s_peak20e-4_tauln250_tausdf20_rhocs0-1_rhos0-5/'
+# fld_analysis    = 'NSI_analysis/analysis_real_plumes_10s_peak20e-4_tauln250_tausdf20_rhocs0-1_rhos0-5/'
+# fld_analysis    = 'NSI_analysis/analysis_real_plumes_10s_peak20e-4_tauln25_tausdf20_rhocs0-1_rhos0-5/'
 # ORN NSI params
 nsi_ln_par      = [[0,0],  [0, .6], [.6, 0],]
-seeds           = np.arange(1, 45)
+seeds           = np.arange(1, 30)
 
 fld_output      = fld_analysis
 
 
 # LOAD EXPERIMENT PARAMETERS
 batch_params    = pickle.load(open(fld_analysis+name_analysis+'_batch_params.pickle', "rb" ))
-[n_loops, nsi_ln_par, stim_dur, w_maxs, b_maxs, rhos, peak, peak_ratio  ] = batch_params 
+nsi_ln_par = batch_params['nsi_ln_par']
+stim_dur = batch_params['stim_dur']
+w_maxs = batch_params['w_maxs']
+b_maxs = batch_params['b_maxs']
+rhos = batch_params['rhos']
+# rhocs, peak, peak_ratio  
 
 params_al_orn   = pickle.load(open(fld_analysis +name_analysis+'_params_al_orn.ini',  "rb" ))
 stim_params     = params_al_orn['stim_params']
 
+# Output params
+avg_fig         = 1     # b and c) Response of ORNs and PNs averaged over 200s 
+                        # for the three models: control model (dot dashed pink), 
+                        # LN model (orange continuous), and NSI model (dashed cyan). 
+                        # d) Total PN activity above 150 Hz, for 3 ms maximum whiff durations.
 
-avg_fig         = 1     # Fig.AverPNActivity
-peak_fig        = 1     # Figsupp.PeakPN_thr
-avgplume_fig    = 0    # FigSupp.AverCorr (Supp materials)
-resumen_fig     = 0     # Fig.PeakPN_resumen
-thrwmax_fig     = 0     # Fig.PeakPN_wmax
 
-thrs        = [50, 100, 150] # thr
-fig_save    = 0
-fig_name    = 'dur_%d'%stim_dur + \
-            '_nsi_%.2f'%(np.max(nsi_ln_par, axis=0)[0]) +\
-            '_ln_%.1f'%(np.max(nsi_ln_par, axis=0)[1])             
+peak_fig        = 0     # a-c) total PN activity above 50, 100, 150 Hz respectively, 
+                        # for 3 ms maximum whiff durations
 
-#%% *******************************************************************
+
+thrwmax_fig     = 0     # a) Peak PN for threshold 150 Hz, and for 
+                        #    different subsets of whiff durations (from 0.01 
+                        #    to 50s) for the three models: control model (dot 
+                        #    dashed pink), LN model (orange continuous), and 
+                        #    NSI model (dashed cyan). Note that the horizontal 
+                        #    axis has a log-scale. 
+
+
+resumen_fig     = 1     # b) Distance between the PN activity of ctrl model 
+                        #   and the NSI model (or LN model), at 0 correlation, 
+                        #   $p^0_{ctrl}-p^0_{x}$ with $x \in $ (NSI,LN). 
+                        # c) Distance between the PN activity of NSI model 
+                        #   (or LN model) at 0 correlation and at correlation 1, 
+                        #   $p^0_{x}-p^1_{x}$ with $x \in $ (NSI,LN).
+                        
+
+avgplume_fig    = 0     # Aver. values of Corr, intermittency observed in the simulations
+
+
+fig_save        = 1
+fig_name        = 'dur_%d'%stim_dur + \
+                    '_nsi_%.2f'%(np.max(nsi_ln_par, axis=0)[0]) +\
+                    '_ln_%.1f'%(np.max(nsi_ln_par, axis=0)[1])             
+thrs2plot            = [150]#[50, 100, 150] # thr
+
+# *******************************************************************
 # DATA ANALYSIS 
 
 
@@ -91,7 +125,7 @@ orn_avg2 = np.zeros((n_rhos, 3, n_seeds, n_wmax,))
 pn_avg1 = np.zeros((n_rhos, 3, n_seeds, n_wmax,))
 pn_avg2 = np.zeros((n_rhos, 3, n_seeds, n_wmax,))
 
-# performance thrs measures
+# performance thrs2plot measures
 pn_m50_1 = np.zeros((n_rhos, 3, n_seeds, n_wmax,))
 pn_m50_2 = np.zeros((n_rhos, 3, n_seeds, n_wmax,))
 pn_m100_1 = np.zeros((n_rhos, 3, n_seeds, n_wmax,))
@@ -154,22 +188,27 @@ for seed_id, stim_seed in enumerate(seeds):
                 perf_avg = output2an['perf_avg']
                  
                 # performance measure #3
-                pn_m50_1[rho_id, id_inh, seed_id, w_max_id,]  = perf_avg[0,0]*perf_time[0,0]/1e3
-                pn_m100_1[rho_id, id_inh, seed_id, w_max_id,]  = perf_avg[0,1]*perf_time[0,1]/1e3
-                pn_m150_1[rho_id, id_inh, seed_id, w_max_id,]  = perf_avg[0,2]*perf_time[0,2]/1e3
+                perf_tot  = perf_avg*perf_time
+                pn_m50_1[rho_id, id_inh, seed_id, w_max_id,]  = perf_tot[0,0]/1e3
+                pn_m100_1[rho_id, id_inh, seed_id, w_max_id,]  = perf_tot[0,1]/1e3
+                pn_m150_1[rho_id, id_inh, seed_id, w_max_id,]  = perf_tot[0,2]/1e3
                 
-                pn_m50_2[rho_id, id_inh, seed_id, w_max_id,] = perf_avg[1,0]*perf_time[1,0]/1e3
-                pn_m100_2[rho_id, id_inh, seed_id, w_max_id,] = perf_avg[1,1]*perf_time[1,1]/1e3
-                pn_m150_2[rho_id, id_inh, seed_id, w_max_id,] = perf_avg[1,2]*perf_time[1,2]/1e3
+                pn_m50_2[rho_id, id_inh, seed_id, w_max_id,] = perf_tot[1,0]/1e3
+                pn_m100_2[rho_id, id_inh, seed_id, w_max_id,] = perf_tot[1,1]/1e3
+                pn_m150_2[rho_id, id_inh, seed_id, w_max_id,] = perf_tot[1,2]/1e3
                 
 
 
-# *********************************************************
-## FIGURE Fig.AverPNActivity
+#%% *********************************************************
+
 if avg_fig:
-    w_max_id = 3
+    """ FIGURE Fig.AverPNActivity
+    b and c) Response of ORNs and PNs averaged over 200s 
+        for the three models: control model (dot dashed pink), 
+        LN model (orange continuous), and NSI model (dashed cyan). 
+    d) Total PN activity above 150 Hz, for 3 ms maximum whiff durations."""
     
-    
+    w_max_id = 0
     
     fig2 = plt.figure(figsize=(12,4), ) 
     rs = 1
@@ -181,10 +220,11 @@ if avg_fig:
     ax_peak = plt.subplot(rs,cs, 3)
     
     corr_th = np.array(rhos)
-    corr_obs = np.mean(np.squeeze(cor_stim[:, :, 3,]), axis=1)
+    corr_obs = np.mean(np.squeeze(cor_stim[:, :, w_max_id,]), axis=1)
                                     #[rho_id, id_inh,seed_id,w_max_id,]
                                     #[rho_id, id_inh,seed_id] 
-     
+    orn_avg1 = .5*(orn_avg1+orn_avg2)
+    pn_avg1 = .5*(pn_avg1+ pn_avg2)
     ax_orn.errorbar(corr_obs, np.squeeze(np.mean(orn_avg1[:, 0, :, w_max_id,], axis=1)),
                   yerr=np.squeeze(np.std(orn_avg1[:, 0, :, w_max_id,], axis=1))/
                   (np.size(orn_avg1[:, 0, :, w_max_id,],axis=1))**.5, linewidth=lw, ls='-.', 
@@ -270,19 +310,20 @@ if avg_fig:
     if fig_save:
         fig2.savefig(fld_output+  '/NSI_AverActiv_'+fig_name+'.png')
 
-# *********************************************************
-## FIGURE Fig.PeakPNActivity
+#%% *********************************************************
+
 
 if peak_fig:
-
+    """ FIGURE Fig.PeakPNActivity """
+    w_max_id = 0
     rs = 1
     cs = 3
-    corr_obs = np.mean(np.squeeze(cor_stim[:, :, 3,]), axis=1)
+    corr_obs = np.mean(np.squeeze(cor_stim[:, :, 0,]), axis=1)
      
     fig, axs = plt.subplots(rs, cs, figsize=(9, 4), ) 
-    w_max_id = 3
     
-    for thr_id, thr in enumerate(thrs):
+    
+    for thr_id, thr in enumerate(thrs2plot):
         if thr == 50:
             pn_tmp = .5*(pn_m50_2+pn_m50_1)           
             panel_id = 'a'
@@ -349,7 +390,7 @@ if thrwmax_fig:
     cs = n_wmax    
 
     corr_tmp = np.array(rhos)
-    for thr in thrs:
+    for thr in thrs2plot:
         fig, axs = plt.subplots(rs, cs, figsize=(9,2.5), ) 
         
         for w_max_id, w_max in enumerate(w_maxs):
@@ -414,13 +455,12 @@ if thrwmax_fig:
         
 #%%**********************************************************
 # FIGURE: Fig.PeakPN_resumen
-
 if resumen_fig:
     
     cs = 2
     rs = 1
     
-    for thr_id, thr in enumerate(thrs):
+    for thr_id, thr in enumerate(thrs2plot):
         fig, axs = plt.subplots(rs, cs, figsize=(9,4), )
 
         # pn_m50_1[rho_id, id_inh,seed_id,w_max_id,]
@@ -437,13 +477,20 @@ if resumen_fig:
         pn_tmp0 = np.squeeze(np.mean(pn_tmp[0, :,:,:,], axis=1)) # PN, corr = 0 
         pn_tmp1 = np.squeeze(np.mean(pn_tmp[-1, :,:,:,], axis=1)) # PN, corr = 1
         
-        delta_ln1 = np.squeeze(pn_tmp1[0,:] - pn_tmp1[2,:])
-        delta_ln0 = np.squeeze(pn_tmp0[0,:] - pn_tmp0[2,:])
-        delta_nsi1 = np.squeeze(pn_tmp1[0,:] - pn_tmp1[1,:])
-        delta_nsi0 = np.squeeze(pn_tmp0[0,:] - pn_tmp0[1,:])
         
-        delta_nsi10 = np.squeeze(pn_tmp0[1,:] - pn_tmp1[1,:])
-        delta_ln10 = np.squeeze(pn_tmp0[2,:] - pn_tmp1[2,:])
+        if len(pn_tmp0)==3:
+            delta_nsi0 = pn_tmp0[0] - pn_tmp0[1]
+            delta_ln0 = pn_tmp0[0] - pn_tmp0[2]
+            
+            delta_nsi10 = pn_tmp0[1] - pn_tmp1[1]
+            delta_ln10 = pn_tmp0[2] - pn_tmp1[2]
+        else:
+            
+            delta_ln0 = np.squeeze(pn_tmp0[0,:] - pn_tmp0[2,:])
+            delta_nsi0 = np.squeeze(pn_tmp0[0,:] - pn_tmp0[1,:])
+            
+            delta_nsi10 = np.squeeze(pn_tmp0[1,:] - pn_tmp1[1,:])
+            delta_ln10 = np.squeeze(pn_tmp0[2,:] - pn_tmp1[2,:])
         
         axs[0].plot(w_maxs, delta_ln0, '*-', color=orange, label=r'$x$=LN, $\rho=$0')
         axs[0].plot(w_maxs, delta_nsi0, '.-', color=cyan, label=r'$x$=NSI, $\rho=$0')
@@ -499,6 +546,8 @@ if resumen_fig:
 ## FIGURE Fig.AverPlumeCorr
 
 if avgplume_fig:
+    id_w_max2plot = 0
+    
     fig2 = plt.figure(figsize=(12,4), ) 
     rs = 1
     cs = 2
@@ -509,21 +558,21 @@ if avgplume_fig:
 
     corr_th = np.array(rhos)
     
-    corr_obs = np.mean(np.squeeze(cor_stim[:, :,3,]), axis=1)
-    corr_obs_err = (np.std(np.squeeze(cor_stim[:, :,3,]), axis=1)/
-                        np.size(np.squeeze(cor_stim[:, :,3,]))**0.5)
-    overlap_obs = np.mean(np.squeeze(overlap_stim[:, :,3,]), axis=1)
-    overlap_obs_err= (np.std(np.squeeze(overlap_stim[:, :,3,]), axis=1)/
-                        np.size(np.squeeze(overlap_stim[:, :,3,]))**0.5)
+    corr_obs = np.mean(np.squeeze(cor_stim[:, :, id_w_max2plot,]), axis=1)
+    corr_obs_err = (np.std(np.squeeze(cor_stim[:, :, id_w_max2plot,]), axis=1)/
+                        np.size(np.squeeze(cor_stim[:, :, id_w_max2plot,]))**0.5)
+    overlap_obs = np.mean(np.squeeze(overlap_stim[:, :, id_w_max2plot,]), axis=1)
+    overlap_obs_err= (np.std(np.squeeze(overlap_stim[:, :, id_w_max2plot,]), axis=1)/
+                        np.size(np.squeeze(overlap_stim[:, :, id_w_max2plot,]))**0.5)
     
-    interm_av_th = np.mean(np.squeeze(interm_th[:, :,3,]), axis=1)
-    interm_obs = np.mean(np.squeeze(interm_est_1[:, :,3,]), axis=1)
-    interm_obs_err = (np.std(np.squeeze(interm_est_1[:, :,3,]), axis=1)/
-                      np.size(np.squeeze(interm_est_1[:, :,3,]))**0.5)
+    interm_av_th = np.mean(np.squeeze(interm_th[:, :, id_w_max2plot,]), axis=1)
+    interm_obs = np.mean(np.squeeze(interm_est_1[:, :, id_w_max2plot,]), axis=1)
+    interm_obs_err = (np.std(np.squeeze(interm_est_1[:, :, id_w_max2plot,]), axis=1)/
+                      np.size(np.squeeze(interm_est_1[:, :, id_w_max2plot,]))**0.5)
     
                                     #[rho_id, id_inh,seed_id,w_max_id,]
                                     #[rho_id, id_inh,seed_id] 
-    ax_conc.errorbar(corr_obs, np.squeeze(np.mean(od_avg1[:, 0, :,3,], axis=1)),
+    ax_conc.errorbar(corr_obs, np.squeeze(np.mean(od_avg1[:, 0, :, id_w_max2plot,], axis=1)),
                   yerr= .1, linewidth=lw, fmt='o', color='green',label='Glo 1')
 
     # SETTINGS

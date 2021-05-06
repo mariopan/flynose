@@ -119,7 +119,7 @@ def fig_pn_distr():
 # *****************************************************************
 fig_save        = 1
 
-id_peak2plot    = 0
+id_peak2plot    = 3
 measure         = 'avg'            # 'avg' # 'peak' # 
 corr_mi         = 'mi'            # 'corr' # 'mi'
 delay_fig       = 1              # Fig.ResumeDelayedStimuli
@@ -129,9 +129,11 @@ nsi_ln_par   = [[0,0],[.6, 0],[0, .6],]
 
 if delay_fig:
     print('Delays analysis, rate measured on '+measure)
-    fld_analysis    = 'NSI_analysis/analysis_delays/'
+    # fld_analysis    = 'NSI_analysis/analysis_delays_tauln250_tausdf41/'
+    fld_analysis    = 'NSI_analysis/analysis_delays_tauln250_tausdf41/'
     fld_output      = fld_analysis
     name_analysis   = 'delays'
+    
 else:
     print('Ratio analysis, rate measured on '+measure+', ' + corr_mi)
     fld_analysis    = 'NSI_analysis/analysis_ratio/'                
@@ -142,8 +144,17 @@ else:
 batch_params    = pickle.load(open(fld_analysis+name_analysis+'_batch_params.pickle', "rb" ))
 [n_loops, conc_ratios, concs2an, _, dur2an, delays2an,] = batch_params
 
+n_loops = batch_params['n_loops']
+conc_ratios = batch_params['conc_ratios']
+concs2an = batch_params['concs2an']
+nsi_ln_par = batch_params['nsi_ln_par']
+dur2an = batch_params['dur2an']
+delays2an = batch_params['delays2an']
+
+
 params_al_orn   = pickle.load(open(fld_analysis +name_analysis+'_params_al_orn.ini',  "rb" ))
 stim_params     = params_al_orn['stim_params']
+tau_ln          = params_al_orn['pn_ln_params']['tau_ln']
 
 if delay_fig==0:
     delays2an=[0,]
@@ -399,7 +410,7 @@ for delay_id, delay in enumerate(delays2an):
 #%% FIGURE ResumeDelayedStimuli ############################################
 if delay_fig:
     y_ticks = np.linspace(0, 2, 5)
-    fig, axs = plt.subplots(1, n_durs, figsize=(17, 6.3), ) 
+    fig, axs = plt.subplots(1, n_durs, figsize=(17, 6.3), sharey=True) 
     for dur_id in range(n_durs):
         duration = dur2an[dur_id]
         
@@ -431,13 +442,13 @@ if delay_fig:
         axs[dur_id].spines['top'].set_color('none')     
 #        axs[dur_id].tick_params(axis='both', which='major', labelsize=label_fs-3)
         
-        axs[dur_id].set_yticks(y_ticks)
+        # axs[dur_id].set_yticks(y_ticks)
         if dur_id>0:
             axs[dur_id].set_yticklabels('', fontsize=label_fs-5)
         axs[dur_id].set_xticks([0, 250, 500])
         axs[dur_id].set_xticklabels(['0','250','500'], fontsize=label_fs-5)
 
-        axs[dur_id].set_ylim((.6, 1.3))
+        axs[dur_id].set_ylim((.3, 1.7))
         
         # original plot position:
         ll, bb, ww, hh = axs[dur_id].get_position().bounds
@@ -445,7 +456,7 @@ if delay_fig:
         
     axs[0].set_yticks([0,.5,1.0,1.5])
     axs[0].set_yticklabels([0,.5,1.0,1.5], fontsize=label_fs-5)
-    axs[0].set_ylim((.6, 1.3))
+    axs[0].set_ylim((.3, 1.7))
     
     
     conc2plot = np.squeeze(concs2an[id_peak2plot]) #  conc_1_r[0,id_peak2plot,0])
@@ -453,16 +464,16 @@ if delay_fig:
     axs[2].set_xlabel('Delay (ms)', fontsize=fs)
     axs[1].legend(fontsize=fs-2, frameon=False)
 
-    axs[0].text(-.2, 1.2, 'a', transform=axs[0].transAxes,
+    axs[0].text(-.2, 1.2, 'b', transform=axs[0].transAxes,
            fontsize=panel_fs, color=black, weight='bold', va='top', ha='right')
     plt.show()
     
     
     if fig_save:
         if measure == 'avg':
-            fig.savefig(fld_output+  '/delays_avg_delays0-500_dur20-200_conc%.2g'%conc2plot +'.png')
+            fig.savefig(fld_output+  '/delays_avg_delays0-500_dur20-200_conc%.2g'%conc2plot +'_tauln%d'%tau_ln+'.png')
         elif measure == 'peak':
-            fig.savefig(fld_output+  '/delays_peak_delays0-500_dur20-200_conc%.2g'%conc2plot +'.png')
+            fig.savefig(fld_output+  '/delays_peak_delays0-500_dur20-200_conc%.2g'%conc2plot +'_tauln%d'%tau_ln+'.png')
    
 
 #%% *********************************************************
