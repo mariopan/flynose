@@ -122,15 +122,15 @@ def orn_lif0(params2fit, *args):
     # [tau_v, vrest, vrev, ] = params2fit#([.6, 1, .09, 
     # 2, .5, 12, ])
     #.5, 1, .25, .002])
-    [tau_v, vrest, vrev, ] = [ 2, .5, 12, ]
-    [n, alpha_r, beta_r, ] = [.6, 1, .09, ]
-    [ g_y, g_r, alpha_y, beta_y] = [.5, 1, .25, .002]
-    conc0 = 2*1e-3
+    # [tau_v, vrest, vrev, ] = [ 2, .5, 12, ]
+    # [n, alpha_r, beta_r, ] = [.6, 1, .09, ]
+    # [ g_y, g_r, alpha_y, beta_y] = [.5, 1, .25, .002]
+    # conc0 = 2*1e-3
     
     [n, alpha_r, beta_r, 
-     tau_v, vrest, vrev, 
+     tau_v, vrest,  
      g_y, g_r, alpha_y, beta_y, 
-     conc0, tau_sdf] =  params2fit
+     conc0, tau_sdf,] =  params2fit
     
     # analysis params
     # tau_sdf = 50
@@ -156,10 +156,10 @@ def orn_lif0(params2fit, *args):
                         ('beta_r', beta_r),
         # LIF params
                         ('t_ref', 2*stim_params['pts_ms']), # ms; refractory period 
-                        ('theta', 1),                 # [mV] firing threshold
+                        ('theta', -30),                 # [mV] firing threshold
                         ('tau_v', tau_v),        # [ms]
                         ('vrest', -vrest),      # [mV] resting potential
-                        ('vrev', vrev),  # [mV] reversal potential
+                        ('vrev', 0),  # [mV] reversal potential
                         # ('v_k', vrest),
                         ('g_y', g_y),       
                         ('g_r', g_r),       
@@ -353,54 +353,63 @@ if orn_model == 'dp':
 
 elif orn_model == 'lif':
     orn_func        = orn_lif0 
+    
+    
     # [n, alpha_r, beta_r, 
-    #  tau_v, vrest, vrev, 
-    # g_y, g_r, alpha_y, beta_y, conc0] = params2fit
-    params2fit = np.array([.6, 3, .09, 
-                           2, .5, 12, 
-                           .5, 1, .25, .002,
-                           2*1e-6])
-    [n, alpha_r, beta_r, 
-     tau_v, vrest, vrev, 
-     g_y, g_r, alpha_y, beta_y, 
-     conc0,] =  params2fit
-    params2fit = [7.5e-01, 1.129e1, 7.31e-02, 2.8e+00,
-     6.53e-01, 1.665e+01, 8.0685e-01, 6.57e-01,
-     2.26e-01, 3.405e-03, 1.598e-04,] # good params fit obtained with 50 tpts
-    params2fit = [9.093e-01, 1.842e+01, 5.006e-02, 2.3e+00,
-                  1.427e+00, 1.9134e+01, 1.131808e+00, 8.2575e-01,
-                  1.4928e-01, 3.061e-03, 3.64e-04,]# good params fit obtained with 200 tpts
-    params2fit = [8.22066870e-01, 1.26228808e+01, 7.6758436748e-02, 2.26183540e+00,
-                  9.69461053e-01, 2.11784081e+01, 5.853575783e-01, 8.64162073e-01,
-                  4.5310619e-01, 3.467184e-03, 2.853669391e-04, 41] # loss='soft_l1', 
-    # f_scale=0.1, 
-
+    #  tau_v, -vrest, 
+    #  g_y, g_r, alpha_y, beta_y, 
+    #  conc0, tau_sdf, ] =  params2fit
+    
+    # fit with old params no plaus neurophys:
+    # params2fit = [8.22066870e-01, 1.26228808e+01, 7.6758436748e-02, 2.26183540e+00,
+    #               9.69461053e-01, 2.11784081e+01, 5.853575783e-01, 8.64162073e-01,
+    #               4.5310619e-01, 3.467184e-03, 2.853669391e-04, 41] # loss='soft_l1', # f_scale=0.1, 
+    
+    params2fit = [.82, 12.62*100**.82, 0.076, 
+                  2.26, 33, 
+                  6e-01, 0.86, 0.45, 3.4e-03, 
+                  2.85e-06, 41,] # loss='soft_l1', 
+    
+    
+    # # ORN Parameters 
+    # orn_params  = dict([
+    #             # LIF params
+    #                     ('t_ref', 2*stim_params['pts_ms']), # ms; refractory period 
+    #                     ('theta', -30), # 1),                 # [mV] firing threshold
+    #                     ('tau_v', 2.26183540),        # [ms]
+    #                     ('vrest', -33), #-0.969461053),      # [mV] resting potential
+    #                     ('vrev', 0), #21.1784081),  # [mV] reversal potential
+    #                     # ('v_k', vrest),
+    #                     ('g_y', 0.3), #  .5853575783),       
+    #                     ('g_r', .864162073),  
+    #                     ('r0', 0.15), 
+    #                     ('y0', .5), 
+    #             # Adaptation params
+    #                     ('alpha_y', .45310619), 
+    #                     ('beta_y', 3.467184e-03), 
+    #                     ])
+    
+    # # SDF/Analysis params
+    # sdf_params      = dict([
+    #                     ('tau_sdf', 41),
+    #                     ('dt_sdf', 5),
+    #                     ])
 
 file_names = ['ethyl_ab3A_10.csv', 'ethyl_ab3A_17.csv', 'ethyl_ab3A_20.csv', 
                   'ethyl_ab3A_22.csv', 'ethyl_ab3A_27.csv', 'ethyl_ab3A_30.csv',
                   'ethyl_ab3A_35.csv', 'ethyl_ab3A_40.csv', 'ethyl_ab3A_80.csv',]
     
 concs_obs       = np.array([10, 20,30, ]) # list of concentrations to list
-concs_sim       = 10**-np.array(concs_obs/10) # list of concentrations to list
+concs_sim       = .01* 10**-np.array(concs_obs/10) # list of concentrations to list
 n_cs            = len(concs_obs)
 
 # extract observed ORN and simulate with standard params
 fig = plt.figure()
 ax = fig.subplots(1, 1,)
 nu_obs_all = figure_fit(params2fit, ax)
-# ax.set_title('params default')
 plt.show()
-# fig.savefig(fld_analysis + fig_name + 'default.png')
 
-# with open(fld_analysis+ data_name +'default.pickle', 'wb') as f:
-#         saved_pars = ['t_tot', 't_on','t_tot_fit', 't_on_fit', 'delay_obs', 
-#                       'pts_ms', 'n_tpts', 't_fit', 't_fit_obs', 'params2fit',
-#                       'nu_obs_all', 'concs_obs',
-#                       'concs_sim', 'file_names', ]
-#         pickle.dump([t_tot, t_on, t_tot_fit, t_on_fit, delay_obs, 
-#                      pts_ms, n_tpts, t_fit, t_fit_obs, params2fit,
-#                      nu_obs_all, concs_obs,
-#                      concs_sim, file_names, saved_pars], f)
+
 
 
 #*********************************************
@@ -411,12 +420,6 @@ args_fit        = np.concatenate((args_fit, concs_sim))
 dnu = leastsq_orn(params2fit, *args_fit)
 cost_est = 0.5 * np.sum(dnu**2)
 print('estimated cost: %.f2'%cost_est)
-# args0 = [t_tot, t_on, concs_sim[0]]
-# [t_sim, nu_sim] = orn_lif0(params2fit, *args0)
-# interpolate simulated activity values
-# nu_sim_fcn = interp1d(t_sim, nu_sim)
-# y_fit = nu_sim_fcn(t_fit)
-
 
 
 #%% FIT OBSERVED DATA TO SIMULATIONS
@@ -486,7 +489,7 @@ while bad_fit:
                       'pts_ms', 'n_tpts', 't_fit', 't_fit_obs', 'params2fit',
                       'nu_obs_all', 'concs_obs', 'concs_sim', 'file_names', 
                       'params_0', 'args_fit', 'lb', 'ub', 
-                     'diff_step', 'res_lsq', 'res_lsq']
+                     'diff_step', 'res_lsq',]
         pickle.dump([t_tot, t_on, t_tot_fit, t_on_fit, delay_obs, 
                      pts_ms, n_tpts, t_fit, t_fit_obs, params2fit,
                      nu_obs_all, concs_obs, concs_sim, file_names, 

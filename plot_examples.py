@@ -60,8 +60,9 @@ def orn_al_settings(axs):
     axs[1].set_title(r' ORN  ', fontsize=title_fs)
     axs[2].set_title(r' PN  ', fontsize=title_fs)
 
-    axs[0].text(-.2, 1.0, 'a', transform=axs[0].transAxes, 
-         fontsize=panel_fs, fontweight='bold', va='top', ha='right')
+    if fig_id == 'ts_a':
+        axs[0].text(-.2, 1.0, 'a', transform=axs[0].transAxes, 
+            fontsize=panel_fs, fontweight='bold', va='top', ha='right')
     
     # vertical/horizontal lines for time/Hz scale
     if fig_id=='ts_a':
@@ -214,6 +215,8 @@ def orn_al_diag_settings(axs):
     if (fig_id=='ts_a') | (fig_id=='pl'):
         axs[0, 0].text(.05, 1.4, 'a', transform=axs[0,0].transAxes, 
                  fontsize=panel_fs, fontweight='bold', va='top', ha='right')
+    
+    
     if fig_id=='ts_a':
         x4text = 280
     elif fig_id=='ts_s':
@@ -317,7 +320,7 @@ n_sens_type         = orn_layer_params.__len__()  # number of type of sensilla
 # ORN NSI params
 
 # fig_id options:  # 'ts_s' #  'ts_a' # 'pl'
-fig_id                  = 'ts_a' 
+fig_id                  = 'ts_s' 
 
 fld_analysis            = 'NSI_analysis/triangle_stim/'
 nsi_str                 = 0.6
@@ -326,7 +329,7 @@ pn_ln_params['tau_ln']  = 250
 
     
 # figure and output options
-fig_save    = 0
+fig_save    = 1
 data_save   = 0    
 verbose     = 0
 olsen_fig   = 0
@@ -399,7 +402,7 @@ pn_sdf_all      = np.zeros((n_lines, sdf_size, n_neu*n_pns_recep))
 
 tic = timeit.default_timer()
 
-peaks                       = [0.001, 0.005] #[5e-4] #[1.85e-4, 5e-4, 1.5e-3, 2e-2, 2e-1]
+peaks                       = [1.85e-4, 5e-4, 1.5e-3, 2e-2, 2e-1]#[0.001, 0.005] #[5e-4] 
 n_peaks = len(peaks)
 time2analyse = 200
 

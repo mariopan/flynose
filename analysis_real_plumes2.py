@@ -41,11 +41,11 @@ cmap    = plt.get_cmap('rainbow')
 name_analysis   = 'real_plumes'
 
 fld_analysis    = 'NSI_analysis/analysis_'+name_analysis+'_1/'
-fld_analysis    = 'NSI_analysis/analysis_real_plumes_10s_peak2e-4_tauln250_tausdf20_rhocs0-1_rhos0-5/'
-fld_analysis    = 'NSI_analysis/analysis_real_plumes_10s_peak10e-4_tauln250_tausdf20_rhocs0-1_rhos0-5/'
-fld_analysis    = 'NSI_analysis/analysis_real_plumes_10s_peak20e-4_tauln250_tausdf20_rhocs1-1_rhos0-5/'
-fld_analysis    = 'NSI_analysis/analysis_real_plumes_10s_peak20e-4_tauln250_tausdf20_rhocs0-1_rhos0-5/'
+# fld_analysis    = 'NSI_analysis/analysis_real_plumes_10s_peak2e-4_tauln250_tausdf20_rhocs0-1_rhos0-5/'
+# fld_analysis    = 'NSI_analysis/analysis_real_plumes_10s_peak10e-4_tauln250_tausdf20_rhocs0-1_rhos0-5/'
+# fld_analysis    = 'NSI_analysis/analysis_real_plumes_10s_peak20e-4_tauln250_tausdf20_rhocs1-1_rhos0-5/'
 # fld_analysis    = 'NSI_analysis/analysis_real_plumes_10s_peak20e-4_tauln250_tausdf20_rhocs0-1_rhos0-5/'
+fld_analysis    = 'NSI_analysis/analysis_real_plumes_10s_peak20e-4_tauln250_tausdf20_rhocs0-1_rhos0-5/'
 # fld_analysis    = 'NSI_analysis/analysis_real_plumes_10s_peak20e-4_tauln25_tausdf20_rhocs0-1_rhos0-5/'
 # ORN NSI params
 nsi_ln_par      = [[0,0],  [0, .6], [.6, 0],]
@@ -66,6 +66,8 @@ rhos = batch_params['rhos']
 params_al_orn   = pickle.load(open(fld_analysis +name_analysis+'_params_al_orn.ini',  "rb" ))
 stim_params     = params_al_orn['stim_params']
 
+
+tau_ln          = params_al_orn['pn_ln_params']['tau_ln']
 # Output params
 avg_fig         = 1     # b and c) Response of ORNs and PNs averaged over 200s 
                         # for the three models: control model (dot dashed pink), 
@@ -73,11 +75,11 @@ avg_fig         = 1     # b and c) Response of ORNs and PNs averaged over 200s
                         # d) Total PN activity above 150 Hz, for 3 ms maximum whiff durations.
 
 
-peak_fig        = 0     # a-c) total PN activity above 50, 100, 150 Hz respectively, 
+peak_fig        = 1     # a-c) total PN activity above 50, 100, 150 Hz respectively, 
                         # for 3 ms maximum whiff durations
 
 
-thrwmax_fig     = 0     # a) Peak PN for threshold 150 Hz, and for 
+thrwmax_fig     = 1     # a) Peak PN for threshold 150 Hz, and for 
                         #    different subsets of whiff durations (from 0.01 
                         #    to 50s) for the three models: control model (dot 
                         #    dashed pink), LN model (orange continuous), and 
@@ -100,7 +102,7 @@ fig_save        = 1
 fig_name        = 'dur_%d'%stim_dur + \
                     '_nsi_%.2f'%(np.max(nsi_ln_par, axis=0)[0]) +\
                     '_ln_%.1f'%(np.max(nsi_ln_par, axis=0)[1])             
-thrs2plot            = [150]#[50, 100, 150] # thr
+thrs2plot            = [50, 100, 150] # thr
 
 # *******************************************************************
 # DATA ANALYSIS 
@@ -308,7 +310,7 @@ if avg_fig:
     plt.show()
     
     if fig_save:
-        fig2.savefig(fld_output+  '/NSI_AverActiv_'+fig_name+'.png')
+        fig2.savefig(fld_output+  '/NSI_AverActiv_'+fig_name+'_tauln%d'%tau_ln+'.png')
 
 #%% *********************************************************
 
@@ -378,7 +380,7 @@ if peak_fig:
     plt.show()
           
     if fig_save:
-        fig.savefig(fld_output + '/NSI_HighConc_'+fig_name+'.png')
+        fig.savefig(fld_output + '/NSI_HighConc_'+fig_name+'_tauln%d'%tau_ln+'.png')
         
         
 #%% *********************************************************
@@ -450,7 +452,7 @@ if thrwmax_fig:
         
         plt.show()
         if fig_save:
-            fig.savefig(fld_output+ '/NSI_nuPN_wmax_%dHz'%thr+'_'+ fig_name + '.png')    
+            fig.savefig(fld_output+ '/NSI_nuPN_wmax_%dHz'%thr+'_'+ fig_name + '_tauln%d'%tau_ln+'.png')    
             
         
 #%%**********************************************************
@@ -477,26 +479,45 @@ if resumen_fig:
         pn_tmp0 = np.squeeze(np.mean(pn_tmp[0, :,:,:,], axis=1)) # PN, corr = 0 
         pn_tmp1 = np.squeeze(np.mean(pn_tmp[-1, :,:,:,], axis=1)) # PN, corr = 1
         
+        pn_tmp_err = np.squeeze(np.var(pn_tmp[0, :,:,:,], axis=1))
         
-        if len(pn_tmp0)==3:
+        if np.size(pn_tmp0)==3:
             delta_nsi0 = pn_tmp0[0] - pn_tmp0[1]
             delta_ln0 = pn_tmp0[0] - pn_tmp0[2]
             
             delta_nsi10 = pn_tmp0[1] - pn_tmp1[1]
             delta_ln10 = pn_tmp0[2] - pn_tmp1[2]
-        else:
             
+            delta_ln0_err = np.sqrt(pn_tmp_err[0] + pn_tmp_err[2])/np.sqrt(n_seeds)
+            delta_nsi0_err = np.sqrt(pn_tmp_err[0] + pn_tmp_err[1])/np.sqrt(n_seeds)
+            
+            delta_ln10_err = np.sqrt(pn_tmp_err[2] + pn_tmp_err[2])/np.sqrt(n_seeds)
+            delta_nsi10_err = np.sqrt(pn_tmp_err[1] + pn_tmp_err[1])/np.sqrt(n_seeds)
+            
+        else:
             delta_ln0 = np.squeeze(pn_tmp0[0,:] - pn_tmp0[2,:])
             delta_nsi0 = np.squeeze(pn_tmp0[0,:] - pn_tmp0[1,:])
             
+            
             delta_nsi10 = np.squeeze(pn_tmp0[1,:] - pn_tmp1[1,:])
             delta_ln10 = np.squeeze(pn_tmp0[2,:] - pn_tmp1[2,:])
+            
+            delta_ln0_err = np.sqrt(pn_tmp_err[0,:] + pn_tmp_err[2,:])/np.sqrt(n_seeds)
+            delta_nsi0_err = np.sqrt(pn_tmp_err[0,:] + pn_tmp_err[1,:])/np.sqrt(n_seeds)
+            
+            delta_ln10_err = np.sqrt(pn_tmp_err[2,:] + pn_tmp_err[2,:])/np.sqrt(n_seeds)
+            delta_nsi10_err = np.sqrt(pn_tmp_err[1,:] + pn_tmp_err[1,:])/np.sqrt(n_seeds)
+            
+            
+        axs[0].errorbar(w_maxs, delta_ln0, yerr= delta_ln0_err, linewidth=lw, 
+                        linestyle='-', color=orange, label=r'$x$=LN, $\rho=$0')
+        axs[0].errorbar(w_maxs, delta_nsi0, yerr= delta_nsi0_err, linewidth=lw, 
+                        linestyle='--', color=cyan, label=r'$x$=NSI, $\rho=$0')
         
-        axs[0].plot(w_maxs, delta_ln0, '*-', color=orange, label=r'$x$=LN, $\rho=$0')
-        axs[0].plot(w_maxs, delta_nsi0, '.-', color=cyan, label=r'$x$=NSI, $\rho=$0')
-        
-        axs[1].plot(w_maxs, delta_ln10, '*-', color=orange, label=r'$x$=LN, $\rho=$1')
-        axs[1].plot(w_maxs, delta_nsi10, '.-', color=cyan, label=r'$x$=NSI, $\rho=$1')
+        axs[1].errorbar(w_maxs, delta_ln10, yerr= delta_ln10_err, linewidth=lw, 
+                        linestyle='-', color=orange, label=r'$x$=LN, $\rho=$1')
+        axs[1].errorbar(w_maxs, delta_nsi10, yerr= delta_nsi10_err, linewidth=lw, 
+                        linestyle='--', color=cyan, label=r'$x$=NSI, $\rho=$1')
         
         # SETTINGS        
 #        axs[0].set_title(r'$\Theta$:%d Hz'%thr, fontsize=fs)
@@ -538,7 +559,7 @@ if resumen_fig:
         
         plt.show()
         if fig_save:
-            fig.savefig(fld_output+ '/NSI_Perf_log'+ fig_name + '_%d'%thr+ 'Hz.png')    
+            fig.savefig(fld_output+ '/NSI_Perf_log'+ fig_name + '_%d'%thr+ 'Hz_tauln%d'%tau_ln+'.png')    
 
        
             
