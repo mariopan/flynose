@@ -26,11 +26,12 @@ now = datetime.datetime.now()
 
 n_loops         =  10    # Used for ratio: 10
 
-nsi_ln_par      = [[0,0], [.6, 0], [0, .6], ]
+# nsi_ln_par      = [[0,0], [.6, 0], [0, .6], ]
+nsi_ln_par   = [[0,0],[.4, 0],[0, .4],[.2, 0],[0, .2],]
 
 if sys.argv == ['']:
     id_inh2run      = 0 # jobs run only starting from 1 ...
-    analysis_name   = 'delays' # 'ratio' #
+    analysis_name   =  'delays' # 'ratio' #
 else:
     id_inh2run      = int(sys.argv[1])-1 # jobs run only starting from 1 ...
     analysis_name   = sys.argv[2]
@@ -40,28 +41,32 @@ else:
 
 if analysis_name == 'ratio':
     print('ratio simulations')
-    n_ratios        =  45
-    conc_ratios           =  np.linspace(1, 20, n_ratios)
+    n_ratios        = 8 # 45
+    conc_ratios     = np.linspace(1, 20, n_ratios)
     delays2an       = [0, ]
+    
 elif analysis_name == 'delays':
     print('delays simulations')
-    delays2an       = [20,] #[0,  10, 20, 50, 100, 200, 500,]
-    n_ratios        =  1
-    conc_ratios           =  np.linspace(1, 1, n_ratios)
+    delays2an       = [0,  10, 20, 50, 100, 200, 500,]
+    
+    n_ratios        = 1
+    conc_ratios     = np.linspace(1, 1, n_ratios)
+    
 else:
     print('This script can run only ratio and delays analysis! Write your choice as 2nd input')
-    # break
 
 
-dur2an          = [200]# [10, 20, 50, 100, 200]
+n_delays        = len(delays2an)
 
-concs2an         = np.array([.0005, .01])# np.array([0.00052, 0.00068, 0.00084, 0.001, 0.005, 0.01])
+dur2an          =  [10, 20, 50, 100, 200]
+
+concs2an        = np.array([0.00052, 0.00068, 0.00084, 0.001, 0.005, 0.01])
 n_concs         =  len(concs2an)
 
 
-n_durs           = np.size(dur2an)
+n_durs           = len(dur2an)
 
-sims_to_run = len(delays2an)*n_loops*n_concs*n_ratios*n_durs
+sims_to_run = n_delays*n_loops*n_concs*n_ratios*n_durs
 print('Number of Sims to run: %d '%sims_to_run)
 
 # approximately t_single_run secs per run:
@@ -74,9 +79,6 @@ print('Estimated Sims end data-time:')
 print(endsim)
 
 #%%  LOAD Standard NET PARAMS FROM A FILE
-# fld_params      = 'NSI_analysis/analysis_ratio/' #Olsen2010
-# name_params     = 'params_al_orn.ini'
-# params_al_orn   = pickle.load(open(fld_params + name_params,  "rb" ))
 params_al_orn = set_orn_al_params.main(2)
 
 stim_params         = params_al_orn['stim_params']
@@ -98,7 +100,7 @@ n_orns_recep        = orn_layer_params[0]['n_orns_recep']   # number of ORNs per
 
 verbose             = False
 data_save           = 1
-fld_analysis        = 'NSI_analysis/analysis_'+analysis_name+'/'
+fld_analysis        = 'NSI_analysis/' + analysis_name+'/'
 date_str            = now.strftime("%Y%m%d")
 
 

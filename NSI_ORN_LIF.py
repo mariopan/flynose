@@ -52,6 +52,8 @@ from scipy import signal
 import sdf_krofczik
 import stim_fcn
 import plot_orn
+import set_orn_al_params
+import plot_hist_isi
 
 # %% STANDARD FIGURE PARAMS
 lw = 2
@@ -316,99 +318,24 @@ def main(params_1sens, verbose=False):
 if __name__ == '__main__':
     print('run directly')
     
-    # stimulus params
-    stim_params     = dict([
-                        ('stim_type' , 'ss'),   # 'rs' # 'ts'  # 'ss' # 'pl' # 'ext'
-                        ('pts_ms' , 10),         # simulated pts per ms 
-                        ('n_od', 2), 
-                        ('t_tot', 2000),        # ms  
-                        ('conc0', 1.85e-04),    # 1.9e-4 # fitted value 2.854e-04
-                        ('od_noise', 2), #3.5
-                        ('od_filter_frq', 0.002), #.002
-                        ('r_noise', 0.5), #6.0
-                        ('r_filter_frq', 0.002), # 0.002
-                        ])    
-    
-    n_od = stim_params['n_od']
-    if n_od == 1:
-        concs_params    = dict([
-                        ('stim_dur' , np.array([500])),     # ms
-                        ('t_on', np.array([300])),          # ms
-                        ('concs', np.array([0.003])),
-                        ])
-    elif n_od == 2:
-        concs_params    = dict([
-                        ('stim_dur' , np.array([500, 5])),  # ms
-                        ('t_on', np.array([1000, 1200])), # ms
-                        ('concs', np.array([1e-3, 1.85e-4])),
-                        ])
-    
-    stim_params.update(concs_params)
-        
-    
-    # Transduction parameters
-    od_pref = np.array([[1,0], [0,1],]) # ORNs' sensibilities to each odours
-         
-    transd_vect_3A = od_pref[0,:]
-    transd_vect_3B = od_pref[1,:]
-    
-    # TEMP: Each ORN will have its transduction properties based on DoOR
-    ab3A_params = dict([
-                        ('n', .822066870*transd_vect_3A), 
-                        ('alpha_r', 12.6228808*transd_vect_3A), 
-                        ('beta_r', 7.6758436748e-02*transd_vect_3A),
-                        ])
-    
-    ab3B_params = dict([
-                        ('n', .822066870*transd_vect_3B), 
-                        ('alpha_r', 12.6228808*transd_vect_3B), 
-                        ('beta_r', 7.6758436748e-02*transd_vect_3B),
-                        ])
-    
-    # Sensilla/network parameters
-    transd_params       = (ab3A_params, ab3B_params)
-    
-    n_orns_recep        = 20         # number of ORNs per each receptor
-    n_neu               = transd_params.__len__()         # number of ORN cohoused in the sensillum
+    fld_analysis = 'NSI_analysis/trials/'
+    timecourse_fig_name = 'ORN_lif_timecourse.png'
+    hist_fig_name = 'ORN_lif_dyn_hist.png'
     
     
-    
-    # TEMP: Each sensillum will have its properties based on DoOR
-    sens_params     = dict([
-                        ('n_neu', n_neu),
-                        ('n_orns_recep', n_orns_recep),
-                        ('od_pref' , od_pref),
-        # NSI params
-                        ('w_nsi', 0.),  # 0.3
-                        ('transd_params', transd_params),
-                        ])
-        
-    # ORN Parameters 
-    orn_params  = dict([
-        # LIF params
-                        ('t_ref', 2*stim_params['pts_ms']), # ms; refractory period 
-                        ('theta', -30),#1),                   # [mV] firing threshold
-                        # fitted values
-                        ('tau_v', 2.26183540),          # [ms]
-                        ('vrest', -33), #-0.969461053),        # [mV] resting potential
-                        ('vrev', 0),#21),                   # 21.1784081 [mV] reversal potential
-                        # ('v_k', vrest),
-                        ('g_y', 0.3), #.5853575783),       
-                        ('g_r', .864162073), 
-                        # initial values of y anr r
-                        ('r0', 0.15), 
-                        ('y0', .5), 
-        # Adaptation params
-                        ('alpha_y', .45310619), 
-                        ('beta_y', 3.467184e-03), 
-                        ])
+    params_al_orn = set_orn_al_params.main(1)
 
+    stim_params         = params_al_orn['stim_params']
+    orn_layer_params    = params_al_orn['orn_layer_params']
+    sens_params         = orn_layer_params[0]
+    orn_params          = params_al_orn['orn_params']
+    sdf_params          = params_al_orn['sdf_params']
+    # al_params           = params_al_orn['al_params']
+    # pn_ln_params        = params_al_orn['pn_ln_params']
     
-    # analysis params
-    sdf_params      = dict([
-                        ('tau_sdf', 41),
-                        ('dt_sdf', 5),
-                        ])
+    stim_params['conc0'] = 1.85e-4
+    stim_params['t_tot']  = 2000
+    stim_params['t_on']  = np.array([1000, 1000])
     
     params_1sens   = dict([
                         ('stim_params', stim_params),
@@ -416,7 +343,7 @@ if __name__ == '__main__':
                         ('orn_params', orn_params),
                         ('sdf_params', sdf_params),
                         ])
-    #*********************************************************************
+
     # ORN LIF SIMULATION
     tic = timeit.default_timer()
     output_orn = main(params_1sens)
@@ -427,131 +354,14 @@ if __name__ == '__main__':
     [t, u_od, r_orn, v_orn, y_orn, num_spikes, spike_matrix, orn_sdf,
      orn_sdf_time,]  = output_orn
     
-    plot_orn.main(params_1sens, output_orn, )
-    #print(np.mean(orn_sdf))
+    fig = plot_orn.main(params_1sens, output_orn, )
+    fig.savefig(fld_analysis + timecourse_fig_name)
     
-    # #%% FIGURE, time course and histogram of ISI and POTENTIAL of ORNs
     
-    # t_on    = np.min(stim_params['t_on'])
-    # stim_dur = stim_params['stim_dur'][0]
-    # t_tot   = stim_params['t_tot']
-    # pts_ms  = stim_params['pts_ms']
-    # vrest   = orn_params['vrest']
-    # vrev    = orn_params['vrev']
-    # n_neu   = sens_params['n_neu']
+    fig, axs = plot_hist_isi.main(params_1sens, output_orn)
+    plt.show()
     
-    # n_neu_tot       = n_neu*n_orns_recep
-    # n_isi = np.zeros((n_neu_tot,))
-    # rs = 2
-    # cs = 2
-    
-    # fig, axs = plt.subplots(rs, cs, figsize=(7,7))    
-    
-    # for nn1 in range(n_neu):
-    #     isi = []
-    #     for nn2 in range(n_orns_recep):
-    #         nn = nn2+n_orns_recep*nn1     
-    #         min_isi = 10
-    #         spks_tmp = spike_matrix[spike_matrix[:,1]==nn][:,0]
-    #         spks_tmp = spks_tmp[spks_tmp>10]
-    #         if stim_params['stim_type'] != 'rs':
-    #             spks_tmp = spks_tmp[spks_tmp<t_on]
-    #         n_isi[nn] = len(spks_tmp)-1
-    #         isi = np.append(isi, np.diff(spks_tmp))
-    #         if np.shape(isi)[0]>0:
-    #             min_isi = np.min((np.min(isi), min_isi))
-                
-    #         axs[0,0].plot(np.diff(spks_tmp), '.-', color=recep_clrs[nn1], alpha=.25)
+    fig.savefig(fld_analysis + hist_fig_name)
         
-    #     if len(isi)>3:
-    #         axs[0, 1].hist(isi, bins=int(len(isi)/3), color=recep_clrs[nn1], alpha=.25, 
-    #                 orientation='horizontal')
-    
-    # fr_mean_rs = 1000/np.mean(isi)
-    # print('ORNs, FR avg no stimulus: %.2f Hz' %fr_mean_rs)
-    
-    # fr_peak = np.max(np.mean(orn_sdf[:, :n_orns_recep], axis=1)) 
-    # print('ORNs, FR peak: %.2f Hz' %fr_peak)
-    
-    # # Comparison with Poissonian hypothesis
-    # # t_tmp = np.linspace(0, np.max(isi),100)
-    # # isi_pois = fr_mean_rs*np.exp(-fr_mean_rs*t_tmp*1e-3) # poisson    
-    # # axs[1].plot(isi_pois, t_tmp, 'k.-')
-    # # SETTINGS
-    # axs[0, 0].set_xlabel('id spikes', fontsize=label_fs)
-    # axs[0, 0].set_ylabel('ISI spikes (ms)', fontsize=label_fs)
-    
-    # dbb = 1.5
-    # ll, bb, ww, hh = axs[0,0].get_position().bounds
-    # axs[0,0].set_position([ll, bb, ww*dbb , hh])
-    
-    # ll, bb, ww, hh = axs[0,1].get_position().bounds
-    # axs[0, 1].set_position(
-    #     [ll+(dbb - 1)*ww, bb, ww*(2-dbb), hh])
-    
-    # # V ORNs    
-    # X0 = t-t_on
-    # trsp = .3
-    # if n_neu == 1:
-    #     X1 = v_orn
-    #     axs[1, 0].plot([t[0]-t_on, t[-1]-t_on], [vrest, vrest], 
-    #          '--', linewidth=lw, color=black,)
-    #     mu1 = X1.mean(axis=1)
-    #     sigma1 = X1.std(axis=1)
-        
-    #     axs[1, 0].plot(X0, mu1, linewidth=lw+1, 
-    #             color=recep_clrs[0], )
-    #     for nn in range(n_orns_recep):
-    #         axs[1, 0].plot(X0, X1[:, nn], '.', linewidth= lw-1, 
-    #             color=recep_clrs[0], alpha=trsp)
-            
-    #     axs[1, 1].hist(X1[(t_on*pts_ms):(t_on+250)*pts_ms, nn], 
-    #         bins=50, color=recep_clrs[0], alpha=.25, 
-    #                 orientation='horizontal')
-    
-    
-    # else:
-    #     for id_neu in range(n_neu):
-    #         X1 = v_orn[:, id_neu*n_orns_recep:((id_neu+1)*n_orns_recep)]
-    #         axs[1, 0].plot([t[0]-t_on, t[-1]-t_on], [vrest, vrest], 
-    #                      '--', linewidth=lw, color=red,)
-    #         mu1 = X1.mean(axis=1)
-    #         sigma1 = X1.std(axis=1)
-            
-    #         # axs[1, 0].fill_between(X0, mu1+sigma1, mu1-sigma1, 
-    #                     # facecolor=recep_clrs[id_neu], alpha=trsp)
-            
-    #         axs[1, 0].plot(X0, mu1,  
-    #             linewidth=lw+1, color=recep_clrs[id_neu],)
-            
-    #         for nn in range(n_orns_recep):
-    #             axs[1, 0].plot(X0, X1[:, nn], '.', linewidth= lw-1, 
-    #                 color=recep_clrs[id_neu], alpha=trsp)
-            
-    #         axs[1, 1].hist(X1[(t_on*pts_ms):(t_on+250)*pts_ms, nn], bins=50, 
-    #                 alpha=.25, color=recep_clrs[id_neu], 
-    #                 orientation='horizontal')
-
-    # axs[1, 0].set_xlabel('time (ms)', fontsize=label_fs)
-    # axs[1, 0].set_ylabel('V (mV)', fontsize=label_fs)
-    # axs[1, 1].set_ylabel('pdf', fontsize=label_fs)
-    
-    # dbb = 1.5
-    # ll, bb, ww, hh = axs[1,0].get_position().bounds
-    # axs[1, 0].set_position([ll, bb, ww*dbb , hh])
-    
-    # ll, bb, ww, hh = axs[1,1].get_position().bounds
-    # axs[1, 1].set_position(
-    #     [ll+(dbb - 1)*ww, bb, ww*(2-dbb), hh])
-
-                        
-    # plt.show()
-    
-    # fld_analysis = 'NSI_analysis/trials'
-    # hist_fig_name = '/ORN_lif_dyn_hist' + \
-    #                         '.png'
-    # fig.savefig(fld_analysis + hist_fig_name)
-        
-    
     
     

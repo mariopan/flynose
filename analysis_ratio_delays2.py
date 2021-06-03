@@ -87,56 +87,55 @@ def fig_pn_distr():
            '_ratio%.1f'%conc_ratios[id_ratio]+'_dur:%d'%dur2an[id_dur]+'.png')
     
     
-
-# def fig_activity():
-#     """Figure of the average activity for weak and strong input"""
-#     # pn_peak_s_noin: (n_ratios, n_concs,n_durs, n_loops)
-#     noin_s = np.squeeze(np.median(pn_peak_s_noin, axis=3))
-# #    ln_s = np.squeeze(np.median(pn_peak_s_ln, axis=3))
-# #    nsi_s = np.squeeze(np.median(pn_peak_s_nsi, axis=3))
-    
-#     noin_w = np.squeeze(np.median(pn_peak_w_noin, axis=3))
-# #    ln_w = np.squeeze(np.median(pn_peak_w_ln, axis=3))
-# #    nsi_w = np.squeeze(np.median(pn_peak_w_nsi, axis=3))
-    
-#     rs = 1
-#     cs = 3
-#     fig, axs = plt.subplots(rs, cs, figsize=(9, 3), ) 
-    
-#     im0 = axs[0].imshow(noin_s, cmap=cmap)
-#     fig.colorbar(im0, ax=axs[0])
-    
-#     axs[0].set_title('strong, delay=%d'%delay)
-#     axs[1].set_title('weak')
-#     axs[2].set_title('ratio')
-    
-#     im1 = axs[1].imshow(noin_w, cmap=cmap)
-#     fig.colorbar(im1, ax=axs[1])
-    
-#     im2=axs[2].imshow(noin_w/noin_s, cmap=cmap)
-#     fig.colorbar(im2, ax=axs[2])
-
 # *****************************************************************
-fig_save        = 1
+fig_save        = 0
 
-id_peak2plot    = 3
-measure         = 'avg'            # 'avg' # 'peak' # 
-corr_mi         = 'mi'            # 'corr' # 'mi'
-delay_fig       = 1              # Fig.ResumeDelayedStimuli
+id_peak2plot    = 3             # ONLY for the delays analysis
+measure         = 'avg'         # 'avg' # 'peak' # 
+corr_mi         = 'corr'        # 'corr' # 'mi'
+delay_fig       = 0             # Fig.ResumeDelayedStimuli
+
+# analysis for zero delay:
+ratio_fig       = 1*(1-delay_fig)   # Response ratios versus concentration ratio 
+                                    #   of the two odorants for different 
+                                    #   overall concentrations (colours, see 
+                                    #   legend in f). Black dashed diagonal is 
+                                    #   for peak PN ratios equal to odorant 
+                                    #   concentration ratio. Error bars 
+                                    #   represent the semi inter-quartile 
+                                    #   range calculated over 10 trials.
+
+resumen_chess   = 0*(1-delay_fig)   # Analysis of the coding error for different values of 
+                                    #   stimulus duration and concentration values.
+
+resumen_chess_mi   = 0*(1-delay_fig)  # Analysis of the MI (or cross correlation) between 
+                                    #   concentration ratio and PN ratio
+
+pn_activity     = 1*(1-delay_fig)   # PN activity for weak and strong input
+
+orn_activity    = 1*(1-delay_fig)   # ORN activity for weak and strong input
+
+resumen_bar     = 0*(1-delay_fig)   # Fig.ResumeEncodeRatioBar
+pn_distr        = 0*(1-delay_fig)   # Fig.PNdistribution
+  
+
 
 # select a subsample of the params to analyse
+# nsi_ln_par   = [[0,0],[.4, 0],[0, .4],]
 nsi_ln_par   = [[0,0],[.6, 0],[0, .6],]
 
 if delay_fig:
     print('Delays analysis, rate measured on '+measure)
     # fld_analysis    = 'NSI_analysis/analysis_delays_tauln250_tausdf41/'
-    fld_analysis    = 'NSI_analysis/analysis_delays_tauln250_tausdf41/'
+    fld_analysis    = 'NSI_analysis/delays_tauln250_tausdf41/'
+    # fld_analysis    = 'NSI_analysis/delays_.4.2/'   # analysis_ratio_tauln25              
     fld_output      = fld_analysis
     name_analysis   = 'delays'
     
 else:
     print('Ratio analysis, rate measured on '+measure+', ' + corr_mi)
-    fld_analysis    = 'NSI_analysis/analysis_ratio/'                
+    fld_analysis    = 'NSI_analysis/ratio_tauln250/'   # analysis_ratio_tauln25              
+    # fld_analysis    = 'NSI_analysis/ratio_.4.2/'   # analysis_ratio_tauln25              
     fld_output      = fld_analysis    
     name_analysis   = 'ratio'
 
@@ -147,7 +146,7 @@ batch_params    = pickle.load(open(fld_analysis+name_analysis+'_batch_params.pic
 n_loops = batch_params['n_loops']
 conc_ratios = batch_params['conc_ratios']
 concs2an = batch_params['concs2an']
-nsi_ln_par = batch_params['nsi_ln_par']
+# nsi_ln_par = batch_params['nsi_ln_par']
 dur2an = batch_params['dur2an']
 delays2an = batch_params['delays2an']
 
@@ -159,15 +158,7 @@ tau_ln          = params_al_orn['pn_ln_params']['tau_ln']
 if delay_fig==0:
     delays2an=[0,]
 
-# analysis for zero delay:
-ratio_fig       = 0 # Fig.RatioPeak
-resumen_chess   = 0 # Fig.ResumeEncodeRatioChess
-resumen_chess_mi   = 0 # Fig.ResumeEncodeRatioChess
-
-pn_chess        = 0 # Fig.PNChess
-resumen_bar     = 0 # Fig.ResumeEncodeRatioBar
-pn_distr        = 0 # Fig.PNdistribution
-    
+  
 
 n_durs          = np.size(dur2an)
 n_delays        = np.size(delays2an)
@@ -389,7 +380,7 @@ for delay_id, delay in enumerate(delays2an):
                             np.median(pn_ratio_peak_nsi[:,iic,iid,:], axis=1), 
                             n_bins_mi)
 
-            noin_tmp = ((conc_ratios-pn_ratio_peak_noin.T)/
+            noin_tmp = ((conc_ratios - pn_ratio_peak_noin.T)/
                         (pn_ratio_peak_noin.T + conc_ratios))**2
             ln_tmp = ((conc_ratios - pn_ratio_peak_ln.T)/
                         (pn_ratio_peak_ln.T + conc_ratios))**2
@@ -440,9 +431,7 @@ if delay_fig:
         
         axs[dur_id].spines['right'].set_color('none')   
         axs[dur_id].spines['top'].set_color('none')     
-#        axs[dur_id].tick_params(axis='both', which='major', labelsize=label_fs-3)
         
-        # axs[dur_id].set_yticks(y_ticks)
         if dur_id>0:
             axs[dur_id].set_yticklabels('', fontsize=label_fs-5)
         axs[dur_id].set_xticks([0, 250, 500])
@@ -536,24 +525,24 @@ if ratio_fig:
             for rr in range(rs):
                 axs[rr, cc].tick_params(axis='both', which='major', labelsize=label_fs-3)
                 
-                axs[rr,cc].set_xticklabels('')
-                axs[rr,cc].set_yticklabels('')
+                # axs[rr,cc].set_xticklabels('')
+                # axs[rr,cc].set_yticklabels('')
                 axs[rr,cc].spines['right'].set_color('none')
                 axs[rr,cc].spines['top'].set_color('none')
                 
-                # axs[rr,cc].set_xlim((0, 20.5))
-                # axs[rr,cc].set_ylim((0, 20.5))
+                axs[rr,cc].set_ylim((0.8, 100.5))
+                axs[rr,cc].set_xlim((0.8, 20.5))
                 
-                # axs[rr,cc].set_yticks([0, 5, 10, 15, 20])
-                # axs[rr,cc].set_xticks([0, 5, 10, 15, 20])
+                axs[rr,cc].set_yticks([1, 10, ])
+                axs[rr,cc].set_xticks([1, 10, 20])
                 
                 axs[rr,cc].set_yscale("log")
                 
-                if cc == 0:
-                    axs[rr,cc].set_yticklabels(['0','5','10', '15', '20'], fontsize=label_fs-3)
+                # if cc == 0:
+                #     axs[rr,cc].set_yticklabels(['0','5','10', '15', '20'], fontsize=label_fs-3)
                 
-                if rr == 1:
-                    axs[rr,cc].set_xticklabels(['0','5','10', '15', '20'], fontsize=label_fs-3)
+                # if rr == 1:
+                #     axs[rr,cc].set_xticklabels(['0','5','10', '15', '20'], fontsize=label_fs-3)
                 
                 # change plot position:
                 ll, bb, ww, hh = axs[rr,cc].get_position().bounds
@@ -587,7 +576,8 @@ if ratio_fig:
         plt.show()
         
 #%% ************************************************************************
-# RESUME CHESS FIGURE
+# RESUME CHESS FIGURE: 
+    # analysis of the relative distance between concentration ratio and PN ratio
 if resumen_chess:
     # average over conc.ratio and concentrations
     err_code_nsi = np.mean(ratio2dist_nsi, axis=(0))
@@ -638,7 +628,7 @@ if resumen_chess:
     ll, bb, ww, hh = axs[0].get_position().bounds
     ww_new = ww*1.0#1.15
     hh_new = hh*1.0#1.15
-    bb_new = bb + 0.02#5
+    bb_new = bb + 0.05#5
     ll_new = ll
     e_sx = 0.05
     axs[0].set_position([ll-.05+e_sx, bb_new, ww_new, hh_new])    
@@ -649,7 +639,7 @@ if resumen_chess:
     ll, bb, ww, hh = axs[2].get_position().bounds
     axs[2].set_position([ll-.04+e_sx, bb_new, ww_new, hh_new])     
     
-    axs[0].text(-.15, 1.18, 'g', transform=axs[0].transAxes, 
+    axs[0].text(-.2, 1.1, 'g', transform=axs[0].transAxes, 
              fontsize=panel_fs, fontweight='bold', va='top', ha='right')
     
 
@@ -664,22 +654,24 @@ if resumen_chess:
     # adjust bar size and position
     ll, bb, ww, hh = cbar.ax.get_position().bounds
     cbar.ax.set_position([ll-.015+e_sx, bb+.085, ww, hh-.12])
-    #cbar.ax.set_position([ll+.035, bb+.085, ww, hh-.05])
    
     #adjust 3rd chess board size and position
     dwdh =1.0125
     ll_a, bb, ww, hh = axs[2].get_position().bounds
     axs[2].set_position([ll_a -.045+e_sx, bb_new, ww_new*dwdh, hh_new*dwdh])
-    #axs[2].set_position([ll_a -.025, bb_new, ww_new*dwdh, hh_new*dwdh])
-    plt.show()
+    
     if fig_save:
         if measure == 'peak':
             fig.savefig(fld_output + '/ratio_stim_peak_resumechess_durs_delay%d'%delay+'.png')
         elif measure == 'avg':    
             fig.savefig(fld_output + '/ratio_stim_avg_resumechess_durs_delay%d'%delay+'.png')        
-        
+    
+    plt.show()    
+    
+    
+    
 #%% # RESUME CHESS FIGURE with Mutual Information ##########################
-
+# analysis of the MI (or cross correlation) between concentration ratio and PN ratio
 if resumen_chess_mi:
     # average over conc.ratio and concentrations
     err_code_nsi = ratio_mi_nsi
@@ -728,9 +720,9 @@ if resumen_chess_mi:
     ll, bb, ww, hh = axs[0].get_position().bounds
     ww_new = ww*1.0#1.15
     hh_new = hh*1.0#1.15
-    bb_new = bb + 0.02#5
+    bb_new = bb + 0.05#5
     ll_new = ll
-    e_sx = 0.0
+    e_sx = 0.05
     axs[0].set_position([ll-.05+e_sx, bb_new, ww_new, hh_new])    
     
     ll, bb, ww, hh = axs[1].get_position().bounds
@@ -750,15 +742,13 @@ if resumen_chess_mi:
     
     # adjust bar size and position
     ll, bb, ww, hh = cbar.ax.get_position().bounds
-    cbar.ax.set_position([ll-.015, bb+.085, ww, hh-.12])
-    # cbar.ax.set_position([ll+.035, bb+.085, ww, hh-.05])
+    cbar.ax.set_position([ll-.015+e_sx, bb+.085, ww, hh-.12])
    
     #adjust 3rd chess board size and position
     dwdh =1.0125
     ll_a, bb, ww, hh = axs[2].get_position().bounds
-    axs[2].set_position([ll_a -.045, bb_new, ww_new*dwdh, hh_new*dwdh])
-    # axs[2].set_position([ll_a -.025, bb_new, ww_new*dwdh, hh_new*dwdh])
-    
+    axs[2].set_position([ll_a -.045+e_sx, bb_new, ww_new*dwdh, hh_new*dwdh])
+
     if fig_save:
         if measure == 'peak':
             fig.savefig(fld_output + '/ratio_stim_peak_resumechess_' + 
@@ -773,17 +763,17 @@ if resumen_chess_mi:
 
 
 #%%***********************************************************
-# FIGURE PNChess
+# FIGURE PN activity in a chess plot
 # Figure of the average activity for weak and strong input
-if pn_chess:
-    ratio2plot = np.round(conc_ratios[::2])
+if pn_activity:
+
+    ratio2plot = np.round(conc_ratios[::3])
     conc2plot = concs2an[::1]
-    # cmap = 'magma'
     
     rs = 3
     cs = 2
     for dur_id, duration in enumerate(dur2an):
-        # *******************************************************************
+
         # pn_peak_s_noin: (n_ratios, n_concs,n_durs, n_loops)
         noin_s = np.median(pn_peak_s_noin[:,:,dur_id, :], axis=2)
         ln_s = np.median(pn_peak_s_ln[:,:,dur_id, :], axis=2)
@@ -795,48 +785,138 @@ if pn_chess:
         
         fig, axs = plt.subplots(rs, cs, figsize=(9, 6), ) 
         
+        # PLOT 
+        im0 = axs[0,0].imshow(noin_s.T, cmap=cmap, aspect='auto', vmin=0, vmax=300)
+        fig.colorbar(im0, ax=axs[0,0])
+        
+        im1 = axs[0, 1].imshow(noin_w.T, cmap=cmap, aspect='auto', vmin=0, vmax=170)
+        fig.colorbar(im1, ax=axs[0,1])
+        
+        im0 = axs[1, 0].imshow(ln_s.T, cmap=cmap, aspect='auto', vmin=0, vmax=300)
+        fig.colorbar(im0, ax=axs[1,0])
+        
+        im1 = axs[1, 1].imshow(ln_w.T, cmap=cmap, aspect='auto', vmin=0, vmax=170)
+        fig.colorbar(im1, ax=axs[1,1])
+        
+        im0 = axs[2, 0].imshow(nsi_s.T, cmap=cmap, aspect='auto', vmin=0, vmax=300)
+        fig.colorbar(im0, ax=axs[2,0])
+        
+        im1 = axs[2, 1].imshow(nsi_w.T, cmap=cmap, aspect='auto', vmin=0, vmax=170)
+        fig.colorbar(im1, ax=axs[2,1])
+        
+        
+        # SETTINGS
         axs[0,0].set_title('PN strong')
         axs[0,1].set_title('PN weak')
 
         for id_r in range(rs):
             axs[id_r,0].set_ylabel('input (a.u.)', fontsize= label_fs)
         
-        axs[0,1].text(12.5, 1.5, 'ctrl', fontsize=label_fs)
-        axs[1,1].text(12.5, 1.5, 'LN', fontsize=label_fs)
-        axs[2,1].text(12.5, 1.5, 'NSI', fontsize=label_fs)
-        im0 = axs[0,0].imshow(noin_s.T, cmap=cmap)
-        fig.colorbar(im0, ax=axs[0,0])
+        axs[0,1].text(62.5, 1.5, 'ctrl', fontsize=label_fs)
+        axs[1,1].text(62.5, 1.5, 'LN', fontsize=label_fs)
+        axs[2,1].text(62.5, 1.5, 'NSI', fontsize=label_fs)
         
-        im1 = axs[0, 1].imshow(noin_w.T, cmap=cmap)
-        fig.colorbar(im1, ax=axs[0,1])
-        
-        im0 = axs[1, 0].imshow(ln_s.T, cmap=cmap)
-        fig.colorbar(im0, ax=axs[1,0])
-        
-        im1 = axs[1, 1].imshow(ln_w.T, cmap=cmap)
-        fig.colorbar(im1, ax=axs[1,1])
-        
-        im0 = axs[2, 0].imshow(nsi_s.T, cmap=cmap)
-        fig.colorbar(im0, ax=axs[2,0])
-        
-        im1 = axs[2, 1].imshow(nsi_w.T, cmap=cmap)
-        fig.colorbar(im1, ax=axs[2,1])
         
         for c_id in range(cs):
+            axs[2, c_id].set_xlabel('ratio (unitless)', fontsize= label_fs)
+            
             for r_id in range(rs):
-                axs[r_id,c_id].set_xticks(ratio2plot)
+                axs[r_id,c_id].set_xticks(np.linspace(1, len(conc_ratios), 15))
                 axs[r_id,c_id].set_xticklabels(ratio2plot)
                 axs[r_id,c_id].set_yticks(range(len(conc2plot)))
                 axs[r_id,c_id].set_yticklabels(conc2plot)
-                
-            axs[2, c_id].set_xlabel('ratio (unitless)', fontsize= label_fs)
             
+        for c_id in range(cs):
+            for r_id in range(rs):
+                ll, bb, ww, hh = axs[r_id, c_id].get_position().bounds
+                axs[r_id, c_id].set_position([ll, bb, ww, hh])
+                
+            
+    
+                
+    
         if fig_save:
             fig.savefig(fld_output+  '/PN_delays0_dur%d'%duration+'.png')
 
+    plt.show()      
+            
+#%%***********************************************************
+# FIGURE ORN activity in a chess plot
+# Figure of the average activity for weak and strong input
+if orn_activity:
 
+    ratio2plot = np.round(conc_ratios[::3])
+    conc2plot = concs2an[::1]
+    
+    rs = 3
+    cs = 2
+    for dur_id, duration in enumerate(dur2an):
+
+        # pn_peak_s_noin: (n_ratios, n_concs,n_durs, n_loops)
+        noin_s = np.median(orn_peak_s_noin[:,:,dur_id, :], axis=2)
+        ln_s = np.median(orn_peak_s_ln[:,:,dur_id, :], axis=2)
+        nsi_s =np.median(orn_peak_s_nsi[:,:,dur_id, :], axis=2)
+        
+        noin_w = np.median(orn_peak_w_noin[:,:,dur_id, :], axis=2)
+        ln_w = np.median(orn_peak_w_ln[:,:,dur_id, :], axis=2)
+        nsi_w = np.median(orn_peak_w_nsi[:,:,dur_id, :], axis=2)
+        
+        fig, axs = plt.subplots(rs, cs, figsize=(9, 6), ) 
+        
+        # PLOT 
+        im0 = axs[0,0].imshow(noin_s.T, cmap=cmap, aspect='auto', vmin=0, vmax=300)
+        fig.colorbar(im0, ax=axs[0,0])
+        
+        im1 = axs[0, 1].imshow(noin_w.T, cmap=cmap, aspect='auto', vmin=0, vmax=170)
+        fig.colorbar(im1, ax=axs[0,1])
+        
+        im0 = axs[1, 0].imshow(ln_s.T, cmap=cmap, aspect='auto', vmin=0, vmax=300)
+        fig.colorbar(im0, ax=axs[1,0])
+        
+        im1 = axs[1, 1].imshow(ln_w.T, cmap=cmap, aspect='auto', vmin=0, vmax=170)
+        fig.colorbar(im1, ax=axs[1,1])
+        
+        im0 = axs[2, 0].imshow(nsi_s.T, cmap=cmap, aspect='auto', vmin=0, vmax=300)
+        fig.colorbar(im0, ax=axs[2,0])
+        
+        im1 = axs[2, 1].imshow(nsi_w.T, cmap=cmap, aspect='auto', vmin=0, vmax=170)
+        fig.colorbar(im1, ax=axs[2,1])
+        
+        
+        # SETTINGS
+        axs[0,0].set_title('ORN strong')
+        axs[0,1].set_title('ORN weak')
+
+        for id_r in range(rs):
+            axs[id_r,0].set_ylabel('input (a.u.)', fontsize= label_fs)
+        
+        axs[0,1].text(62.5, 1.5, 'ctrl', fontsize=label_fs)
+        axs[1,1].text(62.5, 1.5, 'LN', fontsize=label_fs)
+        axs[2,1].text(62.5, 1.5, 'NSI', fontsize=label_fs)
+        
+        
+        for c_id in range(cs):
+            axs[2, c_id].set_xlabel('ratio (unitless)', fontsize= label_fs)
             
+            for r_id in range(rs):
+                axs[r_id,c_id].set_xticks(np.linspace(1, len(conc_ratios), 15))
+                axs[r_id,c_id].set_xticklabels(ratio2plot)
+                axs[r_id,c_id].set_yticks(range(len(conc2plot)))
+                axs[r_id,c_id].set_yticklabels(conc2plot)
             
+        for c_id in range(cs):
+            for r_id in range(rs):
+                ll, bb, ww, hh = axs[r_id, c_id].get_position().bounds
+                axs[r_id, c_id].set_position([ll, bb, ww, hh])
+                
+    
+        if fig_save:
+            fig.savefig(fld_output+  '/ORN_delays0_dur%d'%duration+'.png')
+
+    plt.show()      
+
+
+
 #%% ************************************************************************
 # RESUME BAR FIGURE
 if resumen_bar:

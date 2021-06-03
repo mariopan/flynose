@@ -61,7 +61,10 @@ def orn_al_settings(axs):
     axs[2].set_title(r' PN  ', fontsize=title_fs)
 
     if fig_id == 'ts_a':
-        axs[0].text(-.2, 1.0, 'a', transform=axs[0].transAxes, 
+        axs[0].text(-.05, 1.0, 'a', transform=axs[0].transAxes, 
+            fontsize=panel_fs, fontweight='bold', va='top', ha='right')
+    elif fig_id == 'ts_s':
+        axs[0].text(-.05, 1.0, 'b', transform=axs[0].transAxes, 
             fontsize=panel_fs, fontweight='bold', va='top', ha='right')
     
     # vertical/horizontal lines for time/Hz scale
@@ -222,7 +225,7 @@ def orn_al_diag_settings(axs):
     elif fig_id=='ts_s':
         x4text = 190
     else:
-        x4text = 3400
+        x4text = t2plot[1]+200
     
     axs[0, 2].text(x4text, 75, 'ctrl\n model', fontsize=scale_fs, fontweight='bold',rotation=90)
     axs[1, 2].text(x4text, 75, 'NSI\n model', fontsize=scale_fs, fontweight='bold',rotation=90)
@@ -309,7 +312,7 @@ params_al_orn = set_orn_al_params.main(2)
 
 stim_params         = params_al_orn['stim_params']
 orn_layer_params    = params_al_orn['orn_layer_params']
-# orn_params          = params_al_orn['orn_params']
+orn_params          = params_al_orn['orn_params']
 sdf_params          = params_al_orn['sdf_params']
 al_params           = params_al_orn['al_params']
 pn_ln_params        = params_al_orn['pn_ln_params']
@@ -320,7 +323,7 @@ n_sens_type         = orn_layer_params.__len__()  # number of type of sensilla
 # ORN NSI params
 
 # fig_id options:  # 'ts_s' #  'ts_a' # 'pl'
-fig_id                  = 'ts_s' 
+fig_id                  = 'pl' 
 
 fld_analysis            = 'NSI_analysis/triangle_stim/'
 nsi_str                 = 0.6
@@ -329,13 +332,13 @@ pn_ln_params['tau_ln']  = 250
 
     
 # figure and output options
-fig_save    = 1
+fig_save    = 0
 data_save   = 0    
 verbose     = 0
 olsen_fig   = 0
 
 
-n_lines     = 3
+n_lines     = 1
 
 if fig_id == 'ts_s':
     # stim params
@@ -346,17 +349,20 @@ if fig_id == 'ts_s':
     t_on                        = 1000
     stim_params['conc0']        = 1.85e-4    # 2.85e-4
     
+    peaks                       = [5e-2] #[1.85e-4, 5e-4, 1.5e-3, 2e-2, 2e-1]#[0.001, 0.005] #
+
 elif fig_id == 'ts_a':
     # Stimulus params 
-    delay                       = 20
+    delay                       = 10
     stim_params['stim_type']    = 'ts' # 'id_l'  # 'ts'
-    stim_params['stim_dur']     = np.array([200, 200])
+    stim_params['stim_dur']     = np.array([50, 50])
     stim_params['t_tot']        = 1300+delay
     t_on                        = 1000
-    stim_params['conc0']        = 0*1.85e-4    # 2.85e-4
-    sdf_params['tau_sdf']       = 6
-    sdf_params['dt_sdf']        = 5
-    
+    stim_params['conc0']        = 1.85e-4    # 2.85e-4
+    sdf_params['tau_sdf']       = 20
+
+    peaks                       = [5e-2] #[1.85e-4, 5e-4, 1.5e-3, 2e-2, 2e-1]#[0.001, 0.005] #
+
 elif fig_id == 'pl':
     fld_analysis                = 'NSI_analysis/analysis_real_plumes/example'
     fig_orn_dyn                 = 1
@@ -366,10 +372,11 @@ elif fig_id == 'pl':
     # stim params
     delay                       = 0    
     stim_params['stim_type']    = 'pl' # 'ts' # 'ss' # 'rs'# 'pl'
-    stim_params['t_tot']        = 20000        # ms 
+    stim_params['t_tot']        = 20000 # 4500        # ms 
     t_on                        = 1000
     stim_params['conc0']        = 1.85e-4
-   
+    peaks                       = [10e-4]
+    
     # real plumes params
     plume_params['whiff_max']   = 3
     plume_params['rho_t_exp']   = 0   #[0, 1, 3, 5]
@@ -379,6 +386,10 @@ elif fig_id == 'pl':
     sdf_params['dt_sdf']        = 5
     
     stim_params['plume_params'] = plume_params
+    
+    #('g_y',  .5853575783),      # 0.3), # 
+    orn_params['g_y']           = 0.58 #0.3#
+    
     
 conc0           = stim_params['conc0']
 t_tot           = stim_params['t_tot']
@@ -402,7 +413,7 @@ pn_sdf_all      = np.zeros((n_lines, sdf_size, n_neu*n_pns_recep))
 
 tic = timeit.default_timer()
 
-peaks                       = [1.85e-4, 5e-4, 1.5e-3, 2e-2, 2e-1]#[0.001, 0.005] #[5e-4] 
+# peaks                       = [5e-4] #[1.85e-4, 5e-4, 1.5e-3, 2e-2, 2e-1]#[0.001, 0.005] #
 n_peaks = len(peaks)
 time2analyse = 200
 

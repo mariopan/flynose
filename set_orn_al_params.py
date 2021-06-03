@@ -19,7 +19,7 @@ def main(n_orn=2):
                         ('pts_ms' , 10),         # simulated pts per ms 
                         ('n_od', 2),            # number of odours
                         ('t_tot', 1500),        # ms 
-                        ('conc0', 2.85e-04),    # 2.854e-04
+                        ('conc0', 1.85e-04),    # 2.854e-04
                         ('od_noise', 2),        # 5
                         ('od_filter_frq', 0.002), #.002
                         ('r_noise', .50),       # .5
@@ -64,7 +64,7 @@ def main(n_orn=2):
                         ('vrest', -33), #-0.969461053),      # [mV] resting potential
                         ('vrev', 0), #21.1784081),  # [mV] reversal potential
                         # ('v_k', vrest),
-                        ('g_y', 0.3), #  .5853575783),       
+                        ('g_y',  .5853575783),      # 0.3), # 
                         ('g_r', .864162073),  
                         ('r0', 0.15), 
                         ('y0', .5), 

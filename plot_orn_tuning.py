@@ -19,6 +19,10 @@ import matplotlib.pyplot as plt
 import timeit
 import pickle        
 import matplotlib as mpl
+import string
+
+
+import sys
 
 from scipy.interpolate import interp1d
 
@@ -31,14 +35,14 @@ import set_orn_al_params
 
     
 # STANDARD FIGURE PARAMS
-lw = 2
+lw = 3
 fs = 13
 plt.rc('text', usetex=True)  # laTex in the polot
 #plt.rc('font', family='serif')
 fig_size = [12, 12]
 fig_position = 1300,10
 title_fs = 20 # font size of ticks
-label_fs = 20 # font size of labels
+label_fs = 22 # font size of labels
 ticks_fs = label_fs - 3
 panel_fs = 30 # font size of panel's letter
 black   = 'xkcd:black'
@@ -49,7 +53,7 @@ purple  = 'xkcd:purple'
 orange  = 'xkcd:orange'
 cmap    = plt.get_cmap('rainbow')
 recep_clrs = ['green','purple','cyan','red']
-
+alphabet = string.ascii_lowercase
 
 
 # tic toc
@@ -124,6 +128,9 @@ def figure_multipeaks(data2an, params2an, id_p):
             
     
     
+
+
+
 # LOAD PARAMS FROM A FILE
 params_al_orn = set_orn_al_params.main(2)
 
@@ -137,22 +144,30 @@ al_params           = params_al_orn['al_params']
 
 # nsi params
 inh_conds           = ['ctrl', 'nsi']  #['nsi', 'ctrl'] #
-nsi_strs            = [0, 0.6] #[0.4, 0]
+nsi_strs            = [0, 0.4] #[0.4, 0]
+n_inh_conds         = len(inh_conds)
 
 n_pns_recep         = al_params['n_pns_recep'] # number of PNs per each glomerulus
 n_orns_recep        = sens_params['n_orns_recep']   # number of ORNs per each glomerulus
     
+
+analysis_name = 'cns_dose_response' 
+
+shift_ratio =  .1
+# shift_ratio = float(sys.argv[1])
+print('shift ratio: %.2f'%shift_ratio)
 shift_0 = 10000
-shift_1 = 9000
+shift_1 = shift_ratio*shift_0
+
 
 # stim params
 delay                       = 0
 peak_ratio                  = 1
-peaks                       = 5*np.logspace(-10, -1, 20) 
-peaks_intp                  = 5*np.logspace(-10, -1, 100) 
-stim_durs                   = [20, 50, 100, 200]
+peaks                       = 5*np.logspace(-10, -1, 10)#50) #9
+peaks_intp                  = 5*np.logspace(-10, -1, 1000) 
+stim_durs                   = [50] #[10, 20, 50, 100, 200]
 
-# stim_dur                    = 200
+n_durs                      = len(stim_durs)
 stim_type                   = 'ts'  #'ts' # 'ss'
 t_on                        = 1000
 
@@ -178,8 +193,10 @@ alpha_r_1 = shift_1**n_r*12.6228808
 
 measure                     = 'peak'  # 'avg' 'peak'
 
+c_thr_hg = .90
+c_thr_lw = .10
 
-##############################################################################
+
 # Transduction parameters
 od_pref = np.array([[1,0], [1, 0],]) # ORNs' sensibilities to each odours
      
@@ -202,7 +219,7 @@ transd_params = (ab3A_params, ab3B_params)
     
 sens_params['transd_params'] = transd_params
 sens_params['od_pref'] = od_pref
-##############################################################################
+
 
 
 n_peaks     = np.size(peaks)
@@ -220,41 +237,49 @@ params_1sens   = dict([
                 ])
 n_peaks = len(peaks)
 
-avg_ornw = np.zeros((n_peaks,  len(inh_conds)))
-avg_orns = np.zeros((n_peaks,  len(inh_conds))) 
-avg_pnw = np.zeros((n_peaks,  len(inh_conds)))
-avg_pns = np.zeros((n_peaks,  len(inh_conds)))
+avg_ornw = np.zeros((n_peaks,  n_inh_conds))
+avg_orns = np.zeros((n_peaks,  n_inh_conds)) 
+avg_pnw = np.zeros((n_peaks,  n_inh_conds))
+avg_pns = np.zeros((n_peaks,  n_inh_conds))
 
-peak_ornw = np.zeros((n_peaks,  len(inh_conds)))
-peak_orns  = np.zeros((n_peaks,  len(inh_conds)))
-peak_pnw = np.zeros((n_peaks,  len(inh_conds)))
-peak_pns = np.zeros((n_peaks,  len(inh_conds)))
-thr_lw = np.zeros((len(inh_conds), len(stim_durs)), dtype=int)
-thr_hg = np.zeros((len(inh_conds),len(stim_durs)), dtype=int)
-dyn_rng= np.zeros((len(inh_conds),len(stim_durs)))
+peak_ornw = np.zeros((n_peaks,  n_inh_conds))
+peak_orns  = np.zeros((n_peaks,  n_inh_conds))
+peak_pnw = np.zeros((n_peaks,  n_inh_conds))
+peak_pns = np.zeros((n_peaks,  n_inh_conds))
 
+thr_lw_sum = np.zeros((n_inh_conds, n_durs), dtype=float)
+thr_hg_sum = np.zeros((n_inh_conds,n_durs), dtype=float)
+dyn_rng_sum = np.zeros((n_inh_conds,n_durs))
+
+thr_lw = np.zeros((n_inh_conds, n_durs), dtype=float)
+thr_hg = np.zeros((n_inh_conds,n_durs), dtype=float)
+dyn_rng = np.zeros((n_inh_conds,n_durs))
+
+
+thr_ratio = np.zeros((n_inh_conds,n_durs))
+
+#%% RUN SIMS AND PLOT
 tic = tictoc()
 
-# RUN SIMS AND PLOT
 
 if fig_doseres:
-    fig_dr, axs = plt.subplots(nrows=len(stim_durs), ncols=1, figsize=[8, 5]) # len(inh_conds)
+    fig_dr, axs = plt.subplots(nrows=n_durs, ncols=1, figsize=[8, 5]) # n_inh_conds
 
 for id_dur, stim_dur in enumerate(stim_durs):
+    
     stim_params['stim_dur']     = np.array([stim_dur, stim_dur+delay])
     t2plot                      = -200,stim_dur+300
 
-    # ax2 = plt.subplot(rs, cs, 3)  
     for id_inh, inh_cond in enumerate(inh_conds):
         
         nsi_str = nsi_strs[id_inh]
         sens_params['w_nsi']    = nsi_str
         # FIGURE dose response
         if fig_doseres:
-            # if (len(stim_durs)==1) & (len(inh_conds)>1):
+            # if (n_durs==1) & (n_inh_conds>1):
             #     ax2 = axs[id_inh]
             # el
-            if (len(stim_durs)==1):# & (len(inh_conds)==1):
+            if (n_durs==1):# & (n_inh_conds==1):
                 ax2 = axs
             else:
                 ax2 = axs[id_dur]#, id_inh]
@@ -300,12 +325,6 @@ for id_dur, stim_dur in enumerate(stim_durs):
                 
                 peak_orns[id_p, id_inh] = np.max(np.mean(orn_sdf[id_stim_s, n_orns_recep:], axis=1)) # using average PN
                 avg_orns[id_p, id_inh]  = np.mean(orn_sdf[id_stim_s, n_orns_recep:])
-                
-                
-            
-            
-            
-        
             
             # FIGURE ORN DYNAMICS OR MULTIPLTE PEAKS 
             if fig_multipeaks:
@@ -320,72 +339,117 @@ for id_dur, stim_dur in enumerate(stim_durs):
                     fig_name = 'orn_tuning' + tmp_name
                     
                     fig_pn_m.savefig(fld_analysis + fig_name + '.png')
-                    if data_save:
-                        params_name = 'param_1sens_'+ measure + tmp_name                
-                        with open(fld_analysis+params_name+'.pickle', 'wb') as f:
-                            pickle.dump([params_1sens, ], f)  
-        
+                    
         
         nu_intp = interp1d(peaks, peak_ornw[:,id_inh]+peak_orns[:,id_inh], kind=1)
         dr_peak = nu_intp(peaks_intp)
         
-        thr_lw[id_inh, id_dur] = next(x[0] for x in enumerate(dr_peak) if x[1] > 0.05*np.max(dr_peak))
-
-        thr_hg[id_inh, id_dur] = next(x[0] for x in enumerate(dr_peak) if x[1] > 0.95*np.max(dr_peak))
+        thr_lw_sum[id_inh, id_dur] = peaks_intp[next(x[0] for x in enumerate(dr_peak) if x[1] > c_thr_lw*np.max(dr_peak))]
+        thr_hg_sum[id_inh, id_dur] = peaks_intp[next(x[0] for x in enumerate(dr_peak) if x[1] > c_thr_hg*np.max(dr_peak))]
         
-        dyn_rng[id_inh, id_dur] = -np.log10(peaks_intp[thr_hg[id_inh, id_dur]] - peaks_intp[thr_lw[id_inh, id_dur]] )
+        dyn_rng_sum[id_inh, id_dur] = np.log10(thr_hg_sum[id_inh, id_dur] 
+                                                / thr_lw_sum[id_inh, id_dur])
         
+        nu_intp = interp1d(peaks, peak_ornw[:,id_inh], kind=1)
+        dr_peak = nu_intp(peaks_intp)
+        
+        thr_lw[id_inh, id_dur] = peaks_intp[next(x[0] for x in enumerate(dr_peak) if x[1] > c_thr_lw*np.max(dr_peak))] 
+        thr_hg[id_inh, id_dur] = peaks_intp[next(x[0] for x in enumerate(dr_peak) if x[1] > c_thr_hg*np.max(dr_peak))]
+        
+        
+        dyn_rng[id_inh, id_dur] = np.log10(thr_hg[id_inh, id_dur]
+                                            / thr_lw[id_inh, id_dur] )
+            
+        nu_intp_s = interp1d(peaks, peak_orns[:,id_inh], kind=1)
+        dr_peak_s = nu_intp_s(peaks_intp)
+        
+        thr_lw_s = peaks_intp[next(x[0] for x in enumerate(dr_peak_s) if x[1] > c_thr_lw*np.max(dr_peak_s))] 
+        
+        thr_ratio[id_inh, id_dur] = np.log10(thr_lw_s
+                                            / thr_lw[id_inh, id_dur] )
+                        
         if fig_doseres:
             if measure == 'avg':
                 ax2.plot(peaks, avg_ornw[:,id_inh], '.-', linewidth=lw+1, color='green')
                 ax2.plot(peaks, avg_orns[:,id_inh], '.-', linewidth=lw+1, color='purple')
-                # ax2.plot(peaks, (avg_orns+avg_ornw)[:,id_inh], '.-', linewidth=lw+1, color='blue')
             elif measure == 'peak':
-                # ax2.plot(peaks, np.max(peak_ornw[:,id_inh])-peak_ornw[:,id_inh], '.-', linewidth=lw+2*id_inh, color='green')
-                # ax2.plot(peaks, np.max(peak_orns[:,id_inh])-peak_orns[:,id_inh], '.-', linewidth=lw+2*id_inh, color='purple')
-                # ax2.plot(peaks, peak_ornw[:,id_inh], '.-', linewidth=lw+2*id_inh, color='green')
-                # ax2.plot(peaks, peak_orns[:,id_inh], '.-', linewidth=lw+2*id_inh, color='purple')
-                ax2.plot(peaks, (peak_orns+peak_ornw)[:,id_inh], '.-', linewidth=lw+2*id_inh, color='blue')
-                ax2.plot(peaks_intp, dr_peak, '--',linewidth=lw+id_inh, color='red')
-                
-            if id_dur==0:
-                ax2.set_title(inh_cond, fontsize=title_fs+2)
-            elif id_dur==(len(stim_durs)-1):
-                ax2.set_xlabel('odour conc.', fontsize=label_fs-2)
+                if id_inh==0:
+                    ax2.plot(peaks, peak_ornw[:,id_inh], '.--', linewidth=lw, label='ctrl, ORN 1', color='green')
+                    ax2.plot(peaks, peak_orns[:,id_inh], '.--', linewidth=lw, label='ctrl, ORN 2', color='purple')
+                    ax2.plot([thr_lw_sum[id_inh, id_dur], thr_lw_sum[id_inh, id_dur]], [0, 250], 'k--')
+                    ax2.plot([thr_hg_sum[id_inh, id_dur], thr_hg_sum[id_inh, id_dur]], [0, 250], 'k--')
+                elif id_inh == 1:
+                    ax2.plot(peaks, peak_ornw[:,id_inh], '.-', linewidth=lw, label='NSI, ORN 1', color='green')
+                    ax2.plot(peaks, peak_orns[:,id_inh], '.-', linewidth=lw, label='NSI, ORN 2', color='purple')
+                    ax2.plot([thr_lw_sum[id_inh, id_dur], thr_lw_sum[id_inh, id_dur]], [0, 250], 'k-')
+                    ax2.plot([thr_hg_sum[id_inh, id_dur], thr_hg_sum[id_inh, id_dur]], [0, 250], 'k-')
+            ax2.set_xlabel('Odour concentration (a.u.)', fontsize=label_fs-2)
             
             if id_inh==0:
                 ax2.set_ylabel('Avg FR (Hz)', fontsize=label_fs-2)
             
-            if id_inh==len(inh_conds)-1:
-                ax2.text(1.2, 1,'%d ms'%stim_dur, transform=ax2.transAxes,rotation='vertical',
-                         fontsize=label_fs-2, fontweight='bold', va='top', ha='right')
+            ax2.text(-.1, 1.08, alphabet[id_dur], transform=ax2.transAxes,
+                color= black, fontsize=panel_fs, fontweight='bold', va='top', ha='right')       
             
+
             ax2.set_xscale('log') # 'linear') #'log')
             
             ax2.spines['right'].set_color('none')
             ax2.spines['top'].set_color('none')
     
-        plt.show()
-        
-        if fig_save:
-            if fig_save:
+            ax2.legend(fontsize=label_fs, frameon=False, loc=4)
             
-                if fig_doseres:
-                    tmp_name = '_stim_' + stim_params['stim_type'] +\
-                        '_durs_%d-%d_'%(stim_durs[0], stim_durs[-1],) +\
-                        inh_conds[0]+'_vs_'+inh_conds[1]+\
-                        '_alphar_0_%d'%alpha_r_0 +\
-                        '_alphar_1_%d'%alpha_r_1
-                        
-                    fig_name = 'orn_dose-response' + tmp_name
-                    
-                    fig_dr.savefig(fld_analysis + fig_name + '.png')
+            ax2.tick_params(axis='both', which='major', labelsize=label_fs-3)
                 
-              
+            
+            # CHANGE plot position:
+            ll, bb, ww, hh = ax2.get_position().bounds
+            ax2.set_position([ll,bb+.02, ww, hh])        
+            
+    plt.show()
+
+tmp_name = '_stim_' + stim_params['stim_type'] +\
+        '_durs_%d-%d_'%(stim_durs[0], stim_durs[-1],) +\
+        inh_conds[0]+'_vs_'+inh_conds[1]+\
+        '_alphar_0_%d'%alpha_r_0 +\
+        '_alphar_1_%d'%alpha_r_1
+        
+    
+if data_save:
+    data2save = dict([
+        ('dyn_rng', dyn_rng),
+        ('dyn_rng_sum', dyn_rng_sum),
+        ('thr_ratio', thr_ratio),
+        ('thr_lw', thr_lw),
+        ('thr_hg', thr_hg),        
+        ('thr_lw_sum', thr_lw_sum),
+        ('thr_hg_sum', thr_hg_sum),
+        ('shift_ratios', shift_ratio),
+        ('stim_durs', stim_durs),
+        ('peaks', peaks),
+        ('nsi_strs', nsi_strs), 
+        ('params_1sens', params_1sens), 
+        ])
+    with open(fld_analysis+analysis_name+tmp_name+'.pickle', 'wb') as f:
+            pickle.dump(data2save, f)  
+if fig_save:
+    fig_name = 'csn_' + analysis_name + tmp_name
+    
+    fig_dr.savefig(fld_analysis + fig_name + '.png')
+                
+np.set_printoptions(precision=3)
+
+print('dynamic range ')        
 print(dyn_rng)        
+
+print('dynamic range sum')        
+print(dyn_rng_sum)
+
+
+
 toc = tictoc()-tic
 
-print('Diag shade plot elapsed time: %.1f'%(toc))
+print('Dose-response analysis: elapsed time %.1f s'%(toc))
                         
 
 

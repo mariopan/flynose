@@ -119,14 +119,6 @@ def orn_lif0(params2fit, *args):
     
     
     # FITTING PARAMS
-    # [tau_v, vrest, vrev, ] = params2fit#([.6, 1, .09, 
-    # 2, .5, 12, ])
-    #.5, 1, .25, .002])
-    # [tau_v, vrest, vrev, ] = [ 2, .5, 12, ]
-    # [n, alpha_r, beta_r, ] = [.6, 1, .09, ]
-    # [ g_y, g_r, alpha_y, beta_y] = [.5, 1, .25, .002]
-    # conc0 = 2*1e-3
-    
     [n, alpha_r, beta_r, 
      tau_v, vrest,  
      g_y, g_r, alpha_y, beta_y, 
@@ -194,7 +186,6 @@ def ethyl_data(conc2fit, ):
     return [t, freq] 
 
 
-
 def leastsq_orn(params, *args):
     # Calculate all the single curves from the params and the observed x;
     # It returns the difference between the objective y and the calculated yfit.
@@ -224,19 +215,13 @@ def leastsq_orn(params, *args):
     dy = nu_obs-nu_sim
     return dy 
 
-#  LOAD OBSERVED ORN ACTIVITY and FIGURE
 
 
-def plot_obs(ax):
-    """ FIGURE of the observed data """
+def select_nu_obs():
+    
     nu_obs_all = np.empty(n_cs*n_tpts,)
- 
-    n_clr = n_cs+2
-    c = np.arange(1, n_clr )
-    norm = mpl.colors.Normalize(vmin=c.min(), vmax=c.max())
-    greenmap = mpl.cm.ScalarMappable(norm=norm, cmap=mpl.cm.Greens)
-   
-    # generate and plot 'real' and fit curves:
+    
+    # select oserved activity curves:
     for cc_ob, cc_sim, idc in zip(concs_obs, concs_sim, range(n_cs)):
         
         # Load the observed ORN activity (from Martelli 2013, ethyl acetate, ab3)
@@ -249,26 +234,11 @@ def plot_obs(ax):
         ss = idc*n_tpts
         ee = (1+idc)*n_tpts
         nu_obs_all[ss:ee] = y_true
-        
-        # PLOT
-        clr = greenmap.to_rgba(n_clr-idc)
-        ax.plot(t_fit, y_true, '-.', color=clr, label='observ %.5f'%cc_sim)
     
-    ax.plot([0, 0], [0, 300], 'k--', linewidth=2)
-    ax.plot([500, 500], [0, 300], 'k--', linewidth=2)
-    ax.set_xlabel("t")
-    ax.set_ylabel("y")
-    ax.legend()
-
     return nu_obs_all
-
-
-def figure_fit(params2an, ax):
+        
+def figure_fit(params2an, ax, nu_obs_all):
     args0 = [t_tot, t_on, np.nan]
-    
-    nu_obs_all = np.empty(n_cs*n_tpts,)
-    
-    # ***************************************************************
     n_clr = n_cs+2
     c = np.arange(1, n_clr )
     norm = mpl.colors.Normalize(vmin=c.min(), vmax=c.max())
@@ -277,16 +247,9 @@ def figure_fit(params2an, ax):
     # generate and plot 'real' and fit curves:
     for cc_ob, cc_sim, idc in zip(concs_obs, concs_sim, range(n_cs)):
         
-        # Load the observed ORN activity (from Martelli 2013, ethyl acetate, ab3)
-        [t_obs, nu_obs] = ethyl_data(cc_ob, )
-        
-        # interpolate observed activity 
-        nu_obs_fcn = interp1d(t_obs, nu_obs)
-        y_true = nu_obs_fcn(t_fit_obs)
-        
         ss = idc*n_tpts
         ee = (1+idc)*n_tpts
-        nu_obs_all[ss:ee] = y_true
+        y_true = nu_obs_all[ss:ee]
         
         # Simulate ORN with fitted params
         args0[2] = cc_sim
@@ -307,14 +270,14 @@ def figure_fit(params2an, ax):
     ax.set_ylabel("y")
     ax.legend()
 
-    return nu_obs_all
+    return ax
 
 # INITIALIZE PARAMETERS
 
 # figure and data params
 plt.ioff()      # ioff() # to avoid showing the plot every time   
 
-fld_analysis    = 'fit_ORN/' 
+fld_analysis    = 'fit_ORN/new_fit/' 
 fig_name        = 'ORN_fit_'
 data_name       = 'ORN_params_fit_'
 
@@ -360,69 +323,46 @@ elif orn_model == 'lif':
     #  g_y, g_r, alpha_y, beta_y, 
     #  conc0, tau_sdf, ] =  params2fit
     
-    # fit with old params no plaus neurophys:
-    # params2fit = [8.22066870e-01, 1.26228808e+01, 7.6758436748e-02, 2.26183540e+00,
-    #               9.69461053e-01, 2.11784081e+01, 5.853575783e-01, 8.64162073e-01,
-    #               4.5310619e-01, 3.467184e-03, 2.853669391e-04, 41] # loss='soft_l1', # f_scale=0.1, 
-    
-    params2fit = [.82, 12.62*100**.82, 0.076, 
+    params2fit = [.82, 12.62, 0.076,  
                   2.26, 33, 
-                  6e-01, 0.86, 0.45, 3.4e-03, 
-                  2.85e-06, 41,] # loss='soft_l1', 
-    
-    
-    # # ORN Parameters 
-    # orn_params  = dict([
-    #             # LIF params
-    #                     ('t_ref', 2*stim_params['pts_ms']), # ms; refractory period 
-    #                     ('theta', -30), # 1),                 # [mV] firing threshold
-    #                     ('tau_v', 2.26183540),        # [ms]
-    #                     ('vrest', -33), #-0.969461053),      # [mV] resting potential
-    #                     ('vrev', 0), #21.1784081),  # [mV] reversal potential
-    #                     # ('v_k', vrest),
-    #                     ('g_y', 0.3), #  .5853575783),       
-    #                     ('g_r', .864162073),  
-    #                     ('r0', 0.15), 
-    #                     ('y0', .5), 
-    #             # Adaptation params
-    #                     ('alpha_y', .45310619), 
-    #                     ('beta_y', 3.467184e-03), 
-    #                     ])
-    
-    # # SDF/Analysis params
-    # sdf_params      = dict([
-    #                     ('tau_sdf', 41),
-    #                     ('dt_sdf', 5),
-    #                     ])
+                  5.8e-1, 0.86, 0.45, 3.4e-3,  
+                  1.85e-4, 41,]    
+
 
 file_names = ['ethyl_ab3A_10.csv', 'ethyl_ab3A_17.csv', 'ethyl_ab3A_20.csv', 
                   'ethyl_ab3A_22.csv', 'ethyl_ab3A_27.csv', 'ethyl_ab3A_30.csv',
                   'ethyl_ab3A_35.csv', 'ethyl_ab3A_40.csv', 'ethyl_ab3A_80.csv',]
     
 concs_obs       = np.array([10, 20,30, ]) # list of concentrations to list
-concs_sim       = .01* 10**-np.array(concs_obs/10) # list of concentrations to list
+concs_sim       =  10**-np.array(concs_obs/10) # list of concentrations to list
 n_cs            = len(concs_obs)
 
-# extract observed ORN and simulate with standard params
-fig = plt.figure()
-ax = fig.subplots(1, 1,)
-nu_obs_all = figure_fit(params2fit, ax)
-plt.show()
+
+
+nu_obs_all      = select_nu_obs()
 
 
 
+#%% extract observed ORN and simulate with standard params.01*
+# fig = plt.figure()
+# ax = fig.subplots(1, 1,)
+# figure_fit(params2fit, ax, nu_obs_all)
+# plt.show()
 
-#*********************************************
+
 # routine to check the single functions
-args_fit        = [n_tpts, nu_obs_all, t_fit, t_tot, t_on, ]
+args_fit        = list([n_tpts, nu_obs_all, t_fit, t_tot, t_on, ])
 args_fit        = np.concatenate((args_fit, concs_sim))
 
 dnu = leastsq_orn(params2fit, *args_fit)
 cost_est = 0.5 * np.sum(dnu**2)
-print('estimated cost: %.f2'%cost_est)
+print('estimated cost: %.2f'%cost_est)
 
 
-#%% FIT OBSERVED DATA TO SIMULATIONS
+
+
+#%% **************************************************************************
+# FIT OBSERVED DATA TO SIMULATIONS
 tic_tot = tictoc()
 
 diff_step       = 1e-4
@@ -433,7 +373,7 @@ lb[-1]          = 20
 
 # UPPER BOUNDS
 if orn_model=='lif':
-    ub          = np.ones_like(params2fit)*30
+    ub          = np.ones_like(params2fit)*50
 elif orn_model=='dp':
     ub          = np.ones_like(params2fit)*300
 ub[0]           = 1       # upper bounds for n, transduction params
@@ -443,24 +383,29 @@ ub[-1]          = 150
 max_nn = 250
 bad_fit = True
 nn = 0
-cost_goal = 20000
+cost_goal = cost_est/500
 print('cost goal: %d'%cost_goal)
+
+
 while bad_fit: 
+
     params_0 = ub
     # check that the starting params are all w/in the bounds
     new_try = 0
     while ~np.all((params_0>lb) & (params_0<ub)):
         new_try += 1
-        params_0 = params2fit*(1+.5*np.random.randn(len(params2fit)))
+        params_0 = params2fit*(1+.2*np.random.randn(len(params2fit)))
         
-    print('trial #: %d, params 0:'%nn)
-    print(params_0)
+    # print('trial #: %d, params 0:'%nn)
+    # print(params_0)
+    # print('Perc Diff params 0-params_good:')
+    # print(100*(params_0-params2fit)/params2fit)
         
     # linear diff fit
     tic = tictoc()
     res_lsq = least_squares(leastsq_orn, params_0, #method='lm',
                             bounds=(lb, ub), 
-                            #loss='soft_l1', f_scale=0.1, 
+                            loss='soft_l1', f_scale=0.1, 
                             diff_step=diff_step,# loss='cauchy', # tr_solver='lsmr', 
                             gtol=None, #xtol=None, ftol=None, 
                             args=args_fit)
@@ -476,29 +421,44 @@ while bad_fit:
     
     fig = plt.figure()
     ax = fig.subplots(1, 1,)
-    figure_fit(params_lsq, ax)
+    figure_fit(params_lsq, ax, nu_obs_all)
     ax.set_title('fit linear diff')
 
     # SAVE FIGURE AND DATA
     fig.savefig(fld_analysis + fig_name + str(nn) +'.png')
     plt.close()
-    # plt.show()
     
+    fit_data = dict([
+        ('t_tot', t_tot), 
+        ('t_on',  t_on), 
+        ('t_tot_fit',  t_tot_fit ), 
+        ('t_on_fit', t_on_fit  ), 
+        ('delay_obs', delay_obs), 
+        ('pts_ms',  pts_ms ), 
+        ('n_tpts',  n_tpts ), 
+        ('t_fit',   t_fit), 
+        ('t_fit_obs', t_fit_obs  ), 
+        ('params2fit',   params2fit), 
+        ('nu_obs_all',   nu_obs_all), 
+        ('concs_obs',   concs_obs), 
+        ('concs_sim',  concs_sim ), 
+        ('file_names',    file_names), 
+        ('params_0',  params_0 ), 
+        ('args_fit',   args_fit), 
+        ('lb',  lb ), 
+        ('ub',   ub), 
+        ('diff_step',   diff_step), 
+        ('res_lsq', res_lsq ), 
+        ])
+        
     with open(fld_analysis+ data_name + str(nn) + '.pickle', 'wb') as f:
-        saved_pars = ['t_tot', 't_on','t_tot_fit', 't_on_fit', 'delay_obs', 
-                      'pts_ms', 'n_tpts', 't_fit', 't_fit_obs', 'params2fit',
-                      'nu_obs_all', 'concs_obs', 'concs_sim', 'file_names', 
-                      'params_0', 'args_fit', 'lb', 'ub', 
-                     'diff_step', 'res_lsq',]
-        pickle.dump([t_tot, t_on, t_tot_fit, t_on_fit, delay_obs, 
-                     pts_ms, n_tpts, t_fit, t_fit_obs, params2fit,
-                     nu_obs_all, concs_obs, concs_sim, file_names, 
-                     params_0, args_fit, lb, ub, 
-                     diff_step, res_lsq, saved_pars], f)
+        pickle.dump(fit_data, f)
+        
     if (cost < cost_goal) or (nn == max_nn):
         bad_fit = False
     nn += 1
-    
+    print('attempt number: %d'%nn)
+
 toc_tot = tictoc()    
 print('tot time: %.2f min'%((toc_tot-tic_tot)/60))
  
@@ -508,52 +468,60 @@ print('tot time: %.2f min'%((toc_tot-tic_tot)/60))
 import pickle
 import numpy as np
 
-fld_analysis    = 'fit_ORN/'#'LIF_ORN_fit_50tpts/' 
+fld_analysis    = 'fit_ORN/new_fit/'#'LIF_ORN_fit_50tpts/' 
 fig_name        = 'ORN_fit_'
 data_name       = 'ORN_params_fit_'
 
+pippo = 0
 
-cost =  np.empty(250)
+good_params = np.zeros((40,12))
+good_params_dist= np.zeros((40,))
+
+cost =  np.empty(175)
 for nn in range(len(cost)):
     
     all_params    = pickle.load(open(fld_analysis+data_name + str(nn) + '.pickle', "rb" ))
-    [t_tot, t_on, t_tot_fit, t_on_fit, delay_obs, 
-        pts_ms, n_tpts, t_fit, t_fit_obs, params2fit,
-        nu_obs_all, concs_obs, concs_sim, file_names, 
-        params_0, args_fit, lb, ub, 
-        diff_step, res_lsq, saved_pars] = all_params
-    cost[nn] =  res_lsq.cost
+    res_lsq         = all_params['res_lsq']
+    cost[nn]        = res_lsq.cost
+
+    params_0        = all_params['params_0']
     
-    if cost[nn] < 21000:
+    if cost[nn] < 600:
+        
         print('cost(%d): %.2f' %(nn, cost[nn]))
         print('Fit params:')
         print(str(res_lsq.x))
+        good_params [pippo, :11] = np.round(1000*res_lsq.x/params2fit)/10
+        
+        
+        good_params_dist[pippo] = np.mean(good_params [pippo, :11])
+        
+        dnu = leastsq_orn(res_lsq.x, *args_fit)
+        cost_est = np.mean(np.abs(dnu)/nu_obs_all)
+        good_params [pippo, 11] = cost_est#cost[nn]/5
+        
+        pippo = pippo + 1
         print('distance from start:')
         print(str(np.round(1000*params_0/res_lsq.x)/10))
+        
         print('distance from best fit: ')
-        print(str(np.round(1000*res_lsq.x/params2fit)/10))
+        print(str(good_params_dist))
         print()
         
 
 
 nn_min = np.argmin(cost)
-prms = pickle.load(open(fld_analysis+data_name + str(nn_min) + '.pickle', "rb" ))
-[t_tot, t_on, t_tot_fit, t_on_fit, delay_obs, 
-        pts_ms, n_tpts, t_fit, t_fit_obs, params2fit,
-        nu_obs_all, concs_obs, concs_sim, file_names, 
-        params_0, args_fit, lb, ub, 
-        diff_step, res_lsq, saved_pars] = prms
-params_fit = res_lsq.x
+best_prms = pickle.load(open(fld_analysis+data_name + str(nn_min) + '.pickle', "rb" ))
+res_lsq = best_prms['res_lsq']
+params_bestfit = res_lsq.x
+
+nu_obs_all      = select_nu_obs()
 
 # extract observed ORN and simulate with standard params
-fig = plt.figure()
-ax = fig.subplots(1, 1,)
-nu_obs_all = plot_obs(ax)
+fig, axs = plt.subplots(1, 2,)
+figure_fit(params_bestfit, axs[0], nu_obs_all)
+
+axs[1].imshow(good_params)
 plt.show()
 
 
-#%%
-nu_obs_all = figure_fit(params_fit, ax)
-# ax.set_title('params default')
-plt.show()
-# fig.savefig(fld_analysis + fig_name + 'default.png')

@@ -40,13 +40,14 @@ cmap    = plt.get_cmap('rainbow')
 # *****************************************************************
 name_analysis   = 'real_plumes'
 
-fld_analysis    = 'NSI_analysis/analysis_'+name_analysis+'_1/'
-# fld_analysis    = 'NSI_analysis/analysis_real_plumes_10s_peak2e-4_tauln250_tausdf20_rhocs0-1_rhos0-5/'
-# fld_analysis    = 'NSI_analysis/analysis_real_plumes_10s_peak10e-4_tauln250_tausdf20_rhocs0-1_rhos0-5/'
-# fld_analysis    = 'NSI_analysis/analysis_real_plumes_10s_peak20e-4_tauln250_tausdf20_rhocs1-1_rhos0-5/'
-# fld_analysis    = 'NSI_analysis/analysis_real_plumes_10s_peak20e-4_tauln250_tausdf20_rhocs0-1_rhos0-5/'
-fld_analysis    = 'NSI_analysis/analysis_real_plumes_10s_peak20e-4_tauln250_tausdf20_rhocs0-1_rhos0-5/'
-# fld_analysis    = 'NSI_analysis/analysis_real_plumes_10s_peak20e-4_tauln25_tausdf20_rhocs0-1_rhos0-5/'
+fld_analysis    = 'NSI_analysis/'+name_analysis+'_1/'
+# fld_analysis    = 'NSI_analysis/real_plumes_200s_peak20e-4_tauln250_tausdf20_rhocs0-1_rhos0-5/'
+# fld_analysis    = 'NSI_analysis/real_plumes_10s_peak2e-4_tauln250_tausdf20_rhocs0-1_rhos0-5/'
+# fld_analysis    = 'NSI_analysis/real_plumes_10s_peak10e-4_tauln250_tausdf20_rhocs0-1_rhos0-5/'
+# fld_analysis    = 'NSI_analysis/real_plumes_10s_peak20e-4_tauln250_tausdf20_rhocs1-1_rhos0-5/'
+# fld_analysis    = 'NSI_analysis/real_plumes_10s_peak20e-4_tauln250_tausdf20_rhocs0-1_rhos0-5/'
+# fld_analysis    = 'NSI_analysis/real_plumes_10s_peak20e-4_tauln250_tausdf20_rhocs0-1_rhos0-5/'
+# fld_analysis    = 'NSI_analysis/real_plumes_10s_peak20e-4_tauln25_tausdf20_rhocs0-1_rhos0-5/'
 # ORN NSI params
 nsi_ln_par      = [[0,0],  [0, .6], [.6, 0],]
 seeds           = np.arange(1, 30)
@@ -250,7 +251,7 @@ if avg_fig:
     ax_pn.errorbar(corr_obs, np.squeeze(np.mean(pn_avg1[:, 2, :, w_max_id,], axis=1)),
                   yerr=np.squeeze(np.std(pn_avg1[:, 2, :, w_max_id,], axis=1))/
                   (np.size(pn_avg1[:, 2, :, w_max_id,],axis=1))**.5, linewidth=lw, ls='-', 
-                  color='orange', label='LN', fmt='d')
+                  color=orange, label='LN', fmt='d')
     
     ax_pn.legend(fontsize=label_fs, frameon=False)
 
@@ -268,7 +269,7 @@ if avg_fig:
     
     ax_peak.errorbar(corr_obs, np.mean(y2plot_ln, axis=1),
        yerr=np.std(y2plot_ln, axis=1)/np.sqrt(n_seeds),
-       linewidth=lw, ls='-',color='orange',label='LN')
+       linewidth=lw, ls='-',color=orange,label='LN')
     
     ax_peak.errorbar(corr_obs, np.mean(y2plot_nsi, axis=1),
        yerr=np.std(y2plot_nsi, axis=1)/np.sqrt(n_seeds),
@@ -349,7 +350,7 @@ if peak_fig:
            linewidth=lw, color=pink, ls= '-.', label='Indep')
         axs[thr_id].errorbar(corr_obs, np.mean(y2plot_ln, axis=1),
            yerr=np.std(y2plot_ln, axis=1)/np.sqrt(n_seeds),
-           linewidth=lw, color='orange',ls= '-',label='LN')
+           linewidth=lw, color=orange,ls= '-',label='LN')
         axs[thr_id].errorbar(corr_obs, np.mean(y2plot_nsi, axis=1),
            yerr=np.std(y2plot_nsi, axis=1)/np.sqrt(n_seeds),
            linewidth=lw, color=cyan,ls= '--',label='NSI')
@@ -399,13 +400,13 @@ if thrwmax_fig:
             
             if thr == 50:
                 pn_tmp = .5*(pn_m50_2+pn_m50_1)           
-                y_ticks = [500, 1000, 1500, 2000]
+                y_ticks = 6*np.array([500, 1000, 1500, 2000])
             elif thr == 100:
                 pn_tmp = .5*(pn_m100_2+pn_m100_1)
-                y_ticks = [300, 600, 900, 1200]
+                y_ticks = 15*np.array([300, 600, 900, 1200])
             elif thr == 150:
                 pn_tmp = .5*(pn_m150_2+pn_m150_1)
-                y_ticks = [75, 150, 225, 300]
+                y_ticks = 30*np.array([0, 75, 150, 225, 300])
                 
             y2plot_ln = np.squeeze(pn_tmp[:, 2, :, w_max_id, ])
             y2plot_nsi = np.squeeze(pn_tmp[:, 1, :, w_max_id, ])
@@ -416,7 +417,7 @@ if thrwmax_fig:
                linewidth=lw, color=pink, ls='-.', label='Indep')
             axs[w_max_id].errorbar(corr_tmp, np.mean(y2plot_ln, axis=1),
                yerr=np.std(y2plot_ln, axis=1)/np.sqrt(n_seeds),
-               linewidth=lw, color='orange',ls='-', label='LN')
+               linewidth=lw, color=orange,ls='-', label='LN')
             axs[w_max_id].errorbar(corr_tmp, np.mean(y2plot_nsi, axis=1),
                yerr=np.std(y2plot_nsi, axis=1)/np.sqrt(n_seeds),
                linewidth=lw, color=cyan,ls='--', label='NSI')
@@ -447,7 +448,7 @@ if thrwmax_fig:
         axs[0].set_ylabel('PN activity \n (unitless)' , fontsize=label_fs)
         
         axs[2].set_xlabel('Observed correlation (unitless)', fontsize=label_fs)
-        axs[2].xaxis.set_label_coords(1.1, -.15)
+        axs[2].xaxis.set_label_coords(.5, -.15)
         
         
         plt.show()
@@ -467,14 +468,15 @@ if resumen_fig:
 
         # pn_m50_1[rho_id, id_inh,seed_id,w_max_id,]
         if thr == 50:
-            pn_tmp = .5*(pn_m50_2+pn_m50_1)
-            y_ticks = [250, 500, 750, 1000]
+            pn_tmp = .5*(pn_m50_2+pn_m50_1)           
+            y_ticks = 6*np.array([500, 1000, 1500, 2000])
         elif thr == 100:
             pn_tmp = .5*(pn_m100_2+pn_m100_1)
-            y_ticks = [150, 300, 450, 600]
+            y_ticks = 15*np.array([300, 600, 900, 1200])
         elif thr == 150:
             pn_tmp = .5*(pn_m150_2+pn_m150_1)
-            y_ticks = [75, 150, 225, 300]
+            y_ticks = 30*np.array([0, 75, 150, 225, 300])
+
             
         pn_tmp0 = np.squeeze(np.mean(pn_tmp[0, :,:,:,], axis=1)) # PN, corr = 0 
         pn_tmp1 = np.squeeze(np.mean(pn_tmp[-1, :,:,:,], axis=1)) # PN, corr = 1
@@ -520,8 +522,6 @@ if resumen_fig:
                         linestyle='--', color=cyan, label=r'$x$=NSI, $\rho=$1')
         
         # SETTINGS        
-#        axs[0].set_title(r'$\Theta$:%d Hz'%thr, fontsize=fs)
-        
         axs[0].tick_params(axis='both', which='major', labelsize=label_fs-5)
         axs[1].tick_params(axis='both', which='major', labelsize=label_fs-5)
         
@@ -541,8 +541,8 @@ if resumen_fig:
             axs[id_col].spines['top'].set_color('none')
             axs[id_col].set_xlabel('$w_{max}$ (s)', fontsize=label_fs)
             axs[id_col].set_xscale('log')
-            axs[id_col].set_yticks(y_ticks)
-            axs[id_col].set_yticklabels(y_ticks, fontsize=label_fs-5)
+            # axs[id_col].set_yticks(y_ticks)
+            # axs[id_col].set_yticklabels(y_ticks, fontsize=label_fs-5)
             # axs[id_col].set_ylim(0, y_ticks[-1]*1.05)                    
             axs[id_col].set_xticks([.03, .3, 3, 30])
             axs[id_col].set_xticklabels([.03, .3, 3, 30], fontsize=label_fs-5)
@@ -554,7 +554,7 @@ if resumen_fig:
         axs[0].text(.03, y_ticks[1]*1.4, 'x=LN', color=orange, fontsize=label_fs)
         
         axs[1].set_ylabel(r'$p_x^0 - p_x^1$'+ '  (unitless)', fontsize=label_fs)
-        axs[1].set_yticklabels('', fontsize=label_fs-5)
+        # axs[1].set_yticklabels('', fontsize=label_fs-5)
          
         
         plt.show()
