@@ -64,6 +64,83 @@ def olsen_orn_pn(nu_orn, sigma, nu_max):
         + np.power(sigma,1.5))
     return nu_pn
 
+
+
+
+#%%############################################################################
+# NEW HYPOTHESIS 
+fig_save = 0
+fig_name = 'new_hyp1.png'
+fld_output = 'images/hypotheses/'
+
+nsi = .07
+label_fs = 40
+lw = 5
+
+c2plot = np.logspace(-6, -3, 100)
+nu = orn_nu(c2plot)
+
+
+nu1 = 30 # Hz
+c_nu1 = next(x[0] for x in enumerate(nu) if x[1] > nu1)
+
+c_ratio = c2plot[c_nu1:]/c2plot[c_nu1]
+nu_ratio = nu[c_nu1:]/nu1
+
+nu1_nsi = nu1-nu[c_nu1:]*nsi
+nu_nsi_ratio = nu[c_nu1:]/nu1_nsi
+
+fig, axs  = plt.subplots(1, 1, figsize=[10, 8])
+left, bottom, width, height = [0.32, 0.6, 0.22, 0.28]
+ax2 = fig.add_axes([left, bottom, width, height])
+
+
+# PLOT 
+axs.plot(c2plot, nu, color=green, linewidth=lw)
+axs.plot(c2plot, np.ones_like(c2plot)*nu1, '--',color=purple,  linewidth=lw)
+axs.plot(c2plot[c_nu1:], nu1_nsi, '--', color=cyan, linewidth=lw)
+# PLOT inset
+ax2.plot(c_ratio, nu_ratio, color=pink, linewidth=lw)
+ax2.plot(c_ratio, c_ratio, 'k--', linewidth=lw)
+ax2.plot(c_ratio, nu_nsi_ratio, color=cyan, linewidth=lw)
+
+
+# SETTINGS
+axs.set_xscale('log')
+axs.spines['right'].set_color('none')
+axs.spines['top'].set_color('none')
+axs.set_xlabel('odor conc (au)', fontsize=label_fs)
+axs.set_ylabel('ORN rates (Hz)', fontsize=label_fs)
+axs.tick_params(axis='both', labelsize=label_fs)
+axs.text(3e-4, 150, 'ORN \n strong', fontsize= label_fs, color=green)
+axs.text(1e-4, 35, 'ORN weak', fontsize= label_fs, color=purple)
+axs.text(2e-5, 0, 'ORN weak NSI', fontsize= label_fs, color=cyan)
+
+# SETTINGS inset
+ax2.set_yscale('log')
+ax2.set_xlabel('conc ratio', fontsize=label_fs-1)
+ax2.set_ylabel('FR ratio', fontsize=label_fs-1)
+ax2.tick_params(axis='both', labelsize=label_fs-1)
+ax2.text(15, 4,'ctrl', fontsize= label_fs, color=pink)
+ax2.text(3, 10,'NSI', fontsize= label_fs, color=cyan)
+ax2.set_xlim((0, 20))
+ax2.set_ylim((9e-1, 20))
+ax2.spines['right'].set_color('none')
+ax2.spines['top'].set_color('none')
+
+
+dy = 0.07
+dx = 0.05
+ll, bb, ww, hh = axs.get_position().bounds
+axs.set_position([ll+dx, bb+dy, ww, hh])
+
+
+plt.show()
+
+if fig_save:
+    fig.savefig(fld_output +  fig_name,dpi=300)
+
+#%%
 fig_save = 0
 fld_analysis = '../hypotheses/'
 fig_hyp1_name = 'hypothesis1'
@@ -87,10 +164,8 @@ x2plot_b = [60, 120]
 y2plot_b = olsen_orn_pn(x2plot_b, sigma, nu_max)
 y2plot_b2 = olsen_orn_pn(x2plot_b, sigma2, nu_max)
 
-#**********************************************************
-# FIGURE
-#**********************************************************
 
+# FIGURE
 rs = 1
 cs = 1
 fig, axs = plt.subplots(rs,cs, figsize=(5,4), )
@@ -152,73 +227,3 @@ if fig_save:
     fig.savefig(fig_hyp1_name+'.png')
        
 plt.show()
-
-#%%############################################################################
-# NEW HYPOTHESIS 
-
-
-fig_save = 0
-fig_name = 'new_hyp1.png'
-fld_output = 'images/'
-
-nsi = .07
-
-c2plot = np.logspace(-6, -3, 100)
-nu = orn_nu(c2plot)
-
-
-nu1 = 30 # Hz
-c_nu1 = next(x[0] for x in enumerate(nu) if x[1] > nu1)
-
-c_ratio = c2plot[c_nu1:]/c2plot[c_nu1]
-nu_ratio = nu[c_nu1:]/nu1
-
-nu1_nsi = nu1-nu[c_nu1:]*nsi
-nu_nsi_ratio = nu[c_nu1:]/nu1_nsi
-
-fig, axs  = plt.subplots(1, 1, figsize=[10, 8])
-left, bottom, width, height = [0.25, 0.6, 0.22, 0.28]
-ax2 = fig.add_axes([left, bottom, width, height])
-
-
-# PLOT 
-axs.plot(c2plot, nu, color=green, linewidth=lw)
-axs.plot(c2plot, np.ones_like(c2plot)*nu1, '--',color=purple,  linewidth=lw)
-axs.plot(c2plot[c_nu1:], nu1_nsi, '--', color=cyan, linewidth=lw)
-# PLOT inset
-ax2.plot(c_ratio, nu_ratio, color=pink, linewidth=lw)
-ax2.plot(c_ratio, c_ratio, 'k--', linewidth=lw)
-ax2.plot(c_ratio, nu_nsi_ratio, color=cyan, linewidth=lw)
-
-label_fs = 30
-
-# SETTINGS
-axs.set_xscale('log')
-axs.spines['right'].set_color('none')
-axs.spines['top'].set_color('none')
-axs.set_xlabel('odor conc (au)', fontsize=label_fs)
-axs.set_ylabel('ORN rates (Hz)', fontsize=label_fs)
-axs.tick_params(axis='both', labelsize=label_fs)
-axs.text(2.5e-4, 150, 'ORN strong', fontsize= label_fs, color=green)
-axs.text(1e-4, 35, 'ORN weak', fontsize= label_fs, color=purple)
-axs.text(1e-4, 6, 'ORN weak NSI', fontsize= label_fs, color=cyan)
-# axs.text(-.1, 1.1, 'b', transform=axs.transAxes,
-#     fontsize=panel_fs, color=black, weight='bold', va='top', ha='right')
-
-# SETTINGS inset
-ax2.set_yscale('log')
-ax2.set_xlabel('conc ratio', fontsize=label_fs-1)
-ax2.set_ylabel('FR ratio', fontsize=label_fs-1)
-ax2.tick_params(axis='both', labelsize=label_fs-1)
-ax2.text(15, 4,'ctrl', fontsize= label_fs, color=pink)
-ax2.text(3, 10,'NSI', fontsize= label_fs, color=cyan)
-ax2.set_xlim((0, 20))
-ax2.set_ylim((9e-1, 20))
-ax2.spines['right'].set_color('none')
-ax2.spines['top'].set_color('none')
-
-plt.show()
-
-if fig_save:
-    fig.savefig(fld_output +  fig_name,dpi=300)
-

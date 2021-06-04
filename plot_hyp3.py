@@ -49,8 +49,8 @@ def olsen_orn_pn(nu_orn, sigma, nu_max):
     return nu_pn
 
 
-label_fs = 30
-lw = 3
+label_fs = 40
+lw = 5
 fig_save = 0
 fld_analysis = 'images/hypotheses/'
 fig_hyp3_name = 'hyp_dynrange'
@@ -88,21 +88,17 @@ plt.rc('text', usetex=True)
 axs.plot(nu_orn, nu_pn, label='w/o NSI', color= 'pink',lw=lw)
 axs.plot(nu_orn, nu_pn2, '--', color= 'cyan', label='with NSI', lw=lw)
 
-# axs.plot([x_thr_10_ctrl, x_thr_10_ctrl], [0, nu_max], '--', color= 'pink',lw=lw)
 axs.errorbar(x_thr_10_ctrl, thr_10_ctrl,  fmt='o', markersize= msz, color='pink', mfc= 'white', mew= thin)
-# axs.plot([x_thr_90_ctrl, x_thr_90_ctrl], [0, nu_max], '--', color= 'pink',lw=lw)
 axs.errorbar(x_thr_90_ctrl, thr_90_ctrl,  fmt='d', markersize= msz, color='pink', mfc= 'white', mew= thin)
 
-
-# axs.plot([x_thr_10_nsi, x_thr_10_nsi], [0, nu_max], '--', color= 'cyan',lw=lw)
 axs.errorbar(x_thr_10_nsi, thr_10_nsi,  fmt='o', markersize= msz, color='cyan', mfc= 'white', mew= thin)
-# axs.plot([x_thr_90_nsi, x_thr_90_nsi], [0, nu_max], '--', color= 'cyan',lw=lw)
 axs.errorbar(x_thr_90_nsi, thr_90_nsi,  fmt='d', markersize= msz, color='cyan', mfc= 'white', mew= thin)
 
 axs.text(x_thr_10_ctrl*5, thr_10_ctrl, '10\% ', fontsize=label_fs)
 axs.text(x_thr_90_ctrl*1.2, thr_90_ctrl*.9, '90\% ', fontsize=label_fs)
 
-axs.tick_params(axis='both', labelsize=label_fs)
+axs.tick_params(axis='both', labelsize=label_fs, )
+# axs.ticklabel_format(axis='both', fontweight='bold')
 axs.set_yticklabels('')
 axs.spines['right'].set_color('none')
 axs.spines['top'].set_color('none')
@@ -111,8 +107,8 @@ axs.text(5, 180,'ctrl', fontsize= label_fs, color=pink)
 axs.text(100,120,'NSI', fontsize= label_fs, color=cyan)
 
 
-axs.set_ylabel(r'ORN Firing rates (Hz)', fontsize=label_fs)
-axs.set_xlabel(r'Odor concentration (au)', fontsize=label_fs)
+axs.set_ylabel(r'ORN Firing rates (Hz)', fontweight='bold',fontsize=label_fs)
+axs.set_xlabel(r'Odor concentration (au)', fontweight='bold',fontsize=label_fs)
          
 dy = 0.07
 dx = 0.05
@@ -120,7 +116,7 @@ ll, bb, ww, hh = axs.get_position().bounds
 axs.set_position([ll+dx, bb+dy, ww, hh])
    
 axs.text(-.1, 1.05, 'e.', transform=axs.transAxes, #color=blue,
-   fontsize=panel_fs, fontweight='bold', va='top', ha='right')      
+   fontsize=label_fs, fontweight='bold', va='top', ha='right')      
 plt.show()
 
 
