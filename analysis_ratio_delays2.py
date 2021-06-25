@@ -91,7 +91,7 @@ def fig_pn_distr():
 fig_save        = 0
 
 id_peak2plot    = 3             # ONLY for the delays analysis
-measure         = 'avg'         # 'avg' # 'peak' # 
+measure         = 'peak'         # 'avg' # 'peak' # 
 corr_mi         = 'corr'        # 'corr' # 'mi'
 delay_fig       = 0             # Fig.ResumeDelayedStimuli
 
@@ -537,6 +537,7 @@ if ratio_fig:
                 axs[rr,cc].set_xticks([1, 10, 20])
                 
                 axs[rr,cc].set_yscale("log")
+                axs[rr,cc].set_xscale("log")
                 
                 # if cc == 0:
                 #     axs[rr,cc].set_yticklabels(['0','5','10', '15', '20'], fontsize=label_fs-3)

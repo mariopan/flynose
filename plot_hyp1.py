@@ -67,7 +67,7 @@ def olsen_orn_pn(nu_orn, sigma, nu_max):
 
 
 
-#%%############################################################################
+#############################################################################
 # NEW HYPOTHESIS 
 fig_save = 0
 fig_name = 'new_hyp1.png'
@@ -118,12 +118,18 @@ axs.text(2e-5, 0, 'ORN weak NSI', fontsize= label_fs, color=cyan)
 
 # SETTINGS inset
 ax2.set_yscale('log')
+ax2.set_xscale('log')
 ax2.set_xlabel('conc ratio', fontsize=label_fs-1)
 ax2.set_ylabel('FR ratio', fontsize=label_fs-1)
 ax2.tick_params(axis='both', labelsize=label_fs-1)
 ax2.text(15, 4,'ctrl', fontsize= label_fs, color=pink)
 ax2.text(3, 10,'NSI', fontsize= label_fs, color=cyan)
-ax2.set_xlim((0, 20))
+ax2.set_yticks([1, 10])
+ax2.set_yticklabels([1, 10])
+ax2.set_xticks([1, 10])
+ax2.set_xticklabels([1, 10])
+
+ax2.set_xlim((0.9, 20))
 ax2.set_ylim((9e-1, 20))
 ax2.spines['right'].set_color('none')
 ax2.spines['top'].set_color('none')

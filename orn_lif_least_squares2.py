@@ -222,7 +222,7 @@ def select_nu_obs():
     nu_obs_all = np.empty(n_cs*n_tpts,)
     
     # select oserved activity curves:
-    for cc_ob, cc_sim, idc in zip(concs_obs, concs_sim, range(n_cs)):
+    for cc_ob, idc in zip(concs_obs, range(n_cs)):
         
         # Load the observed ORN activity (from Martelli 2013, ethyl acetate, ab3)
         [t_obs, nu_obs] = ethyl_data(cc_ob, )
@@ -236,7 +236,35 @@ def select_nu_obs():
         nu_obs_all[ss:ee] = y_true
     
     return nu_obs_all
+
+
+def plot_obs_data(ax, nu_obs_all):      
+    n_clr = n_cs+2
+    c = np.arange(1, n_clr )
+    norm = mpl.colors.Normalize(vmin=c.min(), vmax=c.max())
+    greenmap = mpl.cm.ScalarMappable(norm=norm, cmap=mpl.cm.Greens)
+   
+    # generate and plot 'real' and fit curves:
+    for cc_ob, cc_sim, idc in zip(concs_obs, concs_sim, range(n_cs)):
         
+        ss = idc*n_tpts
+        ee = (1+idc)*n_tpts
+        y_true = nu_obs_all[ss:ee]
+        
+        
+        # PLOT
+        clr = greenmap.to_rgba(n_clr-idc)
+        ax.plot(t_fit_obs, y_true, '-.', color=clr, label='observ %.5f'%cc_sim)
+        
+    ax.plot([0, 0], [0, 300], 'k--', linewidth=2)
+    ax.plot([500, 500], [0, 300], 'k--', linewidth=2)
+    ax.set_xlabel("t")
+    ax.set_ylabel("y")
+    ax.legend()
+
+    return ax
+
+
 def figure_fit(params2an, ax, nu_obs_all):
     args0 = [t_tot, t_on, np.nan]
     n_clr = n_cs+2
@@ -333,15 +361,16 @@ file_names = ['ethyl_ab3A_10.csv', 'ethyl_ab3A_17.csv', 'ethyl_ab3A_20.csv',
                   'ethyl_ab3A_22.csv', 'ethyl_ab3A_27.csv', 'ethyl_ab3A_30.csv',
                   'ethyl_ab3A_35.csv', 'ethyl_ab3A_40.csv', 'ethyl_ab3A_80.csv',]
     
-concs_obs       = np.array([10, 20,30, ]) # list of concentrations to list
+concs_obs       = np.array([10, 20,30, ]) # 40,80list of concentrations to list
 concs_sim       =  10**-np.array(concs_obs/10) # list of concentrations to list
 n_cs            = len(concs_obs)
 
 
 
 nu_obs_all      = select_nu_obs()
-
-
+fig, axs = plt.subplots(1,1)
+plot_obs_data(axs, nu_obs_all)
+plt.show()
 
 #%% extract observed ORN and simulate with standard params.01*
 # fig = plt.figure()

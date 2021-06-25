@@ -177,10 +177,10 @@ sdf_params          = params_al_orn['sdf_params']
 
 # fig2plot options:  
 # 'trials' 'martelli2013' 'ramp' 'parabola' 'step' 'orn_response' 
-fig2plot = 'trials' 
+fig2plot = 'step' 
 
 # Figures options
-fig_save            = 0
+fig_save            = 1
 fig_orn_dyn         = 0
 fig_tuning          = 1
 fig_multipeaks      = 1
@@ -244,9 +244,9 @@ elif (fig2plot == 'ramp') | (fig2plot == 'parabola') | (fig2plot == 'step'):
     
     # stim params 
     stim_params['stim_type']    = 'ext'
-    stim_params['stim_data_name'] = 'lazar_data_hr/'+fig2plot+'_1/' #.dat
+    stim_params['stim_data_name'] = 'lazar_data_hr/'+fig2plot+'_1' #.dat
     stim_params['t_on']         =  np.array([0, 0])
-    
+    stim_params['pts_ms' ]= 5
     peaks       = np.array([1, 2, 3])
     
     # tau_sdf     = 60
