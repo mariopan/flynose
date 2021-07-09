@@ -5,8 +5,8 @@ Created on Tue Nov 17 18:33:34 2020
 
 AL_dyn_batch.py
 
-This script is the raw model for flynose2.0. It runs NSI_ORN_LIF.py to 
-generate ORN activity and then run the AL dynamics
+This script is the raw model for flynose2.0. It runs ORNs_layer_dyn.py to 
+generate ORN activity and then AL_dyn.py to run the AL dynamics
 
 @author: mario
 """
@@ -295,10 +295,10 @@ inh_conds                   = ['nsi']
 
 # figs/data flags
 dataratio_save              = 0
-al_orn_1r_fig               = 0     # single run figure flag
+al_orn_1r_fig               = 1     # single run figure flag
 npeaks_fig                  = 1     # multiple peaks PN and ORN time course 
 olsen_fig                   = 1     # PN vs ORN activity, like Olsen 2010
-figs_save                   = 1
+figs_save                   = 0
 fld_analysis                = 'NSI_analysis/Olsen2010/'
 data_save                   = 1
 

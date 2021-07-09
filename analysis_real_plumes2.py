@@ -41,7 +41,7 @@ cmap    = plt.get_cmap('rainbow')
 name_analysis   = 'real_plumes'
 
 fld_analysis    = 'NSI_analysis/'+name_analysis+'_1/'
-# fld_analysis    = 'NSI_analysis/real_plumes_200s_peak20e-4_tauln250_tausdf20_rhocs0-1_rhos0-5/'
+fld_analysis    = 'NSI_analysis/real_plumes_200s_peak20e-4_tauln250_tausdf20_rhocs0-1_rhos0-5/'
 # fld_analysis    = 'NSI_analysis/real_plumes_10s_peak2e-4_tauln250_tausdf20_rhocs0-1_rhos0-5/'
 # fld_analysis    = 'NSI_analysis/real_plumes_10s_peak10e-4_tauln250_tausdf20_rhocs0-1_rhos0-5/'
 # fld_analysis    = 'NSI_analysis/real_plumes_10s_peak20e-4_tauln250_tausdf20_rhocs1-1_rhos0-5/'
@@ -99,7 +99,7 @@ resumen_fig     = 1     # b) Distance between the PN activity of ctrl model
 avgplume_fig    = 0     # Aver. values of Corr, intermittency observed in the simulations
 
 
-fig_save        = 1
+fig_save        = 0
 fig_name        = 'dur_%d'%stim_dur + \
                     '_nsi_%.2f'%(np.max(nsi_ln_par, axis=0)[0]) +\
                     '_ln_%.1f'%(np.max(nsi_ln_par, axis=0)[1])             
@@ -211,7 +211,7 @@ if avg_fig:
         LN model (orange continuous), and NSI model (dashed cyan). 
     d) Total PN activity above 150 Hz, for 3 ms maximum whiff durations."""
     
-    w_max_id = 0
+    w_max_id = 2
     
     fig2 = plt.figure(figsize=(12,4), ) 
     rs = 1
@@ -253,7 +253,7 @@ if avg_fig:
                   (np.size(pn_avg1[:, 2, :, w_max_id,],axis=1))**.5, linewidth=lw, ls='-', 
                   color=orange, label='LN', fmt='d')
     
-    ax_pn.legend(fontsize=label_fs, frameon=False)
+    ax_pn.legend(fontsize=label_fs, frameon=False, loc=[0.5, .45])
 
     # PEAK PANEL D
     pn_tmp = .5*(pn_m150_2+pn_m150_1)
@@ -318,10 +318,11 @@ if avg_fig:
 
 if peak_fig:
     """ FIGURE Fig.PeakPNActivity """
-    w_max_id = 0
+    w_max_id = 2
     rs = 1
     cs = 3
-    corr_obs = np.mean(np.squeeze(cor_stim[:, :, 0,]), axis=1)
+    corr_obs = np.mean(np.squeeze(cor_stim[:, :, w_max_id,]), axis=1)
+    #corr_obs = np.mean(np.squeeze(cor_stim[:, :, 0,]), axis=1)
      
     fig, axs = plt.subplots(rs, cs, figsize=(9, 4), ) 
     

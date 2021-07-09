@@ -9,7 +9,7 @@ This script run NSI_ORN_LIF.py one or multiple times and saves the data
 the following figures of the NSI paper:
     fig.3 ORN dynamics of all its components (ORN_response)
     fig.3 ORN firing rates for several values of the stimulations (martelli)
-    fig.3s ORN dynamics for stimuli a la Lazar (lazar)   
+    fig.s1 ORN dynamics for stimuli a la Lazar (lazar)   
 
 @author: mario
 """
@@ -177,13 +177,12 @@ sdf_params          = params_al_orn['sdf_params']
 
 # fig2plot options:  
 # 'trials' 'martelli2013' 'ramp' 'parabola' 'step' 'orn_response' 
-fig2plot = 'step' 
+fig2plot = 'orn_response' 
 
 # Figures options
-fig_save            = 1
-fig_orn_dyn         = 0
-fig_tuning          = 1
-fig_multipeaks      = 1
+fig_save            = 0
+fig_orn_dyn         = 1
+fig_multipeaks      = 0
 
 
 max_stim_seed       = 1
@@ -269,7 +268,7 @@ elif fig2plot == 'orn_response':
     stim_params['stim_dur']     = np.array([stim_dur, stim_dur])
     stim_params['conc0']        = 1.85e-4
     peaks                       = np.array([1e-3])         # concentration value for ORN1
-    peak_ratio                  = 1         # concentration ratio: ORN2/ORN1    
+    peak_ratio                  = .01         # concentration ratio: ORN2/ORN1    
     sdf_params['tau_sdf']       = 41
     
     t2plot          = -200,stim_dur+300

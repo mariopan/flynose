@@ -355,13 +355,13 @@ if __name__ == '__main__':
      orn_sdf_time,]  = output_orn
     
     fig = plot_orn.main(params_1sens, output_orn, )
-    fig.savefig(fld_analysis + timecourse_fig_name)
+    # fig.savefig(fld_analysis + timecourse_fig_name)
     
     
-    fig, axs = plot_hist_isi.main(params_1sens, output_orn)
-    plt.show()
+    # fig, axs = plot_hist_isi.main(params_1sens, output_orn)
+    # plt.show()
     
-    fig.savefig(fld_analysis + hist_fig_name)
+    # fig.savefig(fld_analysis + hist_fig_name)
         
     
     

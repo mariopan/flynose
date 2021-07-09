@@ -305,9 +305,6 @@ def orn_al_diag_plot(data_tmp, params_tmp, inh_cond):
 inh_conds   = ['noin', 'ln', 'nsi',] 
 
 # LOAD PARAMS FROM A FILE
-# fld_params = 'NSI_analysis/trials/' #Olsen2010
-# name_data = 'params_al_orn.ini'
-# params_al_orn = pickle.load(open(fld_params + name_data,  "rb" ))
 params_al_orn = set_orn_al_params.main(2)
 
 stim_params         = params_al_orn['stim_params']
@@ -323,7 +320,7 @@ n_sens_type         = orn_layer_params.__len__()  # number of type of sensilla
 # ORN NSI params
 
 # fig_id options:  # 'ts_s' #  'ts_a' # 'pl'
-fig_id                  = 'pl' 
+fig_id                  = 'ss_s' 
 
 fld_analysis            = 'NSI_analysis/triangle_stim/'
 nsi_str                 = 0.6
@@ -390,6 +387,16 @@ elif fig_id == 'pl':
     #('g_y',  .5853575783),      # 0.3), # 
     orn_params['g_y']           = 0.58 #0.3#
     
+elif fig_id == 'ss_s':
+    # stim params
+    delay                       = 0    
+    stim_params['stim_type']    = 'ss' 
+    stim_params['stim_dur']     = np.array([500, 500])
+    stim_params['t_tot']        = 2000
+    t_on                        = 1000
+    stim_params['conc0']        = 1.85e-4    # 2.85e-4
+    
+    peaks                       = [50e-2] #[1.85e-4, 5e-4, 1.5e-3, 2e-2, 2e-1]#[0.001, 0.005] #
     
 conc0           = stim_params['conc0']
 t_tot           = stim_params['t_tot']

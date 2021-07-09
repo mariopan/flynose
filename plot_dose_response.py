@@ -3,6 +3,10 @@
 """
 Created on Thu May 13 17:58:19 2021
 
+Dynamic range of the two networks calculatedfor several values of the ratio in 
+sensitivity of the two ORNs
+
+
 @author: mario
 """
 

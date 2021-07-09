@@ -267,6 +267,6 @@ def main(params_1sens, output_orn, ):
                   
     
     fig_orn.align_labels() 
-    plt.show()
+    #plt.show()
      
     return fig_orn

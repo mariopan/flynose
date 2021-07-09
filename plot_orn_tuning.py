@@ -6,11 +6,10 @@ Created on Tue Feb  9 15:21:20 2021
 ORN_dyn_plot.py
 
 This script run NSI_ORN_LIF.py one or multiple times and saves the data 
-the following figures of the NSI paper:
-    fig.3 ORN dynamics of all its components (ORN_response)
-    fig.3 ORN firing rates for several values of the stimulations (martelli2013)
-    fig.3s ORN dynamics for stimuli a la Lazar (lazar)   
-
+the following figure(s) of the NSI paper:
+    fig.10a Dose response curves of two neurons for the control network 
+    (dashed lines)and for the NSI network (solid lines). 
+    
 @author: mario
 """
 
