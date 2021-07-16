@@ -54,37 +54,10 @@ See also:
 @author: mario
 """
 import numpy as np
-import matplotlib.pyplot as plt
 import timeit
 from scipy import signal
-import pickle
 
 import sdf_krofczik
-import stim_fcn
-import plot_orn
-import set_orn_al_params
-import plot_hist_isi
-
-# %% STANDARD FIGURE PARAMS
-lw = 2
-fs = 13
-plt.rc('text', usetex=True)  # laTex in the polot
-#plt.rc('font', family='serif')
-fig_size = [12, 12]
-fig_position = 1300,10
-title_fs = 20 # font size of ticks
-label_fs = 20 # font size of labels
-ticks_fs = label_fs - 3
-panel_fs = 30 # font size of panel's letter
-black   = 'xkcd:black'
-blue    = 'xkcd:blue'
-red     = 'xkcd:red'
-green   = 'xkcd:green'
-purple  = 'xkcd:purple'
-orange  = 'xkcd:orange'
-cmap    = plt.get_cmap('rainbow')
-recep_clrs = ['green','purple','cyan','red']
-
 
 #%% DEFINE FUNCTIONS
 
@@ -133,19 +106,19 @@ def y_adapt(y0, t, orn_params):
     #dydt = -y/tau_y + ay * sum(delta(t-t_spike))
     return y
 
-# 1 Co-housed ORN
 def solo_ORN(w_nsi, v_orn, nsi_vect, vrest, vrev, t, ):
+    """ 1 Co-housed ORNs """
     vrev_t = vrev
     return vrev_t
 
-# 2 Co-housed ORNs
 def duo_ORN(w_nsi, r_orn, nsi_vect, vrest, vrev, t, ):
+    """ 2 Co-housed ORNs """
     vect_a = nsi_vect[:, 1]
     vrev_t = vrev + w_nsi*r_orn[t, vect_a]*(vrest-vrev)
     return vrev_t
 
-# 3 Co-housed ORNs
 def tri_ORN(w_nsi, r_orn, nsi_vect, vrest, vrev, t, ):
+    """ 3 Co-housed ORNs"""
     vect_a = [nsi_vect[x, 1] for x in range(0, len(nsi_vect[:, 0]), 2)]
     vect_b = [nsi_vect[x, 1] for x in range(1, len(nsi_vect[:, 0]), 2)]
      
@@ -153,8 +126,9 @@ def tri_ORN(w_nsi, r_orn, nsi_vect, vrest, vrev, t, ):
                     + w_nsi*r_orn[t, vect_b]*(vrest-vrev) 
     return vrev_t
 
-# 4 Co-housed ORNs
+
 def quad_ORN(w_nsi, r_orn, nsi_vect, vrest, vrev, t, ):
+    """ 4 Co-housed ORNs"""
     vect_a = [nsi_vect[x, 1] for x in range(0, len(nsi_vect[:, 0]), 3)]
     vect_b = [nsi_vect[x, 1] for x in range(1, len(nsi_vect[:, 0]), 3)]
     vect_c = [nsi_vect[x, 1] for x in range(2, len(nsi_vect[:, 0]), 3)]
@@ -164,10 +138,136 @@ def quad_ORN(w_nsi, r_orn, nsi_vect, vrest, vrev, t, ):
               + w_nsi*r_orn[t, vect_c]*(vrest-vrev) 
     return vrev_t
 
+def transd_1sens(params_1sens, u_od, t_part):
+    """  RECEPTORS DYNAMICS for single sensillum and many odours """   
+    
+    # STIMULI and SENSILLUM PARAMETERS 
+    stim_params = params_1sens['stim_params']
+    sens_params = params_1sens['sens_params']
+    orn_params = params_1sens['orn_params']
+    
+    tmp_ks = ['pts_ms', 't_tot', 'n_od', 'r_noise', 'r_filter_frq']    
+    [pts_ms, t_tot, n_od, r_noise, r_filter_frq] = [
+        stim_params[x] for x in tmp_ks]    
+    
+    n_neu           = sens_params['n_neu']
+    r0              = orn_params['r0']
+    
+    # INITIALIZE OUTPUT VECTORS
+    # t_part      = 2000      # [ms] repetition time window 
+    
+    if t_tot >= t_part:
+        n_rep       = int(np.ceil(t_tot / t_part))
+        extra_time  = int(t_tot% t_part)
+    else:
+        n_rep       = 1
+        extra_time  = t_tot
+        
+    n2sim_tot       = int(pts_ms*t_tot)    # number of time points
+    
+    r_orn_od        = np.zeros((n2sim_tot, n_neu, n_od)) 
+    r_orn_od_last   = []
+    
+    tt_rep          = 0
+    for id_rep in range(n_rep):
+        
+        if (extra_time>0) &  (id_rep == (n_rep-1)):
+            n2sim = int(pts_ms*extra_time)      # number of time points
+            t     = np.linspace(0, extra_time, n2sim) # time points
+        else:
+            n2sim = int(pts_ms*t_part)          # number of time points
+            t     = np.linspace(0, t_part, n2sim) # time points
+        
+        
+        r_orn_od_rep    = np.zeros((n2sim, n_neu, n_od)) 
+        
+        if id_rep == 0:
+            # typical starting values 
+            r_orn_od_rep[0,:,:] = r0/n_od*(np.ones((1, n_neu, n_od)) +.01*np.random.standard_normal((1, n_neu, n_od))) 
+        else:
+            # starting values are the last of the previous iteration
+            r_orn_od_rep[0,:,:] = r_orn_od_last
+            
+  
+        for id_neu in range(n_neu):
+            transd_params = sens_params['transd_params'][id_neu]
+            for tt in range(1, n2sim):
+                # span for next time step
+                tspan = [t[tt-1],t[tt]] 
+            
+                r_orn_od_rep[tt, id_neu, :] = transd(
+                    r_orn_od_rep[tt-1, id_neu, :], tspan, 
+                                  u_od[int(tt+tt_rep), :], transd_params)   
+        # save temporary values
+        # starting values are the last of the previous iteration
+        r_orn_od_last = r_orn_od_rep[tt, :, :] 
+        
+        r_orn_od[tt_rep:(tt_rep+tt), :, :] = r_orn_od_rep[:tt, :, :]
+        tt_rep  += tt
+        
+        
+    return r_orn_od
+
+def noise_in_transd(params_1sens, r_orn_od, t_part):
+    """ Add noise to each sensilla """
+    stim_params = params_1sens['stim_params']
+    sens_params = params_1sens['sens_params']
+    
+    # STIMULI PARAMETERS 
+    tmp_ks = ['pts_ms', 't_tot', 'n_od', 'r_noise', 'r_filter_frq']    
+    [pts_ms, t_tot, n_od, r_noise, r_filter_frq] = [
+        stim_params[x] for x in tmp_ks]    
+    
+    # SENSILLUM PARAMETERS
+    n_neu           = sens_params['n_neu']
+    n_orns_recep    = sens_params['n_orns_recep']
+    
+    n2sim_tot   = int(pts_ms*t_tot)   # number of time points
+    # t_part      = 2000      # [ms] repetition time window 
+    
+    if t_tot >= t_part:
+        n_rep       = int(np.ceil(t_tot / t_part))
+        extra_time  = int(t_tot% t_part)
+    else:
+        n_rep       = 1
+        extra_time  = t_tot
+        
+    # Create an order 3 lowpass butterworth filter:
+    filter_ord = 3
+    b, a = signal.butter(filter_ord, r_filter_frq)
+    
+    r_orn           = np.zeros((n2sim_tot, n_neu*n_orns_recep))
+    
+    tt_rep          = 0
+    for id_rep in range(n_rep):
+        
+        if (extra_time>0) &  (id_rep == (n_rep-1)):
+            n2sim = int(pts_ms*extra_time)   # number of time points
+        else:
+            n2sim = int(pts_ms*t_part)   # number of time points
+
+        r_orn_rep       = np.zeros((n2sim, n_neu*n_orns_recep))
+        r_tmp           = np.sum(r_orn_od[tt_rep:(tt_rep+n2sim), :, :], axis=2)
+        for nn in range(n_neu):
+            for ss in range(n_orns_recep):
+                rand_ts = r_noise*np.random.standard_normal((int(n2sim*1.3)))
+                filt_ts = signal.filtfilt(b, a, rand_ts)
+                filt_ts = filt_ts[-n2sim:]
                 
-# ************************************************************************
-# main function of the LIF ORN 
+                r_orn_rep[:, ss+nn*n_orns_recep] = r_tmp[:, nn] + filt_ts*np.sqrt(1/pts_ms)
+        r_orn_rep[r_orn_rep<0] = 0
+
+        r_orn[tt_rep:(tt_rep+n2sim), :] = r_orn_rep[:n2sim, :]
+        tt_rep  += n2sim
+    
+    return r_orn
+        
+        
+        
+        
+
 def main(params_1sens, u_od, verbose=False):
+    """ Dynamics of the single type sensillum """
     
     stim_params = params_1sens['stim_params']
     sens_params = params_1sens['sens_params']
@@ -185,11 +285,9 @@ def main(params_1sens, u_od, verbose=False):
     
     
     
-    # RECEPTOR PARAMETERS 
-    r0              = orn_params['r0']
-    
     # INITIALIZE OUTPUT VECTORS
     n_neu_tot   = n_neu*n_orns_recep
+    n2sim_tot   = int(pts_ms*t_tot)   # number of time points
     
     t_part      = 2000      # [ms] repetition time window 
     
@@ -200,74 +298,18 @@ def main(params_1sens, u_od, verbose=False):
         n_rep       = 1
         extra_time  = t_tot
         
-
-    #####################################################################
-    #   RECEPTORS
-    r_orn_od_last   = []
-    r_orn_last      = []     
-    n2sim           = int(pts_ms*t_tot)   + 1   # number of time points
-    r_orn           = np.zeros((n2sim, n_neu*n_orns_recep))
     
+   
     
-    tt_rep          = 0
-    for id_rep in range(n_rep):
-        
-        if (extra_time>0) &  (id_rep == (n_rep-1)):
-            n2sim = int(pts_ms*extra_time)   + 1   # number of time points
-            t     = np.linspace(0, extra_time, n2sim) # time points
-        else:
-            n2sim = int(pts_ms*t_part)   + 1   # number of time points
-            t     = np.linspace(0, t_part, n2sim) # time points
-        
-        
-        r_orn_od        = np.zeros((n2sim, n_neu, n_od)) 
-        r_orn_rep       = np.zeros((n2sim, n_neu*n_orns_recep))
-        
-        if id_rep == 0:
-            r_orn_od[0,:,:] = r0/n_od*(np.ones((1, n_neu, n_od)) +.01*np.random.standard_normal((1, n_neu, n_od))) 
-        else:
-            # starting values are the last of the previous iteration
-            r_orn_od[0,:,:] = r_orn_od_last
-            r_orn_rep[0, :]     = r_orn_last
-  
-        # ********************************************************
-        # Transduction for different ORNs and odours
-        for tt in range(1, n2sim):
-            # span for next time step
-            tspan = [t[tt-1],t[tt]] 
-            for id_neu in range(n_neu):
-                transd_params = sens_params['transd_params'][id_neu]
-                r_orn_od[tt, id_neu, :] = transd(
-                    r_orn_od[tt-1, id_neu, :], tspan, 
-                                  u_od[int(tt+tt_rep), :], transd_params)   
-        
-        
-        # Create an order 3 lowpass butterworth filter:
-        filter_ord = 3
-        b, a = signal.butter(filter_ord, r_filter_frq)
-        
-        # Replicate to all sensilla and add noise    
-        r_tmp = np.sum(r_orn_od, axis=2)
-        for nn in range(n_neu):
-            for ss in range(n_orns_recep):
-                rand_ts = r_noise*np.random.standard_normal((int(n2sim*1.3)))
-                filt_ts = signal.filtfilt(b, a, rand_ts)
-                filt_ts = filt_ts[-n2sim:]
-                r_orn_rep[:, ss+nn*n_orns_recep] = r_tmp[:, nn] + filt_ts*np.sqrt(1/pts_ms)
-        r_orn_rep[r_orn_rep<0] = 0
-        
-        # save temporary values
-        # starting values are the last of the previous iteration
-        r_orn_od_last = r_orn_od[tt, :, :] 
-        r_orn_last = r_orn_rep[tt, :] 
-        
-        r_orn[tt_rep:(tt_rep+tt), :] = r_orn_rep[:tt, :]
-        tt_rep  += tt
-        
-        
+    # #####################################################################
+    # #   RECEPTORS DYNAMICS
+    
+    r_orn_od = transd_1sens(params_1sens, u_od, t_part)
+    # add noise separately per each sensillum
+    r_orn = noise_in_transd(params_1sens, r_orn_od, t_part)
         
 
-    # ********************************************************
+    # #####################################################################
     # LIF ORN DYNAMICS
     
     # Connectivity matrix for ORNs
@@ -306,13 +348,13 @@ def main(params_1sens, u_od, verbose=False):
     for id_rep in range(n_rep):
         
         if (extra_time>0) &  (id_rep == (n_rep-1)):
-            n2sim = int(pts_ms*extra_time)   + 1   # number of time points
+            n2sim = int(pts_ms*extra_time)     # number of time points
             t     = np.linspace(0, extra_time, n2sim) # time points
         else:
-            n2sim = int(pts_ms*t_part)   + 1   # number of time points
+            n2sim = int(pts_ms*t_part)         # number of time points
             t     = np.linspace(0, t_part, n2sim) # time points
         
-        r_orn_rep = r_orn[tt_rep:(tt_rep+n2sim-t_ref-1), :] 
+        r_orn_rep = r_orn[tt_rep:(tt_rep+n2sim-t_ref), :] 
         
         v_orn           = np.ones((n2sim, n_neu_tot)) *vrest
         y_orn           = np.zeros((n2sim, n_neu_tot))
@@ -331,7 +373,7 @@ def main(params_1sens, u_od, verbose=False):
             y_orn[0,:]      = y_orn_last
     
         
-        for tt in range(1, n2sim-t_ref-1):
+        for tt in range(1, n2sim-t_ref):
             # span for next time step
             tspan = [t[tt-1],t[tt]]
             
@@ -374,9 +416,8 @@ def main(params_1sens, u_od, verbose=False):
         
 
     # save variables for the whole simulation duration:
-    n2sim = int(pts_ms*t_tot)   + 1   # number of time points
-    t     = np.linspace(0, t_tot, n2sim) # time points
-    num_spikes  = np.zeros((n2sim, n_neu_tot)) 
+    t     = np.linspace(0, t_tot, n2sim_tot) # time points
+    num_spikes  = np.zeros((n2sim_tot, n_neu_tot)) 
     num_spikes[spike_matrix[0,:], spike_matrix[1,:]] = True
     
     spike_matrix[0,:]   = spike_matrix[0,:]/pts_ms #    convert the time column into ms

@@ -58,7 +58,7 @@ def main(*stim_params):
     t2sim           = stim_params[0]  # [s] time duration of whole simulated stimulus
     sample_rate     = stim_params[1]  # [Hz] num of samples per each sec
     n_sample2       = stim_params[2]  # [ms] num of samples with constant concentration
-    tot_n_samples   = 1+int(t2sim*sample_rate) # [] duration of whole simulated stimulus in number of samples
+    tot_n_samples   = int(t2sim*sample_rate) # [] duration of whole simulated stimulus in number of samples
     
     #  PARAMS FOR WHIFF AND BLANK DISTRIOBUTIONS
     g               = stim_params[3]  # -1/2      # for a power law of -3/2

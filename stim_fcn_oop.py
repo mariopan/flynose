@@ -33,7 +33,7 @@ class SimPlume(Plume):
         self.stim_dur   = stim_params['stim_dur']
         self.t_off      = self.t_on+self.stim_dur
         
-        self.n2sim      = int(self.pts_ms*self.t_tot) + 1        
+        self.n2sim      = int(self.pts_ms*self.t_tot)        
         self.n_od       = len(self.concs)
         
         # Create an order 3 lowpass butterworth filter:
