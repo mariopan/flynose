@@ -10,13 +10,8 @@ see also corr_plumes.py
 """
 import numpy as np
 from scipy import signal
-import matplotlib.pyplot as plt
     
 import corr_plumes
-import set_orn_al_params
-
-
-import stim_fcn
     
 class Plume:
     # default constructor
@@ -97,14 +92,10 @@ class PulseStep(SimPlume):
             t_tmp           = \
                 np.linspace(0, self.t_tot-self.t_off[nn], self.n2sim-stim_off)    
             
-            # # fast odorants, no fade off:
-            # u_od[stim_off:, nn]  = conc0
-            
-            # typical offset:
             self.u_od[stim_off:, nn]  += \
                 (self.u_od[stim_off-1, nn]- self.conc0)*np.exp(-t_tmp/tau_on)
                 
-        u_od[u_od<0] = 0
+        self.u_od[self.u_od<0] = 0
         
         
         
@@ -170,68 +161,31 @@ class ExtPlume(Plume):
 
 # stimulus
 def main(stim_params, verbose=False):   
-    if stim_params['stim_type'] == 'ss':
-        # Single Step Stimuli with a slow dynamics emulating what seen in exps
-        if verbose:
-            print('u_od is single step')        
-        stim_obj = PulseStep(stim_params)
-        
-    elif stim_params['stim_type'] == 'rs':
-        if verbose:
-            print('u_od is constant')
-        stim_obj = SimPlume(stim_params)
-        
-    elif stim_params['stim_type'] == 'ts':
-        # Single pulse with a triangular shape   
-        if verbose:
-            print('u_od is triangular pulse')        
-        stim_obj = PulseTriangular(stim_params)
-        
-    elif stim_params['stim_type'] == 'pl':
-        if verbose:
-            print('u_od is extracted from real plumes')
-        stim_obj = RealPlume(stim_params)
     
-    elif stim_params['stim_params'] == 'ext':
-        if verbose:
-            print('ext stimuli, from Kim et al. 2011')
-        stim_params['stim_data_name'] = 'lazar_data_hr/ramp_1' #.dat
+    verbose_dict = {
+        'ss' : 'u_od is single step',
+        'ts' :  'u_od is triangular pulse', 
+        'pl' :  'u_od is extracted from real plumes',
+        'ext' : 'ext stimuli, from Kim et al. 2011',
+        'rs' : 'u_od is constant',
+        }
     
-        stim_obj = ExtPlume(stim_params)
+    plume_dict = {
+        'ss' : PulseStep,
+        'ts' :  PulseTriangular, 
+        'pl' :  RealPlume,
+        'ext' : ExtPlume,
+        'rs' : SimPlume,
+        } 
     
-    return stim_obj
+    plume_type = stim_params['stim_type']
+    plume = plume_dict[plume_type](stim_params)
     
-# Launching script and Figure
-if __name__ == '__main__':
-    print('run directly')
-    
-    params_al_orn   = set_orn_al_params.main(1)
-
-    stim_params     = params_al_orn['stim_params']
-    
-    stim_params['conc0'] = 1.85e-4
-    stim_params['t_tot']  = 2000
-    stim_params['t_on']  = np.array([1000, 1000])
-    
-    stim_params['stim_type'] = 'rs'
-    stim_params['stim_seed'] = 10
-    
-    # GENERATE ODOUR STIMULUS/I and UPDATE STIM PARAMS
-    u_od            = stim_fcn.main(stim_params, verbose=True)
-    
-    print(u_od[:10, :])
+    if verbose: 
+        print(verbose_dict[plume_type])
     
     
-    stim_obj = main(stim_params, verbose=True)
-    
-    rs = 1
-    cs = 2
-    fig_od, ax_od = plt.subplots(rs, cs, figsize=[8.5, 9])
-    ax_od[0].plot(stim_obj.u_od)
-    ax_od[1].plot(u_od)
-    plt.show()
-
-    print(stim_obj.u_od[:10, :])
+    return plume
     
     
     

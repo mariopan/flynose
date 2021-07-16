@@ -14,23 +14,21 @@ test_sensillum_dyn.py
 import numpy as np
 import matplotlib.pyplot as plt
 import timeit
-from scipy import signal
 import pickle
 
-import sdf_krofczik
-import stim_fcn
+
 import plot_orn
-import plot_al_orn
 import set_orn_al_params
 import plot_hist_isi
-
-
 import sensillum_dyn
-import AL_dyn
+import stim_fcn_oop
 
-import AL_dyn_old
 
-#%% DEFINE FUNCTIONS
+
+# import sensillum_dyn_old
+
+
+# DEFINE FUNCTIONS
 
 # tic toc
 def tictoc():
@@ -56,8 +54,8 @@ sdf_params          = params_al_orn['sdf_params']
 # pn_ln_params        = params_al_orn['pn_ln_params']
 
 stim_params['stim_type']    = 'ss'      
-stim_params['conc0'] = 1.85e-4
-stim_params['t_tot'] = 3200            # [ms]
+stim_params['conc0']        = 1.85e-4
+stim_params['t_tot']        = 3200            # [ms]
 stim_params['concs']        = np.array([10e-3,])
 
 ##############################################################
@@ -67,7 +65,7 @@ stim_params['concs']        = np.array([10e-3,])
 delay                       = 0    
 stim_params['stim_type']    = 'pl'      
 rd_seed                     = np.random.randint(0, 1000)
-stim_params['stim_seed']    = rd_seed
+stim_params['stim_seed']    = 299#rd_seed
 print(stim_params['stim_seed'])
 stim_params['t_on']  = np.array([1000, 1000])
 stim_params['concs']        = np.array([10e-3,10e-3, ])
@@ -90,25 +88,34 @@ params_1sens   = dict([
                     ('sdf_params', sdf_params),
                     ])
 
-
-#%% ORN LIF SIMULATION
-tic = timeit.default_timer()
-
-# GENERATE ODOUR STIMULUS/I and UPDATE STIM PARAMS
-u_od            = stim_fcn.main(stim_params, verbose=False)
-
-output_orn      = sensillum_dyn.main(params_1sens, u_od)
+run_sim = 1
 
 
-data_od_orn = dict([('u_od', u_od), ('output_orn', output_orn)])
-with open(fld_analysis + name_data, 'wb') as f:
-    pickle.dump(data_od_orn, f)
+if run_sim:
+    print('Run sim')
+    # ORN LIF SIMULATION
+    tic = timeit.default_timer()
+    
+    # GENERATE ODOUR STIMULUS/I and UPDATE STIM PARAMS
+    plume           = stim_fcn_oop.main(stim_params, verbose=True)
+    u_od            = plume.u_od
+    output_orn      = sensillum_dyn.main(params_1sens, u_od)
+    toc = timeit.default_timer()
+    print('plume sim and ORNs sim time: %.2f s'%(toc-tic))
+    
+    data_od_orn = dict([('u_od', u_od), ('output_orn', output_orn)])
+    with open(fld_analysis + name_data, 'wb') as f:
+        pickle.dump(data_od_orn, f)
                 
-#%% ORN load data
-data_od_orn = pickle.load(open(fld_analysis+ name_data,  "rb" ))
+else:
+    print('LOAD DATA')
+    # ORN load data
+    data_od_orn = pickle.load(open(fld_analysis+ name_data,  "rb" ))
+    
+    u_od = data_od_orn['u_od']
+    output_orn = data_od_orn['output_orn']
 
-u_od = data_od_orn['u_od']
-output_orn = data_od_orn['output_orn']
+
 
 fig = plot_orn.main(params_1sens, output_orn, )
 # fig.savefig(fld_analysis + timecourse_fig_name)

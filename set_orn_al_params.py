@@ -32,7 +32,10 @@ def main(n_orn=2):
                         ('r_noise', .50),       # .5
                         ('r_filter_frq', 0.002), # 0.002
                         ('stim_seed', np.nan),
+                        ('stim_data_name', 'lazar_data_hr/ramp_1'), #.dat
                         ])
+    
+    
     
     n_od = stim_params['n_od']
     if n_od == 1:

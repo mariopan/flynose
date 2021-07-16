@@ -183,6 +183,93 @@ def main(params_1sens, u_od, verbose=False):
     w_nsi           = sens_params['w_nsi']
     n_orns_recep    = sens_params['n_orns_recep']
     
+    
+    
+    # RECEPTOR PARAMETERS 
+    r0              = orn_params['r0']
+    
+    # INITIALIZE OUTPUT VECTORS
+    n_neu_tot   = n_neu*n_orns_recep
+    
+    t_part      = 2000      # [ms] repetition time window 
+    
+    if t_tot >= t_part:
+        n_rep       = int(np.ceil(t_tot / t_part))
+        extra_time  = int(t_tot% t_part)
+    else:
+        n_rep       = 1
+        extra_time  = t_tot
+        
+
+    #####################################################################
+    #   RECEPTORS
+    r_orn_od_last   = []
+    r_orn_last      = []     
+    n2sim           = int(pts_ms*t_tot)   + 1   # number of time points
+    r_orn           = np.zeros((n2sim, n_neu*n_orns_recep))
+    
+    
+    tt_rep          = 0
+    for id_rep in range(n_rep):
+        
+        if (extra_time>0) &  (id_rep == (n_rep-1)):
+            n2sim = int(pts_ms*extra_time)   + 1   # number of time points
+            t     = np.linspace(0, extra_time, n2sim) # time points
+        else:
+            n2sim = int(pts_ms*t_part)   + 1   # number of time points
+            t     = np.linspace(0, t_part, n2sim) # time points
+        
+        
+        r_orn_od        = np.zeros((n2sim, n_neu, n_od)) 
+        r_orn_rep       = np.zeros((n2sim, n_neu*n_orns_recep))
+        
+        if id_rep == 0:
+            r_orn_od[0,:,:] = r0/n_od*(np.ones((1, n_neu, n_od)) +.01*np.random.standard_normal((1, n_neu, n_od))) 
+        else:
+            # starting values are the last of the previous iteration
+            r_orn_od[0,:,:] = r_orn_od_last
+            r_orn_rep[0, :]     = r_orn_last
+  
+        # ********************************************************
+        # Transduction for different ORNs and odours
+        for tt in range(1, n2sim):
+            # span for next time step
+            tspan = [t[tt-1],t[tt]] 
+            for id_neu in range(n_neu):
+                transd_params = sens_params['transd_params'][id_neu]
+                r_orn_od[tt, id_neu, :] = transd(
+                    r_orn_od[tt-1, id_neu, :], tspan, 
+                                  u_od[int(tt+tt_rep), :], transd_params)   
+        
+        
+        # Create an order 3 lowpass butterworth filter:
+        filter_ord = 3
+        b, a = signal.butter(filter_ord, r_filter_frq)
+        
+        # Replicate to all sensilla and add noise    
+        r_tmp = np.sum(r_orn_od, axis=2)
+        for nn in range(n_neu):
+            for ss in range(n_orns_recep):
+                rand_ts = r_noise*np.random.standard_normal((int(n2sim*1.3)))
+                filt_ts = signal.filtfilt(b, a, rand_ts)
+                filt_ts = filt_ts[-n2sim:]
+                r_orn_rep[:, ss+nn*n_orns_recep] = r_tmp[:, nn] + filt_ts*np.sqrt(1/pts_ms)
+        r_orn_rep[r_orn_rep<0] = 0
+        
+        # save temporary values
+        # starting values are the last of the previous iteration
+        r_orn_od_last = r_orn_od[tt, :, :] 
+        r_orn_last = r_orn_rep[tt, :] 
+        
+        r_orn[tt_rep:(tt_rep+tt), :] = r_orn_rep[:tt, :]
+        tt_rep  += tt
+        
+        
+        
+
+    # ********************************************************
+    # LIF ORN DYNAMICS
+    
     # Connectivity matrix for ORNs
     nsi_mat = np.zeros((n_neu*n_orns_recep, n_neu*n_orns_recep))
     
@@ -210,27 +297,11 @@ def main(params_1sens, u_od, verbose=False):
     vrest           = orn_params['vrest']
     vrev            = orn_params['vrev']
     y0              = orn_params['y0']
-    r0              = orn_params['r0']
     
-    # INITIALIZE OUTPUT VECTORS
-    n_neu_tot   = n_neu*n_orns_recep
-    
-    t_part      = 2000      # [ms] repetition time window 
-    
-    if t_tot >= t_part:
-        n_rep       = int(np.ceil(t_tot / t_part))
-        extra_time  = int(t_tot% t_part)
-    else:
-        n_rep       = 1
-        extra_time  = t_tot
-        
-
-    r_orn_od_last   = []
     v_orn_last      = []
     y_orn_last      = []        
-    r_orn_last      = []     
-    
     spike_matrix    = np.zeros((2,0), dtype=int)
+    
     tt_rep          = 0
     for id_rep in range(n_rep):
         
@@ -241,61 +312,25 @@ def main(params_1sens, u_od, verbose=False):
             n2sim = int(pts_ms*t_part)   + 1   # number of time points
             t     = np.linspace(0, t_part, n2sim) # time points
         
+        r_orn_rep = r_orn[tt_rep:(tt_rep+n2sim-t_ref-1), :] 
         
-       
-        r_orn_od        = np.zeros((n2sim, n_neu, n_od)) 
         v_orn           = np.ones((n2sim, n_neu_tot)) *vrest
         y_orn           = np.zeros((n2sim, n_neu_tot))
-        r_orn           = np.zeros((n2sim, n_neu*n_orns_recep))
         
         vrev_t          = np.ones(n_neu_tot)*vrev
-        num_spikes      = np.zeros((n2sim, n_neu_tot))        
-        
+        num_spikes      = np.zeros((n2sim, n_neu_tot))     
         
         if id_rep == 0:
-            r_orn_od[0,:,:] = r0/n_od*(np.ones((1, n_neu, n_od)) +.01*np.random.standard_normal((1, n_neu, n_od))) 
             v_orn[0,:]      = vrest*(np.ones((1, n_neu_tot)) + .01*np.random.standard_normal((1, n_neu_tot))) 
             y_orn[0,:]      = y0*(np.ones((1, n_neu_tot)) +.01*np.random.standard_normal((1, n_neu_tot))) 
             
             orn_ref         = np.zeros(n_neu_tot)
         else:
             # starting values are the last of the previous iteration
-            r_orn_od[0,:,:] = r_orn_od_last
             v_orn[0,:]      = v_orn_last
             y_orn[0,:]      = y_orn_last
-            
-            r_orn[0, :]     = r_orn_last
-  
     
-    
-        # Transduction for different ORNs and odours
-        for tt in range(1, n2sim):
-            # span for next time step
-            tspan = [t[tt-1],t[tt]] 
-            for id_neu in range(n_neu):
-                transd_params = sens_params['transd_params'][id_neu]
-                r_orn_od[tt, id_neu, :] = transd(
-                    r_orn_od[tt-1, id_neu, :], tspan, 
-                                  u_od[int(tt+tt_rep), :], transd_params)   
         
-        
-        # Create an order 3 lowpass butterworth filter:
-        filter_ord = 3
-        b, a = signal.butter(filter_ord, r_filter_frq)
-        
-        # Replicate to all sensilla and add noise    
-        r_tmp = np.sum(r_orn_od, axis=2)
-        for nn in range(n_neu):
-            for ss in range(n_orns_recep):
-                rand_ts = r_noise*np.random.standard_normal((int(n2sim*1.3)))
-                filt_ts = signal.filtfilt(b, a, rand_ts)
-                filt_ts = filt_ts[-n2sim:]
-                r_orn[:, ss+nn*n_orns_recep] = r_tmp[:, nn] + filt_ts*np.sqrt(1/pts_ms)
-        r_orn[r_orn<0] = 0
-        
-        
-        # ********************************************************
-        # LIF ORN DYNAMICS
         for tt in range(1, n2sim-t_ref-1):
             # span for next time step
             tspan = [t[tt-1],t[tt]]
@@ -304,17 +339,17 @@ def main(params_1sens, u_od, verbose=False):
             y_orn[tt, :] = y_adapt(y_orn[tt-1, :], tspan, orn_params)
             
             # NSI effect on reversal potential 
-            vrev_t = rev_dict[n_neu](w_nsi, r_orn, nsi_vect, vrest, vrev, tt-1, )
+            vrev_t = rev_dict[n_neu](w_nsi, r_orn_rep, nsi_vect, vrest, vrev, tt-1, )
             
             # ORNs whose ref_cnt is equal to zero:
             orn_ref0 = (orn_ref==0)
             if n_neu == 1:
                 v_orn[tt, orn_ref0] = v_orn_ode(v_orn[tt-1, orn_ref0], tspan, 
-                                            r_orn[tt, orn_ref0], y_orn[tt, orn_ref0], 
+                                            r_orn_rep[tt, orn_ref0], y_orn[tt, orn_ref0], 
                                             vrev_t, orn_params)
             else:
                 v_orn[tt, orn_ref0] = v_orn_ode(v_orn[tt-1, orn_ref0], tspan, 
-                                            r_orn[tt, orn_ref0], y_orn[tt, orn_ref0], 
+                                            r_orn_rep[tt, orn_ref0], y_orn[tt, orn_ref0], 
                                             vrev_t[orn_ref0], orn_params)
             
             # ORNs whose Voltage is above threshold AND whose ref_cnt is equal to zero:
@@ -328,12 +363,8 @@ def main(params_1sens, u_od, verbose=False):
             # Refractory period count down
             orn_ref[orn_ref_no0] = orn_ref[orn_ref_no0] - 1 
         
-        # save temporary values
-        # starting values are the last of the previous iteration
-        r_orn_od_last = r_orn_od[tt, :, :] 
         v_orn_last = v_orn[tt, :]
         y_orn_last = y_orn[tt, :]        
-        r_orn_last = r_orn[tt, :] 
         
         # Calculate the spike matrix 
         tmp_sp_mat        = np.asarray(np.where(num_spikes))

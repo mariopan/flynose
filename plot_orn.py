@@ -54,7 +54,7 @@ def main(params_1sens, output_orn, ):
     
     chunked=0
     # Check the size of the vectors 
-    if len(t) != len(r_orn):
+    if len(t) != len(v_orn):
         print('NOTE: The simulation is run in chunks. To inspect it and plot the variables, '
               ' please, modify the simulation duration (t_tot) or the chunk size (t_part).')
         chunked=1

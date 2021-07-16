@@ -6,7 +6,7 @@ Created on Tue Feb 16 17:00:32 2021
 The dynamics of all the sensilla in the ORNs layer 
 
 Simulation of all the sensilla in the ORNs layer. Essentially a loop over 
-NSI_ORN_LIF.py
+sensillum_dyn.py
 
 ORNs_layer_dyn.py
 
@@ -16,9 +16,8 @@ import numpy as np
 import timeit
 import matplotlib.pyplot as plt
 
-import NSI_ORN_LIF
 import sensillum_dyn
-import stim_fcn
+import stim_fcn_oop
 
 
 
@@ -90,6 +89,11 @@ def main(params_all_sens, verbose=False, corr_an=False):
     
     id_orn0 = 0 
     
+    # GENERATE ODOUR STIMULUS/I and UPDATE STIM PARAMS
+    plume           = stim_fcn_oop.main(stim_params, verbose)
+    u_od            = plume.u_od
+    
+    # Simulate ORNs layer
     for id_sens, n_neu in enumerate(n_recep_list):
         params_1sens   = dict([
                     ('stim_params', stim_params),
@@ -97,9 +101,6 @@ def main(params_all_sens, verbose=False, corr_an=False):
                     ('orn_params', orn_params),
                     ('sdf_params', sdf_params),
                     ])
-        #####################################################################
-        # GENERATE ODOUR STIMULUS/I and UPDATE STIM PARAMS
-        u_od            = stim_fcn.main(stim_params, verbose=verbose)
         
         # orn_lif_out     = NSI_ORN_LIF.main(params_1sens, u_od, verbose=verbose)
         orn_lif_out     = sensillum_dyn.main(params_1sens, u_od, verbose=verbose)
