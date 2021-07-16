@@ -269,6 +269,24 @@ def noise_in_transd(params_1sens, r_orn_od, t_part):
 def main(params_1sens, u_od, verbose=False):
     """ Dynamics of the single type sensillum """
     
+    t_part      = 2000      # [ms] repetition time window 
+    
+       
+    
+   
+    
+    ######################################################################
+    #    RECEPTORS DYNAMICS    
+    r_orn_od = transd_1sens(params_1sens, u_od, t_part)
+    # add noise separately per each sensillum
+    r_orn = noise_in_transd(params_1sens, r_orn_od, t_part)
+    ######################################################################
+    
+    
+    
+    # #####################################################################
+    # LIF ORN DYNAMICS
+    
     stim_params = params_1sens['stim_params']
     sens_params = params_1sens['sens_params']
     orn_params = params_1sens['orn_params']
@@ -289,28 +307,16 @@ def main(params_1sens, u_od, verbose=False):
     n_neu_tot   = n_neu*n_orns_recep
     n2sim_tot   = int(pts_ms*t_tot)   # number of time points
     
-    t_part      = 2000      # [ms] repetition time window 
     
+        
+
     if t_tot >= t_part:
         n_rep       = int(np.ceil(t_tot / t_part))
         extra_time  = int(t_tot% t_part)
     else:
         n_rep       = 1
         extra_time  = t_tot
-        
     
-   
-    
-    # #####################################################################
-    # #   RECEPTORS DYNAMICS
-    
-    r_orn_od = transd_1sens(params_1sens, u_od, t_part)
-    # add noise separately per each sensillum
-    r_orn = noise_in_transd(params_1sens, r_orn_od, t_part)
-        
-
-    # #####################################################################
-    # LIF ORN DYNAMICS
     
     # Connectivity matrix for ORNs
     nsi_mat = np.zeros((n_neu*n_orns_recep, n_neu*n_orns_recep))
