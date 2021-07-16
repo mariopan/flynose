@@ -3,6 +3,10 @@
 """
 Created on Fri Jul  9 15:39:06 2021
 
+plot_sensillum.py
+
+Plot the dynamics of the ORNs in a single sensillum
+
 @author: mario
 """
 
@@ -10,10 +14,9 @@ import numpy as np
 # import matplotlib.pyplot as plt
 import timeit
 
-import ORNs_layer_dyn
 import set_orn_al_params
-
-import NSI_ORN_LIF 
+import stim_fcn
+import sensillum_dyn
 import plot_orn
 
 
@@ -93,8 +96,13 @@ params_1sens   = dict([
                 ])
 
 # ORN LIF SIMULATION
-tic = timeit.default_timer()
-output_orn = NSI_ORN_LIF.main(params_1sens)
+tic = tictoc()
+
+
+# GENERATE ODOUR STIMULUS/I and UPDATE STIM PARAMS
+u_od            = stim_fcn.main(stim_params, verbose=verbose)
+
+output_orn = sensillum_dyn.main(params_1sens, u_od)
 
 [t, u_od, r_orn, v_orn, y_orn, 
                    num_spikes, spike_matrix, orn_sdf, t_sdf,]   = output_orn    
@@ -105,4 +113,5 @@ fld_analysis = 'NSI_analysis/offset_peak/'
 fig_name = 'fast_odorant.png'
 fig.savefig(fld_analysis + fig_name)
     
-toc = timeit.default_timer()
+toc = tictoc()
+print('elapsed time: %f s'%(toc-tic))

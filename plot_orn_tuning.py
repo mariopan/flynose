@@ -5,7 +5,7 @@ Created on Tue Feb  9 15:21:20 2021
 
 ORN_dyn_plot.py
 
-This script run NSI_ORN_LIF.py one or multiple times and saves the data 
+This script run sensillum_dyn.py one or multiple times and saves the data 
 the following figure(s) of the NSI paper:
     fig.10a Dose response curves of two neurons for the control network 
     (dashed lines)and for the NSI network (solid lines). 
@@ -20,16 +20,13 @@ import pickle
 import matplotlib as mpl
 import string
 
-
-import sys
-
 from scipy.interpolate import interp1d
 
 
-import NSI_ORN_LIF
-# import plot_orn  
+import sensillum_dyn
 import set_orn_al_params
-
+import stim_fcn
+            
 
 
     
@@ -260,7 +257,6 @@ thr_ratio = np.zeros((n_inh_conds,n_durs))
 #%% RUN SIMS AND PLOT
 tic = tictoc()
 
-
 if fig_doseres:
     fig_dr, axs = plt.subplots(nrows=n_durs, ncols=1, figsize=[8, 5]) # n_inh_conds
 
@@ -300,7 +296,10 @@ for id_dur, stim_dur in enumerate(stim_durs):
             stim_params['concs'] = np.array([peak, peak*peak_ratio])
             
             # RUN SIM
-            orn_lif_out = NSI_ORN_LIF.main(params_1sens, )
+            # GENERATE ODOUR STIMULUS/I and UPDATE STIM PARAMS
+            u_od            = stim_fcn.main(stim_params, )
+
+            orn_lif_out     = sensillum_dyn.main(params_1sens, u_od)
             [t, u_od, r_orn, v_orn, y_orn, num_spikes, orn_spikes_t, 
                   orn_sdf, orn_sdf_time,] = orn_lif_out
     

@@ -34,6 +34,9 @@ def main(stim_params, verbose=False):
     
     
     # Create an order 3 lowpass butterworth filter:
+    if not(np.isnan(stim_seed)):
+        np.random.seed(seed=stim_seed)
+    
     extra_t         = pts_ms*200                
     rand_ts         =  np.random.randn(n2sim+extra_t, n_od)*od_noise
     filter_ord      = 3
@@ -146,10 +149,12 @@ def main(stim_params, verbose=False):
             t_tmp           = \
                 np.linspace(0, t_tot-t_off[nn], n2sim-stim_off)    
             
-            u_od[stim_off:, nn]  = conc0
+            # fast odorants, no fade off:
+            # u_od[stim_off:, nn]  = conc0
+            
             # typical offset:
-            # u_od[stim_off:, nn]  += \
-            #     (u_od[stim_off-1, nn]-conc0)*np.exp(-t_tmp/tau_on)
+            u_od[stim_off:, nn]  += \
+                (u_od[stim_off-1, nn]-conc0)*np.exp(-t_tmp/tau_on)
  
     u_od[u_od<0] = 0
     return u_od

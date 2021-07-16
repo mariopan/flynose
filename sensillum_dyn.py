@@ -5,7 +5,7 @@ Created on Mon Oct 19 12:04:01 2020
 
 It simulates single sensensillum dynamics with LIF interacting neurons.
 
-NSI_ORN_LIF.py
+sensillum_dyn.py
 
 Input:
     params_1sens:   parameters of the simulation of a Single sensillum
@@ -57,6 +57,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import timeit
 from scipy import signal
+import pickle
 
 import sdf_krofczik
 import stim_fcn
@@ -171,12 +172,6 @@ def main(params_1sens, u_od, verbose=False):
     stim_params = params_1sens['stim_params']
     sens_params = params_1sens['sens_params']
     orn_params = params_1sens['orn_params']
-    sdf_params = params_1sens['sdf_params']
-    
-
-    # SDF PARAMETERS 
-    tau_sdf = sdf_params['tau_sdf']
-    dt_sdf  = sdf_params['dt_sdf']
     
     # STIMULI PARAMETERS 
     tmp_ks = ['pts_ms', 't_tot', 'n_od', 'r_noise', 'r_filter_frq']    
@@ -218,93 +213,150 @@ def main(params_1sens, u_od, verbose=False):
     r0              = orn_params['r0']
     
     # INITIALIZE OUTPUT VECTORS
-    n2sim           = int(pts_ms*t_tot)   + 1   # number of time points
-    t               = np.linspace(0, t_tot, n2sim) # time points
-    n_neu_tot       = n_neu*n_orns_recep
-   
-    r_orn_od        = np.zeros((n2sim, n_neu, n_od)) 
-    v_orn           = np.ones((n2sim, n_neu_tot)) *vrest
-    y_orn           = np.zeros((n2sim, n_neu_tot))
+    n_neu_tot   = n_neu*n_orns_recep
     
-    r_orn_od[0,:,:] = r0/n_od*(np.ones((1, n_neu, n_od)) +.01*np.random.standard_normal((1, n_neu, n_od))) 
-    v_orn[0,:]      = vrest*(np.ones((1, n_neu_tot)) + .01*np.random.standard_normal((1, n_neu_tot))) 
-    y_orn[0,:]      = y0*(np.ones((1, n_neu_tot)) +.01*np.random.standard_normal((1, n_neu_tot))) 
+    t_part      = 2000      # [ms] repetition time window 
     
-    vrev_t          = np.ones(n_neu_tot)*vrev
-    num_spikes      = np.zeros((n2sim, n_neu_tot))
-    orn_ref         = np.zeros(n_neu_tot)
-    
-    
-    
-    
-    # Transduction for different ORNs and odours
-    for tt in range(1, n2sim):
-        # span for next time step
-        tspan = [t[tt-1],t[tt]] 
-        for id_neu in range(n_neu):
-            transd_params = sens_params['transd_params'][id_neu]
-            r_orn_od[tt, id_neu, :] = transd(
-                r_orn_od[tt-1, id_neu, :], tspan, 
-                              u_od[tt, :], transd_params)   
+    if t_tot >= t_part:
+        n_rep       = int(np.ceil(t_tot / t_part))
+        extra_time  = int(t_tot% t_part)
+    else:
+        n_rep       = 1
+        extra_time  = t_tot
+        
 
-    # Create an order 3 lowpass butterworth filter:
-    filter_ord = 3
-    b, a = signal.butter(filter_ord, r_filter_frq)
+    r_orn_od_last   = []
+    v_orn_last      = []
+    y_orn_last      = []        
+    r_orn_last      = []     
     
-    # Replicate to all sensilla and add noise    
-    r_tmp = np.sum(r_orn_od, axis=2)
-    r_orn = np.zeros((n2sim, n_neu*n_orns_recep))
-    for nn in range(n_neu):
-        for ss in range(n_orns_recep):
-            rand_ts = r_noise*np.random.standard_normal((int(n2sim*1.3)))
-            filt_ts = signal.filtfilt(b, a, rand_ts)
-            filt_ts = filt_ts[-n2sim:]
-            r_orn[:, ss+nn*n_orns_recep] = r_tmp[:, nn] + filt_ts*np.sqrt(1/pts_ms)
-            #r_orn[:, ss+nn*n_orns_recep] = r_tmp[:, nn] * (1+ filt_ts)
-    r_orn[r_orn<0] = 0
-    
-    # ********************************************************
-    # LIF ORN DYNAMICS
-    for tt in range(1, n2sim-t_ref-1):
-        # span for next time step
-        tspan = [t[tt-1],t[tt]]
+    spike_matrix    = np.zeros((2,0), dtype=int)
+    tt_rep          = 0
+    for id_rep in range(n_rep):
         
-        # adaptation variable
-        y_orn[tt, :] = y_adapt(y_orn[tt-1, :], tspan, orn_params)
-        
-        # NSI effect on reversal potential 
-        vrev_t = rev_dict[n_neu](w_nsi, r_orn, nsi_vect, vrest, vrev, tt-1, )
-        
-        # ORNs whose ref_cnt is equal to zero:
-        orn_ref0 = (orn_ref==0)
-        if n_neu == 1:
-            v_orn[tt, orn_ref0] = v_orn_ode(v_orn[tt-1, orn_ref0], tspan, 
-                                        r_orn[tt, orn_ref0], y_orn[tt, orn_ref0], 
-                                        vrev_t, orn_params)
+        if (extra_time>0) &  (id_rep == (n_rep-1)):
+            n2sim = int(pts_ms*extra_time)   + 1   # number of time points
+            t     = np.linspace(0, extra_time, n2sim) # time points
         else:
-            v_orn[tt, orn_ref0] = v_orn_ode(v_orn[tt-1, orn_ref0], tspan, 
-                                        r_orn[tt, orn_ref0], y_orn[tt, orn_ref0], 
-                                        vrev_t[orn_ref0], orn_params)
-        
-        # ORNs whose Voltage is above threshold AND whose ref_cnt is equal to zero:
-        orn_above_thr = (v_orn[tt, :] >= theta) & (orn_ref==0)
-        num_spikes[tt, orn_above_thr] = num_spikes[tt, orn_above_thr] + 1
-        orn_ref[orn_above_thr] = t_ref
-        y_orn[tt:(tt+t_ref), orn_above_thr] = y_orn[tt, orn_above_thr]+alpha_y
-           
-        # ORNs whose ref_cnt is different from zero:
-        orn_ref_no0 = (orn_ref!=0)
-        # Refractory period count down
-        orn_ref[orn_ref_no0] = orn_ref[orn_ref_no0] - 1 
+            n2sim = int(pts_ms*t_part)   + 1   # number of time points
+            t     = np.linspace(0, t_part, n2sim) # time points
         
         
+       
+        r_orn_od        = np.zeros((n2sim, n_neu, n_od)) 
+        v_orn           = np.ones((n2sim, n_neu_tot)) *vrest
+        y_orn           = np.zeros((n2sim, n_neu_tot))
+        r_orn           = np.zeros((n2sim, n_neu*n_orns_recep))
+        
+        vrev_t          = np.ones(n_neu_tot)*vrev
+        num_spikes      = np.zeros((n2sim, n_neu_tot))        
+        
+        
+        if id_rep == 0:
+            r_orn_od[0,:,:] = r0/n_od*(np.ones((1, n_neu, n_od)) +.01*np.random.standard_normal((1, n_neu, n_od))) 
+            v_orn[0,:]      = vrest*(np.ones((1, n_neu_tot)) + .01*np.random.standard_normal((1, n_neu_tot))) 
+            y_orn[0,:]      = y0*(np.ones((1, n_neu_tot)) +.01*np.random.standard_normal((1, n_neu_tot))) 
+            
+            orn_ref         = np.zeros(n_neu_tot)
+        else:
+            # starting values are the last of the previous iteration
+            r_orn_od[0,:,:] = r_orn_od_last
+            v_orn[0,:]      = v_orn_last
+            y_orn[0,:]      = y_orn_last
+            
+            r_orn[0, :]     = r_orn_last
+  
     
-    # Calculate the spike matrix 
-    spike_matrix = np.asarray(np.where(num_spikes))
-    spike_matrix[0,:] = spike_matrix[0,:]/pts_ms
-    spike_matrix = np.transpose(spike_matrix)
+    
+        # Transduction for different ORNs and odours
+        for tt in range(1, n2sim):
+            # span for next time step
+            tspan = [t[tt-1],t[tt]] 
+            for id_neu in range(n_neu):
+                transd_params = sens_params['transd_params'][id_neu]
+                r_orn_od[tt, id_neu, :] = transd(
+                    r_orn_od[tt-1, id_neu, :], tspan, 
+                                  u_od[int(tt+tt_rep), :], transd_params)   
+        
+        
+        # Create an order 3 lowpass butterworth filter:
+        filter_ord = 3
+        b, a = signal.butter(filter_ord, r_filter_frq)
+        
+        # Replicate to all sensilla and add noise    
+        r_tmp = np.sum(r_orn_od, axis=2)
+        for nn in range(n_neu):
+            for ss in range(n_orns_recep):
+                rand_ts = r_noise*np.random.standard_normal((int(n2sim*1.3)))
+                filt_ts = signal.filtfilt(b, a, rand_ts)
+                filt_ts = filt_ts[-n2sim:]
+                r_orn[:, ss+nn*n_orns_recep] = r_tmp[:, nn] + filt_ts*np.sqrt(1/pts_ms)
+        r_orn[r_orn<0] = 0
+        
+        
+        # ********************************************************
+        # LIF ORN DYNAMICS
+        for tt in range(1, n2sim-t_ref-1):
+            # span for next time step
+            tspan = [t[tt-1],t[tt]]
+            
+            # adaptation variable
+            y_orn[tt, :] = y_adapt(y_orn[tt-1, :], tspan, orn_params)
+            
+            # NSI effect on reversal potential 
+            vrev_t = rev_dict[n_neu](w_nsi, r_orn, nsi_vect, vrest, vrev, tt-1, )
+            
+            # ORNs whose ref_cnt is equal to zero:
+            orn_ref0 = (orn_ref==0)
+            if n_neu == 1:
+                v_orn[tt, orn_ref0] = v_orn_ode(v_orn[tt-1, orn_ref0], tspan, 
+                                            r_orn[tt, orn_ref0], y_orn[tt, orn_ref0], 
+                                            vrev_t, orn_params)
+            else:
+                v_orn[tt, orn_ref0] = v_orn_ode(v_orn[tt-1, orn_ref0], tspan, 
+                                            r_orn[tt, orn_ref0], y_orn[tt, orn_ref0], 
+                                            vrev_t[orn_ref0], orn_params)
+            
+            # ORNs whose Voltage is above threshold AND whose ref_cnt is equal to zero:
+            orn_above_thr = (v_orn[tt, :] >= theta) & (orn_ref==0)
+            num_spikes[tt, orn_above_thr] = num_spikes[tt, orn_above_thr] + 1
+            orn_ref[orn_above_thr] = t_ref
+            y_orn[tt:(tt+t_ref), orn_above_thr] = y_orn[tt, orn_above_thr]+alpha_y
+               
+            # ORNs whose ref_cnt is different from zero:
+            orn_ref_no0 = (orn_ref!=0)
+            # Refractory period count down
+            orn_ref[orn_ref_no0] = orn_ref[orn_ref_no0] - 1 
+        
+        # save temporary values
+        # starting values are the last of the previous iteration
+        r_orn_od_last = r_orn_od[tt, :, :] 
+        v_orn_last = v_orn[tt, :]
+        y_orn_last = y_orn[tt, :]        
+        r_orn_last = r_orn[tt, :] 
+        
+        # Calculate the spike matrix 
+        tmp_sp_mat        = np.asarray(np.where(num_spikes))
+        tmp_sp_mat[0, :] += tt_rep
+        spike_matrix = np.concatenate((spike_matrix, tmp_sp_mat),axis=1)
+        tt_rep  += tt
+        
+
+    # save variables for the whole simulation duration:
+    n2sim = int(pts_ms*t_tot)   + 1   # number of time points
+    t     = np.linspace(0, t_tot, n2sim) # time points
+    num_spikes  = np.zeros((n2sim, n_neu_tot)) 
+    num_spikes[spike_matrix[0,:], spike_matrix[1,:]] = True
+    
+    spike_matrix[0,:]   = spike_matrix[0,:]/pts_ms #    convert the time column into ms
+    spike_matrix        = np.transpose(spike_matrix)  
+    
     
     # SDF extraction from the spike matrix
+    sdf_params = params_1sens['sdf_params']
+    tau_sdf = sdf_params['tau_sdf']
+    dt_sdf  = sdf_params['dt_sdf']
+    
     sdf_size    = int(stim_params['t_tot']/dt_sdf)
     t_sdf = np.linspace(0, dt_sdf*sdf_size, sdf_size)
     orn_sdf = np.zeros((sdf_size, n_neu_tot))
@@ -314,93 +366,10 @@ def main(params_1sens, u_od, verbose=False):
                                                 tau_sdf, dt_sdf)  # (Hz, ms)
         for nn in range(np.size(orn_sdf_tmp,1)):
             orn_sdf[:, nn] = orn_sdf_tmp[:, nn]*1e3    
-        # orn_sdf = orn_sdf*1e3 
         
         
-    orn_lif_out = [t, u_od, r_orn, v_orn, y_orn, 
-                   num_spikes, spike_matrix, orn_sdf, t_sdf,]    
+    orn_lif_out = [t, u_od, 
+                   r_orn, v_orn, y_orn, num_spikes, 
+                   spike_matrix, orn_sdf, t_sdf,]    
    
     return  orn_lif_out 
-
-# ************************************************************
-# Launching script and Figure
-if __name__ == '__main__':
-    print('run directly')
-    
-    fld_analysis = 'NSI_analysis/trials/'
-    timecourse_fig_name = 'ORN_lif_timecourse.png'
-    hist_fig_name = 'ORN_lif_dyn_hist.png'
-    
-    
-    params_al_orn = set_orn_al_params.main(2)
-
-    stim_params         = params_al_orn['stim_params']
-    orn_layer_params    = params_al_orn['orn_layer_params']
-    sens_params         = orn_layer_params[0]
-    orn_params          = params_al_orn['orn_params']
-    sdf_params          = params_al_orn['sdf_params']
-    # al_params           = params_al_orn['al_params']
-    # pn_ln_params        = params_al_orn['pn_ln_params']
-    
-    stim_params['stim_type']    = 'ss'      
-    stim_params['conc0'] = 1.85e-4
-    stim_params['t_tot'] = 3200            # [ms]
-    stim_params['t_on']  = np.array([1000, 1000])
-    stim_params['concs']        = np.array([10e-3,])
-    
-    ##############################################################
-    # real plume example
-           
-    # stim params
-    delay                       = 0    
-    stim_params['stim_type']    = 'pl'      
-    rd_seed                     = np.random.randint(0, 1000)
-    stim_params['stim_seed']    = 338#rd_seed
-    print(stim_params['stim_seed'])
-    stim_params['t_on']  = np.array([1000, 1000])
-    stim_params['concs']        = np.array([10e-3,10e-3, ])
-    
-    
-    # real plumes params
-    plume_params        = stim_params['plume_params']
-    plume_params['whiff_max']   = 3
-    plume_params['rho_t_exp']   = 0   #[0, 1, 3, 5]
-    
-    sdf_params['tau_sdf']       = 30
-    sdf_params['dt_sdf']        = 5
-    
-    stim_params['plume_params'] = plume_params
-        
-    params_1sens   = dict([
-                        ('stim_params', stim_params),
-                        ('sens_params', sens_params),
-                        ('orn_params', orn_params),
-                        ('sdf_params', sdf_params),
-                        ])
-
-
-
-    # ORN LIF SIMULATION
-    tic = timeit.default_timer()
-    # GENERATE ODOUR STIMULUS/I and UPDATE STIM PARAMS
-    u_od            = stim_fcn.main(stim_params, verbose=False)
-
-    output_orn      = main(params_1sens, u_od)
-    toc = timeit.default_timer()
-    
-    print('sim run time: %.2f s' %(toc-tic))
-    
-    [t, u_od, r_orn, v_orn, y_orn, num_spikes, spike_matrix, orn_sdf,
-     orn_sdf_time,]  = output_orn
-    
-    fig = plot_orn.main(params_1sens, output_orn, )
-    # fig.savefig(fld_analysis + timecourse_fig_name)
-    
-    
-    # fig, axs = plot_hist_isi.main(params_1sens, output_orn)
-    plt.show()
-    
-    # fig.savefig(fld_analysis + hist_fig_name)
-        
-    
-    

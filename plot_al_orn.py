@@ -44,6 +44,8 @@ def tictoc():
 
 def main(params_al_orn, output_orn_layer, output_al):
 
+    """ Plot the activity of the ORN and AL"""
+    
     stim_params     = params_al_orn['stim_params']
     orn_layer_params= params_al_orn['orn_layer_params']
     #orn_params     = params_al_orn['orn_params']
@@ -194,10 +196,11 @@ def main(params_al_orn, output_orn_layer, output_al):
         ax_ln.set_position([ll+.05, bb+dy, ww, hh])
             
         fig_al.align_labels() 
-        plt.show()
+        #plt.show()
         
         if fig_al_save:
             fld_analysis = '/'
             fig_al_name  = 'AL_ORN_idrec%d'%qq 
             fig_al.savefig(fld_analysis + fig_al_name + '.png')
+    
     return fig_al

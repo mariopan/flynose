@@ -244,103 +244,174 @@ def main(params_al_orn, spike_orn, verbose=False, corr_an=False):
     y_ln0               = 0
     v_ln0               = 0
 
-    s_orn           = np.zeros((n2sim, n_orns_tot))
-    s_ornpn        = np.zeros((n2sim, n_pns_tot))
+    t_part      = 500      # [ms] repetition time window 
     
-    # Initialize LN to PN output vectors
-    x_pn            = np.zeros((n2sim, n_pns_tot))
-    s_pn            = np.zeros((n2sim, n_pns_tot))
-    s_pnln          = np.zeros((n2sim, n_lns_tot))
-    v_pn            = np.ones((n2sim, n_pns_tot))*pn_ln_params['vrest_pn']
-    
-    y_ln            = np.zeros((n2sim, n_lns_tot))
-    y_lnpn          = np.zeros((n2sim, n_pns_tot))
+    if t_tot >= t_part:
+        n_rep       = int(np.ceil(t_tot / t_part))
+        extra_time  = int(t_tot% t_part)
+    else:
+        n_rep       = 1
+        extra_time  = t_tot
+        
 
-    # Initialize PN output vectors
-    spike_pn    = np.zeros((n2sim, n_pns_tot))
-    pn_ref_cnt      = np.zeros(n_pns_tot) # Refractory period counter starts from 0
+    s_orn_last   = []
+    s_ornpn_last      = []
+    v_pn_last      = []        
+    y_lnpn_last      = []     
+    x_pn_last      = []     
+    s_pn_last      = []     
+    v_ln_last      = []     
+    s_pnln_last      = []     
+    y_ln_last      = []     
     
-    # Initialize LN output vectors
-    v_ln            = np.ones((n2sim, n_lns_tot))*pn_ln_params['vrest_ln']
-    spike_ln    = np.zeros((n2sim, n_lns_tot))  
+    pn_spike_matrix    = np.zeros((2,0), dtype=int)
+    ln_spike_matrix    = np.zeros((2,0), dtype=int)
     
-    # PN and LN params initial conditions
-    s_pn[0, :]      = s_pn0*(1 + np.random.standard_normal((1, n_pns_tot)))
-    x_pn[0, :]      = x_pn0*(1 + np.random.standard_normal((1, n_pns_tot)))
-    v_pn[0,:]       = v_pn0*np.ones((1, n_pns_tot)) \
-        + np.random.standard_normal((1, n_pns_tot)) 
-    
-    y_ln[0, :]      = y_ln0*(1 + np.random.standard_normal((1, n_lns_tot)))
-    v_ln[0,:]       = v_ln0*np.ones((1, n_lns_tot)) \
-        + np.random.standard_normal((1, n_lns_tot)) 
-    
-    ln_ref_cnt      = np.zeros(n_lns_tot) # initially the ref period cnter is equal to 0
-    
-    
-    # solve ODE for PN and LN
-    for tt in range(1, n2sim-t_ref-1):
-        # span for next time step
-        tspan = [t[tt-1],t[tt]]
+    tt_rep          = 0
+    for id_rep in range(n_rep):
         
-        #pp_rnd = np.arange(n_pns_tot) # np.random.permutation(n_pns_tot)
+        if (extra_time>0) &  (id_rep == (n_rep-1)):
+            n2sim = int(pts_ms*extra_time)   + 1   # number of time points
+            t     = np.linspace(0, extra_time, n2sim) # time points
+        else:
+            n2sim = int(pts_ms*t_part)   + 1   # number of time points
+            t     = np.linspace(0, t_part, n2sim) # time points
+            
+             
+        s_orn           = np.zeros((n2sim, n_orns_tot))
+        s_ornpn         = np.zeros((n2sim, n_pns_tot))
         
-        # ORN input to PNs
-        s_orn[tt, :] = orn2pn_s(s_orn[tt-1, :],tspan, spike_orn[tt, :], pn_ln_params, )
-        # summing inputs:
-        s_ornpn[tt, :] = s_orn[tt, :].dot(orn_pn_mat) 
-        # PN dynamics:
-        # PNs whose ref_cnt is equal to zero:
-        pn_ref_0 = pn_ref_cnt==0
-        v_pn[tt, pn_ref_0] = pn_v(v_pn[tt-1, pn_ref_0],tspan, 
-                                  s_ornpn[tt-1, pn_ref_0], y_lnpn[tt-1, pn_ref_0], x_pn[tt-1, pn_ref_0], pn_ln_params, )
-        # handle spiking:
-        # PNs whose ref_cnt is different from zero:
-        pn_ref_no0 = pn_ref_cnt!=0
-        # Refractory period count down
-        pn_ref_cnt[pn_ref_no0] = pn_ref_cnt[pn_ref_no0] - 1  
+        # Initialize LN to PN output vectors
+        x_pn            = np.zeros((n2sim, n_pns_tot))
+        s_pn            = np.zeros((n2sim, n_pns_tot))
+        s_pnln          = np.zeros((n2sim, n_lns_tot))
+        v_pn            = np.ones((n2sim, n_pns_tot))*pn_ln_params['vrest_pn']
         
-        # PNs whose Voltage is above threshold AND whose ref_cnt is equal to zero:
-        pn_above_thr = (v_pn[tt, :] >= theta) & (pn_ref_cnt==0)
-        spike_pn[tt, pn_above_thr] = 1
-        pn_ref_cnt[pn_above_thr] = t_ref
+        y_ln            = np.zeros((n2sim, n_lns_tot))
+        y_lnpn          = np.zeros((n2sim, n_pns_tot))
+    
+        # Initialize PN output vectors
+        spike_pn        = np.zeros((n2sim, n_pns_tot))        
+        
+        # Initialize LN output vectors
+        v_ln            = np.ones((n2sim, n_lns_tot))*pn_ln_params['vrest_ln']
+        spike_ln        = np.zeros((n2sim, n_lns_tot))  
+        
+        if id_rep == 0:
+            # PN and LN params initial conditions
+            s_pn[0, :]      = s_pn0*(1 + np.random.standard_normal((1, n_pns_tot)))
+            x_pn[0, :]      = x_pn0*(1 + np.random.standard_normal((1, n_pns_tot)))
+            v_pn[0,:]       = v_pn0*np.ones((1, n_pns_tot)) \
+                + np.random.standard_normal((1, n_pns_tot)) 
+            pn_ref_cnt      = np.zeros(n_pns_tot) # Refractory period counter starts from 0
+            
+            y_ln[0, :]      = y_ln0*(1 + np.random.standard_normal((1, n_lns_tot)))
+            v_ln[0,:]       = v_ln0*np.ones((1, n_lns_tot)) \
+                + np.random.standard_normal((1, n_lns_tot)) 
+            
+            ln_ref_cnt      = np.zeros(n_lns_tot) # initially the ref period cnter is equal to 0
+        else:
+            # starting values are the last of the previous iteration
+            s_orn[0, :]     = s_orn_last
+            s_ornpn[0, :]   = s_ornpn_last   
+            v_pn[0, :]      = v_pn_last           
+            y_lnpn[0, :]    = y_lnpn_last        
+            x_pn[0, :]      = x_pn_last        
+            s_pn[0, :]      = s_pn_last        
+            v_ln[0, :]      = v_ln_last        
+            s_pnln[0, :]    = s_pnln_last        
+            y_ln[0, :]      = y_ln_last        
+        
+        # solve ODE for PN and LN
+        for tt in range(1, n2sim-t_ref-1):
+            # span for next time step
+            tspan = [t[tt-1],t[tt]]
+                        
+            # ORN input to PNs
+            s_orn[tt, :] = orn2pn_s(s_orn[tt-1, :],tspan, 
+                                    spike_orn[tt+tt_rep, :], pn_ln_params, )
+            # summing inputs:
+            s_ornpn[tt, :] = s_orn[tt, :].dot(orn_pn_mat) 
+            # PN dynamics:
+            # PNs whose ref_cnt is equal to zero:
+            pn_ref_0 = pn_ref_cnt==0
+            v_pn[tt, pn_ref_0] = pn_v(v_pn[tt-1, pn_ref_0],tspan, 
+                                      s_ornpn[tt-1, pn_ref_0], y_lnpn[tt-1, pn_ref_0], 
+                                      x_pn[tt-1, pn_ref_0], pn_ln_params, )
+            # handle spiking:
+            # PNs whose ref_cnt is different from zero:
+            pn_ref_no0 = pn_ref_cnt!=0
+            # Refractory period count down
+            pn_ref_cnt[pn_ref_no0] = pn_ref_cnt[pn_ref_no0] - 1  
+            
+            # PNs whose Voltage is above threshold AND whose ref_cnt is equal to zero:
+            pn_above_thr = (v_pn[tt, :] >= theta) & (pn_ref_cnt==0)
+            spike_pn[tt, pn_above_thr] = 1
+            pn_ref_cnt[pn_above_thr] = t_ref
+    
+            # Adaptation variable of PN neuron
+            x_pn[tt, :] = x_adapt(x_pn[tt-1, :],tspan, spike_pn[tt, :], pn_ln_params, )        
+    
+            # PN to LN synapses activation
+            s_pn[tt, :] = pn2ln_s(s_pn[tt-1, :], tspan, spike_pn[tt, :], pn_ln_params, )        
+            # summing inputs:
+            s_pnln[tt, :] = s_pn[tt, :].dot(pn_ln_mat)
+            
+            # LN dynamics:
+            # LNs whose ref_cnt is equal to zero:
+            ln_ref_0 = ln_ref_cnt==0
+            v_ln[tt, ln_ref_0] = pn2ln_v_ex(v_ln[tt-1, ln_ref_0], tspan, 
+                        s_pnln[tt-1, ln_ref_0], pn_ln_params, )
+            
+            # handle spiking:
+            # LNs whose ref_cnt is different from zero:
+            ln_ref_no0 = ln_ref_cnt!=0
+            # Refractory period count down
+            ln_ref_cnt[ln_ref_no0] = ln_ref_cnt[ln_ref_no0] - 1  
+            
+            # LNs whose Voltage is above threshold AND whose ref_cnt is equal to zero:
+            ln_above_thr = (v_ln[tt, :] >= theta) & (ln_ref_cnt==0)
+            spike_ln[tt, ln_above_thr] = 1
+            ln_ref_cnt[ln_above_thr] = t_ref
+    
+            # Inhibitory LN input to PNs
+            y_ln[tt, :] = ln2pn_y(y_ln[tt-1, :],tspan, spike_ln[tt, :], pn_ln_params, )
+            # summing inputs:
+            y_lnpn[tt, :] = y_ln[tt, :].dot(ln_pn_mat)
+            
+        # save temporary values
+        # starting values are the last of the previous iteration
+        s_orn_last     = s_orn[tt, :]
+        s_ornpn_last   =    s_ornpn[tt, :]   
+        v_pn_last   =            v_pn[tt, :]      
+        y_lnpn_last   =         y_lnpn[tt, :]    
+        x_pn_last   =         x_pn[tt, :]      
+        s_pn_last   =         s_pn[tt, :]      
+        v_ln_last   =         v_ln[tt, :]      
+        s_pnln_last   =         s_pnln[tt, :]    
+        y_ln_last   =         y_ln[tt, :]      
+        
+        # Calculate the spike matrix 
+        tmp_sp_mat        = np.asarray(np.where(spike_pn))
+        tmp_sp_mat[0, :] += tt_rep
+        pn_spike_matrix = np.concatenate((pn_spike_matrix, tmp_sp_mat),axis=1)
+        
+        tmp_sp_mat        = np.asarray(np.where(spike_ln))
+        tmp_sp_mat[0, :] += tt_rep
+        ln_spike_matrix = np.concatenate((ln_spike_matrix, tmp_sp_mat),axis=1)
+        
+        tt_rep  += tt           
 
-        # Adaptation variable of PN neuron
-        x_pn[tt, :] = x_adapt(x_pn[tt-1, :],tspan, spike_pn[tt, :], pn_ln_params, )        
-
-        # PN to LN synapses activation
-        s_pn[tt, :] = pn2ln_s(s_pn[tt-1, :], tspan, spike_pn[tt, :], pn_ln_params, )        
-        # summing inputs:
-        s_pnln[tt, :] = s_pn[tt, :].dot(pn_ln_mat)
-        
-        # LN dynamics:
-        # LNs whose ref_cnt is equal to zero:
-        ln_ref_0 = ln_ref_cnt==0
-        v_ln[tt, ln_ref_0] = pn2ln_v_ex(v_ln[tt-1, ln_ref_0], tspan, 
-                    s_pnln[tt-1, ln_ref_0], pn_ln_params, )
-        
-        # handle spiking:
-        # LNs whose ref_cnt is different from zero:
-        ln_ref_no0 = ln_ref_cnt!=0
-        # Refractory period count down
-        ln_ref_cnt[ln_ref_no0] = ln_ref_cnt[ln_ref_no0] - 1  
-        
-        # LNs whose Voltage is above threshold AND whose ref_cnt is equal to zero:
-        ln_above_thr = (v_ln[tt, :] >= theta) & (ln_ref_cnt==0)
-        spike_ln[tt, ln_above_thr] = 1
-        ln_ref_cnt[ln_above_thr] = t_ref
-
-        # Inhibitory LN input to PNs
-        y_ln[tt, :] = ln2pn_y(y_ln[tt-1, :],tspan, spike_ln[tt, :], pn_ln_params, )
-        # summing inputs:
-        y_lnpn[tt, :] = y_ln[tt, :].dot(ln_pn_mat)
-           
-
+    # save variables for the whole simulation duration:
+    n2sim = int(pts_ms*t_tot)   + 1   # number of time points
+    t     = np.linspace(0, t_tot, n2sim) # time points
+    
+    
     # Calculate the spike matrix of PNs and LNs
-    pn_spike_matrix = np.asarray(np.where(spike_pn))
     pn_spike_matrix[0,:] = pn_spike_matrix[0,:]/pts_ms
     pn_spike_matrix = np.transpose(pn_spike_matrix)
     
-    ln_spike_matrix = np.asarray(np.where(spike_ln))
+    # ln_spike_matrix = np.asarray(np.where(spike_ln))
     ln_spike_matrix[0,:] = ln_spike_matrix[0,:]/pts_ms
     ln_spike_matrix = np.transpose(ln_spike_matrix)
     toc = tictoc()
@@ -372,7 +443,7 @@ def main(params_al_orn, spike_orn, verbose=False, corr_an=False):
     
     
     #%%  AL correlation analysis
-    if corr_an:   
+    if corr_an & (t_part>t_tot):   
         tic = tictoc()
         corr_pn = np.zeros((n_pns_tot, n_pns_tot))
         corr_vpn = np.zeros((n_pns_tot, n_pns_tot))

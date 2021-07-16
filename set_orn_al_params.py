@@ -13,6 +13,13 @@ import numpy as np
 
 def main(n_orn=2):
     
+    
+    output_params   = dict([
+                        ('fld_analysis', 'NSI_analysis/trials/'),
+                        ('analysis_name', 'lond_sim'),
+                        ])
+    
+    
     #%% Stimulus params
     stim_params     = dict([
                         ('stim_type' , 'ss'),   # 'ts'  # 'ss' # 'pl'
@@ -224,6 +231,7 @@ def main(n_orn=2):
     
     # ORNS layer SIMULATION
     params_al_orn = dict([
+                ('output_params', output_params),                
                 ('stim_params', stim_params),
                 ('orn_layer_params', orn_layer_params),
                 ('orn_params', orn_params),

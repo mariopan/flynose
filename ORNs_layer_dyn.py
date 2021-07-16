@@ -14,10 +14,13 @@ ORNs_layer_dyn.py
 """
 import numpy as np
 import timeit
+import matplotlib.pyplot as plt
 
 import NSI_ORN_LIF
+import sensillum_dyn
+import stim_fcn
 
-import matplotlib.pyplot as plt
+
 
 # *****************************************************************
 # STANDARD FIGURE PARAMS
@@ -95,8 +98,13 @@ def main(params_all_sens, verbose=False, corr_an=False):
                     ('sdf_params', sdf_params),
                     ])
         #####################################################################
-        orn_lif_out   = NSI_ORN_LIF.main(params_1sens, verbose=verbose)
-        [t, u_od, r_orn, v_orn, y_orn, 
+        # GENERATE ODOUR STIMULUS/I and UPDATE STIM PARAMS
+        u_od            = stim_fcn.main(stim_params, verbose=verbose)
+        
+        # orn_lif_out     = NSI_ORN_LIF.main(params_1sens, u_od, verbose=verbose)
+        orn_lif_out     = sensillum_dyn.main(params_1sens, u_od, verbose=verbose)
+        [t, u_od, 
+         r_orn, v_orn, y_orn, 
          n_spikes_orn_tmp, spike_matrix, orn_sdf_tmp, orn_sdf_time] = orn_lif_out 
         #####################################################################
         
@@ -105,10 +113,16 @@ def main(params_all_sens, verbose=False, corr_an=False):
         
         spike_orn[:, ids_orn] = n_spikes_orn_tmp
         orn_sdf[:, ids_orn] = orn_sdf_tmp
-        v_orn_t[:, ids_orn] = v_orn
+        if corr_an:
+            v_orn_t[:, ids_orn] = v_orn
         id_orn0 = ids_orn[-1]+1
         
     if corr_an:
+        # Check the size of the vectors 
+        if len(t) != len(r_orn):
+            print('NOTE: The simulation is run in chunks. To analyze the correlation between variables, '
+                  ' please, modify the simulation duration (t_tot) or the chunk size (t_part).')
+            return
         # ORN correlation analysis
         corr_orn = np.zeros((n_orns_tot, n_orns_tot))
         corr_vorn = np.zeros((n_orns_tot, n_orns_tot))

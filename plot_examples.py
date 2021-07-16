@@ -15,7 +15,6 @@ in a fancy diagonal way or overlapped in a single row.
 import numpy as np
 import matplotlib.pyplot as plt
 import timeit
-import pickle
 
 import ORNs_layer_dyn
 import AL_dyn
@@ -320,7 +319,7 @@ n_sens_type         = orn_layer_params.__len__()  # number of type of sensilla
 # ORN NSI params
 
 # fig_id options:  # 'ts_s' #  'ts_a' # 'pl'
-fig_id                  = 'ss_s' 
+fig_id                  = 'pl' 
 
 fld_analysis            = 'NSI_analysis/triangle_stim/'
 nsi_str                 = 0.6
@@ -368,16 +367,16 @@ elif fig_id == 'pl':
        
     # stim params
     delay                       = 0    
-    stim_params['stim_type']    = 'pl' # 'ts' # 'ss' # 'rs'# 'pl'
-    stim_params['t_tot']        = 20000 # 4500        # ms 
+    stim_params['stim_type']    = 'pl'      
+    stim_params['t_tot']        = 11000     # ms 
     t_on                        = 1000
     stim_params['conc0']        = 1.85e-4
     peaks                       = [10e-4]
+    stim_params['stim_seed']    = 22
     
     # real plumes params
     plume_params['whiff_max']   = 3
     plume_params['rho_t_exp']   = 0   #[0, 1, 3, 5]
-    plume_params['stim_seed']   = 0
     
     sdf_params['tau_sdf']       = 30
     sdf_params['dt_sdf']        = 5
@@ -387,17 +386,7 @@ elif fig_id == 'pl':
     #('g_y',  .5853575783),      # 0.3), # 
     orn_params['g_y']           = 0.58 #0.3#
     
-elif fig_id == 'ss_s':
-    # stim params
-    delay                       = 0    
-    stim_params['stim_type']    = 'ss' 
-    stim_params['stim_dur']     = np.array([500, 500])
-    stim_params['t_tot']        = 2000
-    t_on                        = 1000
-    stim_params['conc0']        = 1.85e-4    # 2.85e-4
-    
-    peaks                       = [50e-2] #[1.85e-4, 5e-4, 1.5e-3, 2e-2, 2e-1]#[0.001, 0.005] #
-    
+
 conc0           = stim_params['conc0']
 t_tot           = stim_params['t_tot']
 stim_dur        = stim_params['stim_dur'][0]

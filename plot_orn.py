@@ -50,8 +50,15 @@ def main(params_1sens, output_orn, ):
     
     # ORN layer dynamics output
     [t, u_od, r_orn, v_orn, y_orn, num_spikes, spike_matrix, 
-     orn_sdf, orn_sdf_time,]  = output_orn
+         orn_sdf, orn_sdf_time,]  = output_orn
     
+    chunked=0
+    # Check the size of the vectors 
+    if len(t) != len(r_orn):
+        print('NOTE: The simulation is run in chunks. To inspect it and plot the variables, '
+              ' please, modify the simulation duration (t_tot) or the chunk size (t_part).')
+        chunked=1
+        # return
     
     # figure params
     # stim_type       = stim_params['stim_type']    
@@ -71,8 +78,8 @@ def main(params_1sens, output_orn, ):
         transd_mat[pp,:] = sens_params['od_pref'][pp,:]
     
 
-    t2plot = -150, stim_dur+300 #-t_on, t_tot-t_on#np.min([1000-t_on, t_tot-t_on])
-    
+    t2plot = -150, stim_dur+300 ##np.min([1000-t_on, t_tot-t_on])
+    t2plot = -t_on, t_tot-t_on
     panels_id = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l']
     
     rs = 5      # number of rows
@@ -101,18 +108,17 @@ def main(params_1sens, output_orn, ):
                 X1 = v_orn
                 ax_orn[3].plot([t[0]-t_on, t[-1]-t_on], [vrest, vrest], 
                                '--', linewidth=lw, color=black,)
-                # ax_orn[3].plot([t[0]-t_on, t[-1]-t_on], [vrev, vrev], 
-                #                '-.', linewidth=lw, color=black,)
             elif rr == 4:
                 X1 = orn_sdf
                 X0 = orn_sdf_time-t_on
             mu1 = X1.mean(axis=1)
             sigma1 = X1.std(axis=1)
             
-            ax_orn[rr].plot(X0, mu1,  
+            if not(any([rr==1,rr==2,rr==3]) & (chunked==1)):
+                ax_orn[rr].plot(X0, mu1,  
                           linewidth=lw+1, color=recep_clrs[0],)
-            for nn in range(n_orns_recep):
-                ax_orn[rr].plot(X0, X1[:, nn], 
+                for nn in range(n_orns_recep):
+                    ax_orn[rr].plot(X0, X1[:, nn], 
                                 linewidth=lw-1, color=recep_clrs[0], alpha=trsp)
         
         # SETTINGS
@@ -181,12 +187,12 @@ def main(params_1sens, output_orn, ):
                     X0 = orn_sdf_time-t_on
                 mu1 = X1.mean(axis=1)
                 sigma1 = X1.std(axis=1)
-                
-                ax_orn[rr, id_neu].fill_between(X0, mu1+sigma1, mu1-sigma1, 
-                            facecolor=recep_clrs[id_neu], alpha=trsp)
-                
-                ax_orn[rr, id_neu].plot(X0, mu1,  
-                               linewidth=lw+1, color=recep_clrs[id_neu],)
+                if not(any([rr==1,rr==2,rr==3]) & (chunked==1)):
+                    ax_orn[rr, id_neu].fill_between(X0, mu1+sigma1, mu1-sigma1, 
+                                facecolor=recep_clrs[id_neu], alpha=trsp)
+                    
+                    ax_orn[rr, id_neu].plot(X0, mu1,  
+                                   linewidth=lw+1, color=recep_clrs[id_neu],)
                 # for nn in range(n_orns_recep):
                     # ax_orn[rr, id_neu].plot(X0, X1[:, nn], 
                               # linewidth=lw-1, color=recep_clrs[id_neu], alpha=trsp)

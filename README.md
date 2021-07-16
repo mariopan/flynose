@@ -19,8 +19,8 @@ Each pair of ORNs is co-housed in a same sensillum and therefore they interact v
 Python is the present programming language. It consists of three separated parts:
 
 1. stimulus generation: four kinds of stimuli can be generated (each have different id): triangular (*'ts'*), step (*'ss'*), real plumes (*'pl'*) and loaded from an external file (undefined). The function managing this part is **stim_fcn.py**. To generate the *real plumes* we used the scripts **stats_for_plumes.py** and **corr_plumes.py**.
-2. ORNs simulation. The function managing this part is **NSI_ORN_LIF.py** for a single sensillum and **ORNs_layer_dyn.py** for the dynamics of all the ORN's types. NSI_ORN_LIF receives the input from stim_fcn, and it is repeated in ORNs_layer_dyn for a number of times equal to the implemented number of receptor types. Both functions return a spike matrix and spike density function (calculated with **sdf_krofczik.py**) of the ORNs.
-3. Antennal lobe (AL) simulation. The function managing this part is **AL_dyn.py**. It receives the output from both NSI_ORN_LIF or ORNs_layer_dyn as they are homogeneous.  It returns spike matrix and spike density function (calculated with sdf_krofczik) of the PNs and LNs.
+2. ORNs simulation. The function managing this part is **sensillum_dyn.py** for a single sensillum and **ORNs_layer_dyn.py** for the dynamics of all the ORN's types. sensillum_dyn receives the input from stim_fcn, and it is repeated in ORNs_layer_dyn for a number of times equal to the implemented number of receptor types. Both functions return a spike matrix and spike density function (calculated with **sdf_krofczik.py**) of the ORNs.
+3. Antennal lobe (AL) simulation. The function managing this part is **AL_dyn.py**. It receives the output from both sensillum_dyn or ORNs_layer_dyn as they are homogeneous.  It returns spike matrix and spike density function (calculated with sdf_krofczik) of the PNs and LNs.
 
 
 
@@ -51,7 +51,7 @@ There are several scripts to analyse the model. For example, to explore the para
 
 **AL_dyn_batch.py** runs AL and ORNs layer dynamics for multiple values of peaks and inhibitory conditions. Then it loads and plots dynamics to do a plot like Olsen et al. 2010.
 
-**plot_orn.py** plots the dynamics of a single simulation from the output of NSI_ORN_LIF.py  
+**plot_orn.py** plots the dynamics of a single simulation from the output of sensillum_dyn.py  
 
 **plot_al_orn.py** plots the dynamics of a single simulation from the output of **ORNs_layer_dyn.py** and **AL_dyn.py**.
 

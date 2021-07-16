@@ -5,7 +5,7 @@ Created on Tue Feb  9 15:21:20 2021
 
 ORN_dyn_plot.py
 
-This script run NSI_ORN_LIF.py one or multiple times and saves the data 
+This script run sensillum_dyn.py one or multiple times and saves the data 
 the following figures of the NSI paper:
     fig.3 ORN dynamics of all its components (ORN_response)
     fig.3 ORN firing rates for several values of the stimulations (martelli)
@@ -22,10 +22,11 @@ from os import path
 from os import mkdir
 import matplotlib as mpl
 
-import NSI_ORN_LIF
+
+import sensillum_dyn
 import plot_orn  
 import set_orn_al_params
-
+import stim_fcn        
 
 
     
@@ -334,7 +335,12 @@ for stim_seed in range(max_stim_seed):
                         '.pickle'
             
             # RUN SIM
-            orn_lif_out = NSI_ORN_LIF.main(params_1sens, )
+        
+            # GENERATE ODOUR STIMULUS/I and UPDATE STIM PARAMS
+            u_od            = stim_fcn.main(stim_params,)
+        
+
+            orn_lif_out = sensillum_dyn.main(params_1sens, u_od, )
             [t, u_od, r_orn, v_orn, y_orn, num_spikes, orn_spike_matrix, 
                  orn_sdf, orn_sdf_time,] = orn_lif_out
             output2an = dict([
