@@ -23,7 +23,7 @@ import set_orn_al_params
 import stats_for_plumes as stats
 
 # STANDARD FIGURE PARAMS
-lw = 2
+lw = 3
 fs = 13
 plt.rc('text', usetex=True)  # laTex in the polot
 #plt.rc('font', family='serif')
@@ -62,9 +62,9 @@ def orn_al_settings(axs):
     if fig_id == 'ts_a':
         axs[0].text(-.05, 1.0, 'a', transform=axs[0].transAxes, 
             fontsize=panel_fs, fontweight='bold', va='top', ha='right')
-    elif fig_id == 'ts_s':
-        axs[0].text(-.05, 1.0, 'b', transform=axs[0].transAxes, 
-            fontsize=panel_fs, fontweight='bold', va='top', ha='right')
+    # elif fig_id == 'ts_s':
+    #     axs[0].text(-.05, 1.0, 'b', transform=axs[0].transAxes, 
+    #         fontsize=panel_fs, fontweight='bold', va='top', ha='right')
     
     # vertical/horizontal lines for time/Hz scale
     if fig_id=='ts_a':
@@ -74,7 +74,9 @@ def orn_al_settings(axs):
         # vertical line
         axs[1].plot([300, 300], [150, 250], color=black) 
         axs[1].text(260, 160, '100 Hz', color=black,rotation=90, fontsize=scale_fs)
-        
+    
+        axs[1].set_ylim((0, 370))
+        axs[2].set_ylim((0, 280))
     
     elif fig_id=='ts_s':
         # horizontal line
@@ -83,7 +85,8 @@ def orn_al_settings(axs):
         # vertical line
         axs[1].plot([200, 200], [150, 250], color=black) 
         axs[1].text(160, 160, '100 Hz', color=black,rotation=90, fontsize=scale_fs)
-
+        axs[1].set_ylim((0, 250))
+        axs[2].set_ylim((0, 250))
 
     elif fig_id=='pl':
         # horizzontal line
@@ -319,42 +322,42 @@ n_sens_type         = orn_layer_params.__len__()  # number of type of sensilla
 # ORN NSI params
 
 # fig_id options:  # 'ts_s' #  'ts_a' # 'pl'
-fig_id                  = 'pl' 
+fig_id                  = 'ts_a' 
 
 fld_analysis            = 'NSI_analysis/triangle_stim/'
 nsi_str                 = 0.6
 alpha_ln                = 0.6
-pn_ln_params['tau_ln']  = 250
+pn_ln_params['tau_ln']  = 25
 
     
 # figure and output options
-fig_save    = 0
+fig_save    = 1
 data_save   = 0    
 verbose     = 0
 olsen_fig   = 0
 
 
-n_lines     = 1
+n_lines     = 10
 
 if fig_id == 'ts_s':
     # stim params
     delay                       = 0    
     stim_params['stim_type']    = 'ts' # 'id_l'  # 'ts'
     stim_params['stim_dur']     = np.array([50, 50])
-    stim_params['t_tot']        = 1500
+    stim_params['t_tot']        = 1300
     t_on                        = 1000
-    stim_params['conc0']        = 1.85e-4    # 2.85e-4
+    stim_params['conc0']        = 1.85e-6    # 2.85e-4
     
     peaks                       = [5e-2] #[1.85e-4, 5e-4, 1.5e-3, 2e-2, 2e-1]#[0.001, 0.005] #
 
 elif fig_id == 'ts_a':
     # Stimulus params 
-    delay                       = 10
+    delay                       = 50
     stim_params['stim_type']    = 'ts' # 'id_l'  # 'ts'
     stim_params['stim_dur']     = np.array([50, 50])
     stim_params['t_tot']        = 1300+delay
     t_on                        = 1000
-    stim_params['conc0']        = 1.85e-4    # 2.85e-4
+    stim_params['conc0']        = 1.85e-6    # 2.85e-4
     sdf_params['tau_sdf']       = 20
 
     peaks                       = [5e-2] #[1.85e-4, 5e-4, 1.5e-3, 2e-2, 2e-1]#[0.001, 0.005] #
@@ -451,7 +454,7 @@ for id_p, peak in enumerate(peaks):
         t2plot = -50, stim_params['t_tot']-t_on
         rs = 1 # number of rows
         cs = 3 # number of cols
-        fig_pn, axs = plt.subplots(rs, cs, figsize=[9, 3])
+        fig_pn, axs = plt.subplots(rs, cs, figsize=[9, 2.8])
         orn_al_settings(axs)
         
     # simulations and append to figure         
@@ -568,7 +571,7 @@ for id_p, peak in enumerate(peaks):
 
     if fig_save:
         print('saving figure in '+fld_analysis)
-        fig_pn.savefig(fld_analysis + '/'+ fig_name + '.png')
+        fig_pn.savefig(fld_analysis + fig_name + '.png')
 
        
 print('PN avg S:')

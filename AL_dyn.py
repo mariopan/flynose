@@ -172,10 +172,10 @@ def main(params_al_orn, spike_orn, verbose=False, corr_an=False):
     dt_sdf              = sdf_params['dt_sdf']
     tau_sdf             = sdf_params['tau_sdf']
     
-    n2sim               = int(pts_ms*t_tot) + 1    # number of time points
+    n2sim               = int(pts_ms*t_tot)    # number of time points
     sdf_size            = int(t_tot/dt_sdf)
     
-    t                   = np.linspace(0, t_tot, n2sim) # time points
+    # t                   = np.linspace(0, t_tot, n2sim) # time points
     
     n_pns_recep         = al_params['n_pns_recep']     # number of PNs per each glomerulus
     n_lns_recep         = al_params['n_lns_recep']     # number of LNs per each glomerulus
@@ -271,10 +271,10 @@ def main(params_al_orn, spike_orn, verbose=False, corr_an=False):
     for id_rep in range(n_rep):
         
         if (extra_time>0) &  (id_rep == (n_rep-1)):
-            n2sim = int(pts_ms*extra_time)   + 1   # number of time points
+            n2sim = int(pts_ms*extra_time)      # number of time points
             t     = np.linspace(0, extra_time, n2sim) # time points
         else:
-            n2sim = int(pts_ms*t_part)   + 1   # number of time points
+            n2sim = int(pts_ms*t_part)      # number of time points
             t     = np.linspace(0, t_part, n2sim) # time points
             
              
@@ -403,7 +403,7 @@ def main(params_al_orn, spike_orn, verbose=False, corr_an=False):
         tt_rep  += tt           
 
     # save variables for the whole simulation duration:
-    n2sim = int(pts_ms*t_tot)   + 1   # number of time points
+    n2sim = int(pts_ms*t_tot)     # number of time points
     t     = np.linspace(0, t_tot, n2sim) # time points
     
     

@@ -27,21 +27,22 @@ now = datetime.datetime.now()
 n_loops         =  10    # Used for ratio: 10
 
 # nsi_ln_par      = [[0,0], [.6, 0], [0, .6], ]
-nsi_ln_par   = [[0,0],[.4, 0],[0, .4],[.2, 0],[0, .2],]
+nsi_ln_par   = [[0, 0], [.6, 0], [.6, .2], [.6, .4],[.6, .6],
+                [0, .6], [.2, .6], [.4, .6], ]
 
-if sys.argv == ['']:
-    id_inh2run      = 0 # jobs run only starting from 1 ...
-    analysis_name   =  'delays' # 'ratio' #
-else:
-    id_inh2run      = int(sys.argv[1])-1 # jobs run only starting from 1 ...
-    analysis_name   = sys.argv[2]
+# if sys.argv == ['']:
+#     id_inh2run      = 0 # jobs run only starting from 1 ...
+#     analysis_name   = 'ratio' # 'delays' # 
+# else:
+#     id_inh2run      = int(sys.argv[1])-1 # jobs run only starting from 1 ...
+#     analysis_name   = sys.argv[2]
 
        
-
+analysis_name   = 'ratio'
 
 if analysis_name == 'ratio':
     print('ratio simulations')
-    n_ratios        = 8 # 45
+    n_ratios        = 45
     conc_ratios     = np.linspace(1, 20, n_ratios)
     delays2an       = [0, ]
     
@@ -79,7 +80,7 @@ print('Estimated Sims end data-time:')
 print(endsim)
 
 #%%  LOAD Standard NET PARAMS FROM A FILE
-params_al_orn = set_orn_al_params.main(2)
+params_al_orn = set_orn_al_params.main(2,2)
 
 stim_params         = params_al_orn['stim_params']
 orn_layer_params    = params_al_orn['orn_layer_params']

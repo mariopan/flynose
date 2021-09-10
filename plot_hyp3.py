@@ -91,27 +91,27 @@ axs.plot([x_thr_10_nsi, x_thr_10_nsi], [0, y_max], '--', lw=lw-3, color='grey', 
 axs.plot([x_thr_90_nsi, x_thr_90_nsi], [0, y_max], '--', lw=lw-3, color='grey', )
 
 
-axs.plot(nu_orn, nu_pn, label='w/o NSI', color= 'pink',lw=lw)
-axs.plot(nu_orn, nu_pn2, color= 'cyan', label='with NSI', lw=lw)
+axs.plot(nu_orn, nu_pn, label='w/o NSI', color= pink,lw=lw)
+axs.plot(nu_orn, nu_pn2, color= cyan, label='with NSI', lw=lw)
 
-axs.errorbar(x_thr_10_ctrl, thr_10_ctrl,  fmt='o', markersize= msz, color='pink', mfc= 'white', mew= thin)
-axs.errorbar(x_thr_90_ctrl, thr_90_ctrl,  fmt='o', markersize= msz, color='pink', mfc= 'white', mew= thin)
+axs.errorbar(x_thr_10_ctrl, thr_10_ctrl,  fmt='o', markersize= msz, color=pink, mfc= 'white', mew= thin)
+axs.errorbar(x_thr_90_ctrl, thr_90_ctrl,  fmt='o', markersize= msz, color=pink, mfc= 'white', mew= thin)
 
-axs.plot([x_thr_10_ctrl+2, x_thr_90_ctrl-2], [70, 70], lw=lw, color='pink', )
+axs.plot([x_thr_10_ctrl+2, x_thr_90_ctrl-2], [70, 70], lw=lw, color=pink, )
 axs.arrow(x_thr_90_ctrl, 70, 2, 0, shape='full', lw=0, 
-          length_includes_head=True, head_width=arrow_size, color='pink')
+          length_includes_head=True, head_width=arrow_size, color=pink)
 axs.arrow(x_thr_10_ctrl, 70, -2, 0, shape='full', lw=0, 
-          length_includes_head=True, head_width=arrow_size, color='pink')
+          length_includes_head=True, head_width=arrow_size, color=pink)
 
 
-axs.errorbar(x_thr_10_nsi, thr_10_nsi,  fmt='o', markersize= msz, color='cyan', mfc= 'white', mew= thin)
-axs.errorbar(x_thr_90_nsi, thr_90_nsi,  fmt='o', markersize= msz, color='cyan', mfc= 'white', mew= thin)
+axs.errorbar(x_thr_10_nsi, thr_10_nsi,  fmt='o', markersize= msz, color=cyan, mfc= 'white', mew= thin)
+axs.errorbar(x_thr_90_nsi, thr_90_nsi,  fmt='o', markersize= msz, color=cyan, mfc= 'white', mew= thin)
 
-axs.plot([x_thr_10_nsi+2, x_thr_90_nsi-2], [50, 50], lw=lw, color='cyan', )
+axs.plot([x_thr_10_nsi+2, x_thr_90_nsi-2], [50, 50], lw=lw, color=cyan, )
 axs.arrow(x_thr_90_nsi, 50, 2, 0, shape='full', lw=0, 
-          length_includes_head=True, head_width=arrow_size, color='cyan')
+          length_includes_head=True, head_width=arrow_size, color=cyan)
 axs.arrow(x_thr_10_nsi*.98, 50, -2, 0, shape='full', lw=0, 
-          length_includes_head=True, head_width=arrow_size, color='cyan')
+          length_includes_head=True, head_width=arrow_size, color=cyan)
 
 # axs.text(x_thr_10_ctrl*5, thr_10_ctrl, '10\% ', fontsize=label_fs)
 # axs.text(x_thr_90_ctrl*1.2, thr_90_ctrl*.9, '90\% ', fontsize=label_fs)
@@ -127,8 +127,8 @@ axs.text(25, 180,'ctrl', fontsize= label_fs, color=pink)
 axs.text(100,130,'NSI', fontsize= label_fs, color=cyan)
 
 
-axs.set_ylabel(r'ORN Firing rates (au)', fontweight='bold',fontsize=label_fs)
-axs.set_xlabel(r'Odor concentration (au)', fontweight='bold',fontsize=label_fs)
+axs.set_ylabel(r'ORN response (Hz)', fontweight='bold',fontsize=label_fs)
+axs.set_xlabel(r'odor concentration (a.u.)', fontweight='bold',fontsize=label_fs)
         
 
 axs.set_ylim((0, y_max))
@@ -137,10 +137,9 @@ dx = 0.05
 ll, bb, ww, hh = axs.get_position().bounds
 axs.set_position([ll+dx, bb+dy, ww, hh])
    
-axs.text(-.1, 1.05, 'e.', transform=axs.transAxes, #color=blue,
-   fontsize=label_fs, fontweight='bold', va='top', ha='right')      
+# axs.text(-.1, 1.05, 'd', transform=axs.transAxes, #color=blue,
+#    fontsize=label_fs, fontweight='bold', va='top', ha='right')      
 plt.show()
-
 
 
 if fig_save:

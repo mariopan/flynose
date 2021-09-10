@@ -11,16 +11,12 @@ test_AL_dyn.py
 import numpy as np
 import matplotlib.pyplot as plt
 import timeit
-from scipy import signal
 import pickle
 
-import sdf_krofczik
 import stim_fcn
 import plot_orn
 import plot_al_orn
 import set_orn_al_params
-import plot_hist_isi
-
 
 import sensillum_dyn
 import AL_dyn

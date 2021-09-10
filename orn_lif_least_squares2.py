@@ -48,13 +48,13 @@ import matplotlib as mpl
 # import the two models of ORN
 import ORN_LIF 
 import ORN_depalo
+import set_orn_al_params
+import sensillum_dyn
+import stim_fcn_oop
 
 # DEFINE FUNCTIONS
-def tictoc(*args):
+def tictoc():
     toc = timeit.default_timer()
-    if len(args)>0:
-        toc = toc - args[0] 
-        print(toc)        
     return toc
 
 def orn_depalo0(params2fit, *args):    
@@ -169,6 +169,115 @@ def orn_lif0(params2fit, *args):
     return [t_sdf-stim_params['t_on'], orn_sdf]
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def orn_lif1(params2fit, *args):    
+    t_tot   = args[0] # 1000 # approximately t[-1]-t[0]
+    t_on    = args[1] #  170   # approximately -t[0]+50 # added 50ms delay to reach the antenna
+    conc    = args[2]
+    
+    
+    # FITTING PARAMS
+    n = 0.85
+    [k_u, k_a, k_d, k_b , vrest,] =  params2fit
+    # k_a, k_d, k_b =      [2.283, .2125, 7.35,]
+    [g_y, g_r, alpha_y, beta_y, ] = [0.7727, 0.847, 0.5735, .00387,]
+    [tau_v,] = [10, ]
+    [conc0, tau_sdf,] = [1.85e-5, 40]
+    
+    params_al_orn = set_orn_al_params.main(n_orn=1, n_od=1)
+
+    stim_params         = params_al_orn['stim_params']
+    orn_layer_params    = params_al_orn['orn_layer_params']
+    sens_params         = orn_layer_params[0]
+    orn_params          = params_al_orn['orn_params']
+    sdf_params          = params_al_orn['sdf_params']
+    
+    # analysis params
+    sdf_params['tau_sdf'] = tau_sdf
+    sdf_params['dt_sdf']  = 5
+    
+    # Stimulus PARAMETERS     
+    stim_params['stim_type'] = 'ss'   # 'ts'  # 'ss' # 'pl'
+    stim_params['pts_ms'] = 1         # simulated pts per ms 
+    stim_params['t_tot'] = t_tot        # ms 
+    stim_params['t_on'] = np.array([t_on])          # ms
+    stim_params['stim_dur'] = np.array([500])
+    stim_params['concs'] = np.array([conc])
+    stim_params['conc0'] = conc0
+    
+    stim_params['od_noise'] = 0  # 2
+    stim_params['od_filter_frq'] = 0.002
+    stim_params['r_noise'] = 0#.50 #),       # .5
+    stim_params['r_filter_frq'] = 0.002
+    
+    sens_params['n_orns_recep'] = 1
+    
+    # ORN PARAMETERS 
+    sens_params['transd_params'][0]['n'] = np.array([n])
+    sens_params['transd_params'][0]['k_u'] = np.array([k_u])
+    sens_params['transd_params'][0]['k_a']= np.array([k_a])
+    sens_params['transd_params'][0]['k_b']= np.array([k_b])
+    sens_params['transd_params'][0]['k_d']= np.array([k_d])
+
+    
+    # sens_params['transd_params'][0]['alpha_r'] = alpha_r
+    # sens_params['transd_params'][0]['beta_r'] =  beta_r
+        # LIF params
+    orn_params['t_ref'] =  2*stim_params['pts_ms'] # ms; refractory period 
+    orn_params['theta'] =  -30           # [mV] firing threshold
+    orn_params['tau_v'] =  tau_v        # [ms]
+    orn_params['vrest'] =  -vrest       # [mV] resting potential
+    orn_params['vrev']  = 0              # [mV] reversal potential
+                        # ('v_k', vrest),
+    orn_params['g_y'] =  g_y 
+    orn_params['g_r'] =  g_r  
+        # Adaptation params
+    orn_params['alpha_y'] =  alpha_y
+    orn_params['beta_y'] =  beta_y
+    
+    stim_params['t_tot']        = 1600            # [ms]
+    params_1sens   = dict([
+                    ('stim_params', stim_params),
+                    ('sens_params', sens_params),
+                    ('orn_params', orn_params),
+                    ('sdf_params', sdf_params),
+                    ])
+              
+    # GENERATE ODOUR STIMULUS/I and UPDATE STIM PARAMS
+    plume           = stim_fcn_oop.main(stim_params, verbose=False)
+    u_od            = plume.u_od
+    
+    # ORN simulation
+    orn_out = sensillum_dyn.main(params_1sens, u_od) #.main(orn_params, stim_params, sdf_params)
+    t_sdf = orn_out['orn_sdf_time']
+    orn_sdf = orn_out['orn_sdf']
+    
+                                                      
+    # orn_out = ORN_LIF.main(orn_params, stim_params, sdf_params)
+    # [t, u_od, r_orn, v_orn, y_orn, num_spikes, spike_matrix, orn_sdf,
+     # t_sdf]  = orn_out
+    
+    if np.any(orn_sdf)==np.nan:
+        print('error')
+    return [t_sdf-stim_params['t_on'], orn_sdf]
+
+
 def ethyl_data(conc2fit, ):
     # load observe ORN data and return into t and freq
     data_fld = 'ab3A_ethyl_acetate/'
@@ -196,23 +305,28 @@ def leastsq_orn(params, *args):
     t_on    = args[4] #  170   # approximately -t[0]+50 # added 50ms delay to reach the antenna
     concs   = args[5:]
 
+    nu_obs_norm= np.empty_like(nu_obs)
     nu_sim  = np.empty_like(nu_obs)
     args0 = [t_tot, t_on, np.nan]
     for id_c, cc in enumerate(concs):
         args0[2] = cc
         [t_orn, nu_orn] = orn_func(params, *args0)
         
-        nu_sim_fcn = interp1d(t_orn, nu_orn)
+        nu_sim_fcn = interp1d(t_orn, nu_orn[:,0])
         nu_sim_spl = nu_sim_fcn(t_fit)
         
         ss = id_c*n_tpts
         ee = (id_c+1)*n_tpts
-        nu_sim[ss:ee] = nu_sim_spl
+        max_obs = np.max(nu_obs[ss:ee])
+        nu_sim[ss:ee] = nu_sim_spl/max_obs
+        nu_obs_norm[ss:ee] = nu_obs[ss:ee]/max_obs
+        
     
     if any(np.isinf(nu_sim)):
         print('NAN OR INF IN THE SIMULATION!')
         nu_sim  = np.zeros_like(nu_obs)
-    dy = nu_obs-nu_sim
+        
+    dy = nu_obs_norm-nu_sim
     return dy 
 
 
@@ -265,13 +379,15 @@ def plot_obs_data(ax, nu_obs_all):
     return ax
 
 
-def figure_fit(params2an, ax, nu_obs_all):
+def figure_fit(params2an, fig, ax, nu_obs_all):
     args0 = [t_tot, t_on, np.nan]
     n_clr = n_cs+2
     c = np.arange(1, n_clr )
     norm = mpl.colors.Normalize(vmin=c.min(), vmax=c.max())
     greenmap = mpl.cm.ScalarMappable(norm=norm, cmap=mpl.cm.Greens)
    
+    obs_mean = np.zeros(n_cs)
+    sim_mean = np.zeros(n_cs)
     # generate and plot 'real' and fit curves:
     for cc_ob, cc_sim, idc in zip(concs_obs, concs_sim, range(n_cs)):
         
@@ -283,9 +399,11 @@ def figure_fit(params2an, ax, nu_obs_all):
         args0[2] = cc_sim
         [t_orn, nu_orn] = orn_func(params2an, *args0)
         
+        obs_mean[idc] = np.mean(y_true[(t_fit_obs>0)&(t_fit_obs<500)])
         # interpolate simulated activity values
-        nu_sim_fcn = interp1d(t_orn, nu_orn)
+        nu_sim_fcn = interp1d(t_orn, nu_orn[:,0])
         y_fit = nu_sim_fcn(t_fit)
+        sim_mean[idc] = np.mean(nu_orn[(t_orn>0)&(t_orn<500)])
         
         # PLOT
         clr = greenmap.to_rgba(n_clr-idc)
@@ -296,16 +414,32 @@ def figure_fit(params2an, ax, nu_obs_all):
     ax.plot([500, 500], [0, 300], 'k--', linewidth=2)
     ax.set_xlabel("t")
     ax.set_ylabel("y")
-    ax.legend()
+    # ax.legend()
+    
+    # These are in unitless percentages of the figure size. (0,0 is bottom left)
+    left, bottom, width, height = [0.5, 0.5, 0.35, 0.35]
+    ax2 = fig.add_axes([left, bottom, width, height])
+    ax2.plot(concs_sim, obs_mean, 'ko')
+    ax2.plot(concs_sim, sim_mean, 'b*')
+    ax2.set_xscale('log')
 
     return ax
+
+
+
+def sumsqr(z, *args):
+    tmp = leastsq_orn(z,*args)
+    ssqr = np.sum(tmp**2)
+    return ssqr
+
+
 
 # INITIALIZE PARAMETERS
 
 # figure and data params
 plt.ioff()      # ioff() # to avoid showing the plot every time   
 
-fld_analysis    = 'fit_ORN/new_fit/' 
+fld_analysis    = 'fit_ORN/trnsd_3states/' 
 fig_name        = 'ORN_fit_'
 data_name       = 'ORN_params_fit_'
 
@@ -341,8 +475,7 @@ if orn_model == 'dp':
     params2fit      = np.array([.5, .9, .09, 
                         1, 3.3, 250,
                         .25, .002, .2, .0028, 1, 1, 1e-5])
-
-elif orn_model == 'lif':
+elif orn_model == 'lif0':
     orn_func        = orn_lif0 
     
     
@@ -351,37 +484,131 @@ elif orn_model == 'lif':
     #  g_y, g_r, alpha_y, beta_y, 
     #  conc0, tau_sdf, ] =  params2fit
     
-    params2fit = [.82, 12.62, 0.076,  
+    params2fit = [.82, 12.62, 0.076, 
                   2.26, 33, 
                   5.8e-1, 0.86, 0.45, 3.4e-3,  
-                  1.85e-4, 41,]    
+                  1.85e-4, 41,]   
+    
+elif orn_model == 'lif':
+    orn_func        = orn_lif1#orn_lif0 
+    
+    
+    # [n, k_u, k_a, k_d, k_b, 
+    #  tau_v, -vrest, 
+    #  g_y, g_r, alpha_y, beta_y, 
+    #  conc0, tau_sdf, ] =  params2fit
+  #    [8.15989379e-01 4.60422791e-01 2.27448192e+00 2.12178680e-01
+  # 7.35261395e+00 2.02940770e+00 3.17934194e+01 7.63006143e-01
+  # 8.12710745e-01 5.40674387e-01 3.90026746e-03 1.72727257e-04
+  # 4.14209487e+01]
+    
+    # params2fit = [np.array([.8134]), np.array([.493]), np.array([2.283]),   
+                  # np.array([.2125]), np.array([7.35]),]
+    params2fit = [.493, 2.283, .2125, 7.35,]
+                  # .8134 = n 
+                  #0.7727, 0.847, 0.5735, .00387,  #  g_y, g_r, alpha_y, beta_y,
+                  
+                  # [10, 31.8,] =#  tau_v, -vrest, 
+                  # .000172, 41.4,]   #  conc0, tau_sdf, ] 
+    # params_al_orn = set_orn_al_params.main(n_orn=1, n_od=1)
+
+    # stim_params         = params_al_orn['stim_params']
+    # orn_layer_params    = params_al_orn['orn_layer_params']
+    # sens_params         = orn_layer_params[0]
+    # orn_params          = params_al_orn['orn_params']
+    # sdf_params          = params_al_orn['sdf_params']
+
 
 
 file_names = ['ethyl_ab3A_10.csv', 'ethyl_ab3A_17.csv', 'ethyl_ab3A_20.csv', 
                   'ethyl_ab3A_22.csv', 'ethyl_ab3A_27.csv', 'ethyl_ab3A_30.csv',
                   'ethyl_ab3A_35.csv', 'ethyl_ab3A_40.csv', 'ethyl_ab3A_80.csv',]
     
-concs_obs       = np.array([10, 20,30, ]) # 40,80list of concentrations to list
+concs_obs       = np.array([10, 20, 30, 35,40,]) # 40,80list of concentrations to list
 concs_sim       =  10**-np.array(concs_obs/10) # list of concentrations to list
 n_cs            = len(concs_obs)
 
 
 
 nu_obs_all      = select_nu_obs()
-fig, axs = plt.subplots(1,1)
-plot_obs_data(axs, nu_obs_all)
+# fig, axs = plt.subplots(1,1)
+# plot_obs_data(axs, nu_obs_all)
+# plt.show()
+# routine to check the single functions
+# args_fit        = list([n_tpts, nu_obs_all, t_fit, t_tot, t_on, ])
+args_fit        = tuple([n_tpts, nu_obs_all, t_fit, t_tot, t_on, ])
+args_fit        = np.concatenate((args_fit, concs_sim))
+
+
+#%% extract observed ORN and simulate with standard params
+
+# Trying to fit by eye the system, I obtained these params:
+# params2fit    = [.8134, .493, 2.283, .2125, 7.35,10, 31.8, ] #  by eye
+# params2fit    = [n,   k_u,  k_a,  k_d,   k_b, tau_v, vrest,] 
+
+# I used optimize.brute and obtained with this params 
+# params2fit    = [n,   k_u,  k_a,  k_d,   k_b, tau_v, vrest,] and init conds:
+# rranges = ((0.6, 1), (0.2, .6), (0.6, 4), (0.05, .6), (0.5, 10), 
+           # (1, 20), (5, 50))
+# the following fit:
+# resbrute[0] = 
+# array([ 0.87783177,  0.25725624,  0.81804325,  0.0669001 ,  5.49429384,
+#        14.5491569 , 31.9031505 ])
+
+
+
+# ku = .5
+# kbu = 65 # 7.5/.5
+# kad = 20   #2.83/.2125
+# kd = .1 #.2125
+# params2fit      = [1, ku, kad*kd, kd, kbu*ku, 10.95, 31.9, ] #  adjusted from by eye
+# params2fit    = [.75, .25, 0.82, 0.068, 5.55, 10.95, 31.9] # adjusted from resbrute
+# params2fit    = [n,   k_u,  k_a,  k_d,   k_b, tau_v, vrest,] 
+
+# Let's try reducing the number of params to just the ks:
+# params2fit = [k_u,  k_a,  k_d,   k_b, ]
+params2fit   = [.25, 0.82, 0.068, 5.55, ]
+
+params2fit   =[ 1.26576395,  2.11109253,  0.04711836,  4.69351684, 32.13305795]# [ 0.1,  0.61,  0.18, 10.16, 31.5]
+
+fig = plt.figure()
+ax = fig.subplots(1, 1,)
+figure_fit(params2fit,fig, ax, nu_obs_all)
 plt.show()
 
-#%% extract observed ORN and simulate with standard params.01*
-# fig = plt.figure()
-# ax = fig.subplots(1, 1,)
-# figure_fit(params2fit, ax, nu_obs_all)
-# plt.show()
+print(sumsqr(params2fit, *args_fit))
 
 
-# routine to check the single functions
-args_fit        = list([n_tpts, nu_obs_all, t_fit, t_tot, t_on, ])
-args_fit        = np.concatenate((args_fit, concs_sim))
+
+
+#%% **************************************************************************
+# brute force exploration of the parameters
+
+from scipy import optimize
+# leastsq_orn(params2fit, *args_fit)
+#  params2fit = [.8134, .493, 2.283,   
+                  # .2125, 7.35,]
+
+
+rranges = ((0.4, 4), (0.6, 4), (0.05, .6), (0.5, 15), (25, 35), )
+
+tic = tictoc()
+resbrute = optimize.brute(sumsqr, rranges, Ns=5, args=args_fit, full_output=True,
+                          finish=optimize.fmin)
+# WARNING: To use optimize.brute I changed optimize.py at line 462
+
+toc = tictoc()
+print(toc-tic)
+
+#%%
+fig = plt.figure()
+ax = fig.subplots(1, 1,)
+figure_fit(resbrute[0], fig, ax, nu_obs_all)
+plt.show()
+
+resbrute[0]
+resbrute[1]
+
 
 dnu = leastsq_orn(params2fit, *args_fit)
 cost_est = 0.5 * np.sum(dnu**2)
@@ -390,23 +617,23 @@ print('estimated cost: %.2f'%cost_est)
 
 
 
+
 #%% **************************************************************************
 # FIT OBSERVED DATA TO SIMULATIONS
 tic_tot = tictoc()
 
-diff_step       = 1e-4
 
 # LOWER BOUNDS
 lb              = np.zeros_like(params2fit)
-lb[-1]          = 20
+# lb[-1]          = 20
 
 # UPPER BOUNDS
 if orn_model=='lif':
     ub          = np.ones_like(params2fit)*50
 elif orn_model=='dp':
     ub          = np.ones_like(params2fit)*300
-ub[0]           = 1       # upper bounds for n, transduction params
-ub[-1]          = 150
+# ub[0]           = 1       # upper bounds for n, transduction params
+# ub[-1]          = 150
 
 # Run the fit until cost is very low or for a max of max_nn times
 max_nn = 250
@@ -415,44 +642,64 @@ nn = 0
 cost_goal = cost_est/500
 print('cost goal: %d'%cost_goal)
 
-
+#%%
 while bad_fit: 
 
+    #%% params2fit = resbrute[0]
+    diff_step       = 1e-5
     params_0 = ub
     # check that the starting params are all w/in the bounds
     new_try = 0
     while ~np.all((params_0>lb) & (params_0<ub)):
         new_try += 1
-        params_0 = params2fit*(1+.2*np.random.randn(len(params2fit)))
+        var_par = .01*np.random.randn(len(params2fit))
+        params_0 = params2fit*(1+var_par)
         
     # print('trial #: %d, params 0:'%nn)
-    # print(params_0)
+    print('var params:')
+    print(var_par)
+    print('params 0:')
+    print(params_0)
     # print('Perc Diff params 0-params_good:')
     # print(100*(params_0-params2fit)/params2fit)
-        
-    # linear diff fit
+    fig = plt.figure()
+    ax = fig.subplots(2, 1,)
+    figure_fit(params_0, fig, ax[0], nu_obs_all)
+    ax[0].set_title('start params')
+    plt.show()
+    
+    # fit
     tic = tictoc()
-    res_lsq = least_squares(leastsq_orn, params_0, #method='lm',
-                            bounds=(lb, ub), 
-                            loss='soft_l1', f_scale=0.1, 
-                            diff_step=diff_step,# loss='cauchy', # tr_solver='lsmr', 
-                            gtol=None, #xtol=None, ftol=None, 
+    res_lsq = least_squares(leastsq_orn, params_0, 
+                            # bounds=(lb, ub), 
+                            # method='lm',
+                            loss='soft_l1', f_scale=.1, # very good, if you start not bad!
+                            # loss='cauchy', f_scale=0.001, 
+                            # loss='soft_l1', # f_scale=0.1, # typical, used, not bad
+                            #diff_step=diff_step,# loss='cauchy', # tr_solver='lsmr', 
+                            #gtol=None, #xtol=None, ftol=None, 
                             args=args_fit)
     
     toc = tictoc()
-    print('linear diff fit time: %.1f s'%(toc-tic))
     params_lsq = res_lsq.x
     cost = res_lsq.cost
-    print('exit status: %d, cost: %f'%(res_lsq.status, cost))
     print('params fit:')
     print(params_lsq)
+    print('var params0 vs paramf fit:')
+    print((params_0-params_lsq)/params_0)
+    
+    print('exit status: %d, cost: %f'%(res_lsq.status, cost))
+    
+    
+    print('linear diff fit time: %.1f s'%(toc-tic))
     print('')
     
-    fig = plt.figure()
-    ax = fig.subplots(1, 1,)
-    figure_fit(params_lsq, ax, nu_obs_all)
-    ax.set_title('fit linear diff')
-
+    
+    figure_fit(params_lsq, fig, ax[1], nu_obs_all)
+    ax[1].set_title('fit params')
+    plt.show()
+    
+#%%
     # SAVE FIGURE AND DATA
     fig.savefig(fld_analysis + fig_name + str(nn) +'.png')
     plt.close()

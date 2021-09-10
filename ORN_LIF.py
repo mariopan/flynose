@@ -212,6 +212,11 @@ def main(orn_params, stim_params, sdf_params):
     t_sdf = np.linspace(0, dt_sdf*sdf_size, sdf_size)
     orn_sdf = np.zeros_like(t_sdf)
     
+    
+    
+    orn_sdf         = np.zeros((sdf_size, 1))
+    
+    
     if ~(np.sum(spike_matrix) == 0):
         orn_sdf, t_sdf = sdf_krofczik.main(spike_matrix, sdf_size,
                                                 tau_sdf, dt_sdf)  # (Hz, ms)

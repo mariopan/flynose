@@ -83,6 +83,8 @@ def main(params_al_orn, output_orn_layer, output_al):
     n_orns_recep = al_params['n_orns_recep']
     n_lns_recep = al_params['n_lns_recep']
     n_pns_recep = al_params['n_pns_recep']
+    n_od        = len(stim_params['t_on'])
+    
     recep_id = 0
     for qq in range(n_sens_type):
         num_recep = n_recep_list[qq]
@@ -94,12 +96,14 @@ def main(params_al_orn, output_orn_layer, output_al):
         ax_ln = plt.subplot(rs, cs, 4)
         
         
-        ax_conc.plot(t-t_on, 100*u_od[:,1], color=purple, linewidth=lw, 
-                          label='glom : '+'%d'%(2),  )
-        
-        ax_conc.plot(t-t_on, 100*u_od[:,0],'--', color=green, linewidth=lw,
+        if n_od == 1:
+            ax_conc.plot(t-t_on, 100*u_od, color=purple, linewidth=lw, )
+        elif n_od == 2:
+            ax_conc.plot(t-t_on, 100*u_od[:,0],'--', color=green, linewidth=lw,
                            label='glom : '+'%d'%(1), )
-        
+            ax_conc.plot(t-t_on, 100*u_od[:,1], color=purple, linewidth=lw, 
+                          label='glom : '+'%d'%(2),  )
+            
         for rr in range(num_recep):
             X1 = orn_sdf[:, recep_id*n_orns_recep:((recep_id+1)*n_orns_recep)] # np.mean(orn_sdf_norm[:,:,num_orns_glo:], axis=2)
             mu1 = X1.mean(axis=1)

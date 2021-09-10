@@ -49,8 +49,15 @@ def main(params_1sens, output_orn, ):
     #sdf_params     = params_al_orn['sdf_params']
     
     # ORN layer dynamics output
-    [t, u_od, r_orn, v_orn, y_orn, num_spikes, spike_matrix, 
-         orn_sdf, orn_sdf_time,]  = output_orn
+    # [t, u_od, r_orn, v_orn, y_orn, spikes_orn, spike_matrix, 
+    #      orn_sdf, orn_sdf_time,]  = output_orn
+    tmp_ks = ['t', 'u_od', 'r_orn', 'v_orn', 'y_orn', 'spikes_orn', 'spike_matrix', 
+         'orn_sdf', 'orn_sdf_time',]
+    
+    [t, u_od, r_orn, v_orn, y_orn, spikes_orn, spike_matrix, 
+         orn_sdf, orn_sdf_time,] = [output_orn[x] for x in tmp_ks] 
+    
+    
     
     chunked=0
     # Check the size of the vectors 
@@ -73,9 +80,9 @@ def main(params_1sens, output_orn, ):
     n_orns_recep= sens_params['n_orns_recep']
     
     # Create Transduction Matrix to plot odour 
-    transd_mat = np.zeros((n_neu, n_od))
-    for pp in range(n_neu):
-        transd_mat[pp,:] = sens_params['od_pref'][pp,:]
+    # transd_mat = np.zeros((n_neu, n_od))
+    # for pp in range(n_neu):
+        # transd_mat[pp,:] = sens_params['od_pref'][pp,:]
     
 
     t2plot = -150, stim_dur+300 ##np.min([1000-t_on, t_tot-t_on])
@@ -91,11 +98,15 @@ def main(params_1sens, output_orn, ):
     
         
     if n_neu == 1:
-        weight_od = u_od*transd_mat[0,:]
+        # weight_od = u_od#*transd_mat[0,:]
         
         # PLOT
-        # ax_orn[0].plot(t-t_on, weight_od, linewidth=lw+1, )
-        ax_orn[0].plot(t-t_on, weight_od[:,0], linewidth=lw+1, )
+        if n_od == 1:
+            ax_orn[0].plot(t-t_on, u_od, color='green', linewidth=lw+1, )
+        elif n_od == 2:
+            ax_orn[0].plot(t-t_on, u_od[:,0], color='green', linewidth=lw+1, )
+            ax_orn[0].plot(t-t_on, u_od[:,1], color='purple', linewidth=lw+1, )
+            
         for rr in range(1, rs):
             X0 = t-t_on
             trsp = .3
@@ -130,9 +141,9 @@ def main(params_1sens, output_orn, ):
             ax_orn[rr].spines['top'].set_color('none')
             ax_orn[rr].set_xlim((t2plot))
                  
-        ax_orn[0].set_yticklabels([], fontsize=label_fs)
-        ax_orn[1].set_yticklabels([], fontsize=label_fs)
-        ax_orn[2].set_yticklabels([], fontsize=label_fs)
+        # ax_orn[0].set_yticklabels([], fontsize=label_fs)
+        # ax_orn[1].set_yticklabels([], fontsize=label_fs)
+        # ax_orn[2].set_yticklabels([], fontsize=label_fs)
         ax_orn[0].set_ylabel('Input (a.u.)', fontsize=label_fs)
         ax_orn[1].set_ylabel(r'r (a.u.) ', fontsize=label_fs, )
         ax_orn[2].set_ylabel(r'y adapt (a.u.)', fontsize=label_fs, )
@@ -164,9 +175,14 @@ def main(params_1sens, output_orn, ):
         for id_neu in range(n_neu):
                       
             # PLOT    
-            weight_od = u_od*transd_mat[id_neu,:]
-            ax_orn[0, id_neu].plot(t-t_on, weight_od, linewidth=lw+1, 
-                                   color=black,) 
+            if n_od == 1:
+                ax_orn[0, 0].plot(t-t_on, u_od, color=green, linewidth=lw+1, )
+            elif n_od == 2:
+                ax_orn[0, 0].plot(t-t_on, u_od[:,0], color=green, linewidth=lw+1, )
+                ax_orn[0, 0].plot(t-t_on, u_od[:,1], color=purple, linewidth=lw+1, )
+            
+            # weight_od = u_od#*transd_mat[id_neu,:]
+            # ax_orn[0, id_neu].plot(t-t_on, u_od, linewidth=lw+1) 
             
             for rr in range(1, rs):
                 X0 = t-t_on

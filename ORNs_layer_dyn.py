@@ -5,7 +5,8 @@ Created on Tue Feb 16 17:00:32 2021
 
 The dynamics of all the sensilla in the ORNs layer 
 
-Simulation of all the sensilla in the ORNs layer. Essentially a loop over 
+Simulation of all the sensilla in the ORNs layer. 
+Once the Essentially a loop over 
 sensillum_dyn.py
 
 ORNs_layer_dyn.py
@@ -13,57 +14,32 @@ ORNs_layer_dyn.py
 @author: mario
 """
 import numpy as np
-import timeit
-import matplotlib.pyplot as plt
 
 import sensillum_dyn
 import stim_fcn_oop
 
 
 
-# *****************************************************************
-# STANDARD FIGURE PARAMS
-lw = 2
-fs = 13
-plt.rc('text', usetex=True)  # laTex in the polot
-#plt.rc('font', family='serif')
-fig_size = [12, 12]
-fig_position = 1300,10
-title_fs = 20 # font size of ticks
-label_fs = 20 # font size of labels
-ticks_fs = label_fs - 3
-panel_fs = 30 # font size of panel's letter
-black   = 'xkcd:black'
-blue    = 'xkcd:blue'
-red     = 'xkcd:red'
-green   = 'xkcd:green'
-purple  = 'xkcd:purple'
-orange  = 'xkcd:orange'
-cmap    = plt.get_cmap('rainbow')
-recep_clrs = ['green','purple','cyan','red']
-
-def tictoc():
-    return timeit.default_timer()
-
-# %% ORNS SIMULATION
 def main(params_all_sens, verbose=False, corr_an=False):
-    stim_params = params_all_sens['stim_params']
-    orn_layer_params = params_all_sens['orn_layer_params']
-    orn_params = params_all_sens['orn_params']
-    sdf_params = params_all_sens['sdf_params']
+    """ ORNS layer simulation """
+    
+    
+    # Load ORN and simulations params
+    stim_params         = params_all_sens['stim_params']
+    orn_layer_params    = params_all_sens['orn_layer_params']
+    orn_params          = params_all_sens['orn_params']
+    sdf_params          = params_all_sens['sdf_params']
 
-    n_sens_type       = orn_layer_params.__len__()  # number of type of sensilla
-    n_recep_list      = np.zeros(n_sens_type, dtype=int)
+    n_sens_type         = orn_layer_params.__len__()  # number of type of sensilla
+    n_recep_list        = np.zeros(n_sens_type, dtype=int)
     for st in range(n_sens_type):
         n_recep_list[st]      = orn_layer_params[st]['n_neu'] #[n_neu, n_neu]    # number of ORNs per sensilla
-
-    tic = tictoc()
 
     pts_ms              = stim_params['pts_ms']
     t_tot               = stim_params['t_tot']
     dt_sdf              = sdf_params['dt_sdf']
     
-    n2sim               = int(pts_ms*t_tot) + 1    # number of time points
+    n2sim               = int(pts_ms*t_tot)     # number of time points
     sdf_size            = int(t_tot/dt_sdf)
     
     n_orns_recep        = orn_layer_params[0]['n_orns_recep']
@@ -104,15 +80,21 @@ def main(params_all_sens, verbose=False, corr_an=False):
         
         # orn_lif_out     = NSI_ORN_LIF.main(params_1sens, u_od, verbose=verbose)
         orn_lif_out     = sensillum_dyn.main(params_1sens, u_od, verbose=verbose)
-        [t, u_od, 
-         r_orn, v_orn, y_orn, 
-         n_spikes_orn_tmp, spike_matrix, orn_sdf_tmp, orn_sdf_time] = orn_lif_out 
+        # [t, u_od, 
+         # r_orn, v_orn, y_orn, 
+         # n_spikes_orn_tmp, spike_matrix, orn_sdf_tmp, orn_sdf_time] = orn_lif_out 
+        
+        tmp_ks = ['t', 'u_od', 'r_orn', 'v_orn', 'y_orn', 'spikes_orn', 
+                  'spike_matrix', 'orn_sdf', 'orn_sdf_time',]
+    
+        [t, u_od, r_orn, v_orn, y_orn, spikes_orn_tmp, spike_matrix, 
+             orn_sdf_tmp, orn_sdf_time,] = [orn_lif_out[x] for x in tmp_ks] 
         #####################################################################
         
         
         ids_orn = np.arange(n_neu*n_orns_recep) + id_orn0 
         
-        spike_orn[:, ids_orn] = n_spikes_orn_tmp
+        spike_orn[:, ids_orn] = spikes_orn_tmp#n_spikes_orn_tmp
         orn_sdf[:, ids_orn] = orn_sdf_tmp
         if corr_an:
             v_orn_t[:, ids_orn] = v_orn
@@ -156,16 +138,7 @@ def main(params_all_sens, verbose=False, corr_an=False):
         print('ORNs, Hom and Het spk cnt corr: %.3f and %.3f' 
               %(corr_orn_hom, corr_orn_het))
     
-    
-    # orn_avg = np.mean(orn_sdf)
-    # print('ORNs, FR avg: %.2f Hz' %orn_avg)
-    # print('')
-    
-    
-    toc = tictoc()-tic
-    if verbose:
-        print('ORNs layer sim time: %.2f s' %(toc,))
-        
-    #collect output variables in 'out_orns_layer'
-    out_orns_layer = [t, u_od,  spike_orn, orn_sdf,orn_sdf_time]
+ 
+    # collect output variables in 'out_orns_layer'
+    out_orns_layer = [t, u_od,  spike_orn, orn_sdf, orn_sdf_time]
     return out_orns_layer

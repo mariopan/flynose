@@ -129,11 +129,17 @@ class RealPlume(SimPlume):
         rho_t           = 1-10**-rho_t_exp
         
         # arguments for the generation of stimuli function
-        corr_plumes_in = [t2sim_s, sample_rate, n_sample2, g, whiff_min, whiff_max, 
-               blank_min, blank_max, a_conc, b_conc,rho_c, rho_t, quenched, self.stim_seed]
-        
+        # corr_plumes_in = [t2sim_s, sample_rate, n_sample2, g, whiff_min, whiff_max, 
+        #        blank_min, blank_max, a_conc, b_conc,rho_c, rho_t, quenched, self.stim_seed]
+        corr_plumes_params = dict([
+            ('t2sim', t2sim_s), ('sample_rate', sample_rate), ('n_sample2', n_sample2), 
+            ('g', g), ('whiff_min', whiff_min), ('whiff_max', whiff_max), 
+           ('blank_min', blank_min), ('blank_max', blank_max), ('a_conc', a_conc), 
+           ('b_conc', b_conc),('rho_c', rho_c), ('rho_t', rho_t),
+           ('quenched', quenched), ('seed_num', self.stim_seed), ])
+
         # PLUME GENERATION
-        out_corr_plumes = corr_plumes.main(*corr_plumes_in)
+        out_corr_plumes = corr_plumes.main(corr_plumes_params)
         
         for nn in range(self.n_od):
             stim_on         = self.t_on[nn]*self.pts_ms   # [num. of samples]

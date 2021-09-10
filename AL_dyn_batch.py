@@ -187,21 +187,21 @@ def olsen2010_data(data_tmp, params_tmp):
     ln_sdf      = data_tmp['ln_sdf']
     ln_sdf_time = data_tmp['ln_sdf_time']
     
-    if stim_dur[0] == 500:
-        orn_id_stim_s = np.flatnonzero((orn_sdf_time>t_on[1]) & (orn_sdf_time<t_off[1]))
-        pn_id_stim_s = np.flatnonzero((pn_sdf_time>t_on[1]) & (pn_sdf_time<t_off[1]))
-        ln_id_stim_s = np.flatnonzero((ln_sdf_time>t_on[1]) & (ln_sdf_time<t_off[1]))
-        
-        orn_id_stim_w = np.flatnonzero((orn_sdf_time>t_on[0]) & (orn_sdf_time<t_off[0]))
-        pn_id_stim_w = np.flatnonzero((pn_sdf_time>t_on[0]) & (pn_sdf_time<t_off[0]))
-        ln_id_stim_w = np.flatnonzero((ln_sdf_time>t_on[0]) & (ln_sdf_time<t_off[0]))
-    else:
-        orn_id_stim_s = np.flatnonzero((orn_sdf_time>t_on[1]) & (orn_sdf_time<t_on[1]+time2analyse))
-        pn_id_stim_s = np.flatnonzero((pn_sdf_time>t_on[1]) & (pn_sdf_time<t_on[1]+time2analyse))
-        ln_id_stim_s = np.flatnonzero((ln_sdf_time>t_on[1]) & (ln_sdf_time<t_on[1]+time2analyse))
-        orn_id_stim_w = np.flatnonzero((orn_sdf_time>t_on[0]) & (orn_sdf_time<t_on[0]+time2analyse))
-        pn_id_stim_w = np.flatnonzero((pn_sdf_time>t_on[0]) & (pn_sdf_time<t_on[0]+time2analyse))
-        ln_id_stim_w = np.flatnonzero((ln_sdf_time>t_on[0]) & (ln_sdf_time<t_on[0]+time2analyse))
+    # if stim_dur[0] == 500:
+    orn_id_stim_s = np.flatnonzero((orn_sdf_time>t_on[1]) & (orn_sdf_time<t_off[1]))
+    pn_id_stim_s = np.flatnonzero((pn_sdf_time>t_on[1]) & (pn_sdf_time<t_off[1]))
+    ln_id_stim_s = np.flatnonzero((ln_sdf_time>t_on[1]) & (ln_sdf_time<t_off[1]))
+    
+    orn_id_stim_w = np.flatnonzero((orn_sdf_time>t_on[0]) & (orn_sdf_time<t_off[0]))
+    pn_id_stim_w = np.flatnonzero((pn_sdf_time>t_on[0]) & (pn_sdf_time<t_off[0]))
+    ln_id_stim_w = np.flatnonzero((ln_sdf_time>t_on[0]) & (ln_sdf_time<t_off[0]))
+    # else:
+    #     orn_id_stim_s = np.flatnonzero((orn_sdf_time>t_on[1]) & (orn_sdf_time<t_on[1]+time2analyse))
+    #     pn_id_stim_s = np.flatnonzero((pn_sdf_time>t_on[1]) & (pn_sdf_time<t_on[1]+time2analyse))
+    #     ln_id_stim_s = np.flatnonzero((ln_sdf_time>t_on[1]) & (ln_sdf_time<t_on[1]+time2analyse))
+    #     orn_id_stim_w = np.flatnonzero((orn_sdf_time>t_on[0]) & (orn_sdf_time<t_on[0]+time2analyse))
+    #     pn_id_stim_w = np.flatnonzero((pn_sdf_time>t_on[0]) & (pn_sdf_time<t_on[0]+time2analyse))
+    #     ln_id_stim_w = np.flatnonzero((ln_sdf_time>t_on[0]) & (ln_sdf_time<t_on[0]+time2analyse))
         
         
     nu_orn_w = np.mean(orn_sdf[orn_id_stim_w, :n_orns_recep])
@@ -241,7 +241,7 @@ def olsen2010_data(data_tmp, params_tmp):
     
    
 # %% LOAD PARAMS FROM A FILE
-params_al_orn = set_orn_al_params.main(2)
+params_al_orn = set_orn_al_params.main(n_od=2,n_orn=2)
 
 # fld_analysis = 'NSI_analysis/trials/' #Olsen2010
 # name_data = 'params_al_orn.ini'
@@ -267,10 +267,10 @@ stim_params['pts_ms']       = 10
 
 
 stim_params['t_on']         = np.array([t0, t0+delay])
-stim_params['conc0']        = 1.85e-4    # fitted value: 2.85e-4
+stim_params['conc0']        = 1.85e-6    # fitted value: 2.85e-4
 
 # PNs average activity during 500ms stimulation (see Olsen et al. 2010)
-nu_obs                      = [8, 75, 130, 150, ]
+nu_pn_obs                   = [8, 75, 130, 150, ]
 nu_orn_obs                  = [3, 21, 55, 125, ]
 
 # nsi params
@@ -278,29 +278,26 @@ nsi_str                     = .6
 alpha_ln                    = .6
 
 # output params
-run_sims                    = 1     # Run sims or just load the data
 data_save                   = 0
 
-time2analyse                = 200
+# time2analyse                = 50#200
 
-#############################
 # fig4 options
 stim_durs                   = [500]      # [ms]
-stim_params['stim_type']    = 'ts'      # 'ss'  # 'ts' # 'rs' # 'pl'
+stim_params['stim_type']    = 'ss'      # 'ss'  # 'ts' # 'rs' # 'pl'
 peak_ratios                 = np.linspace(1, 20, 1,) 
-peaks                       = [1.85e-4, 3e-4, .8e-3, 3e-3,]#np.logspace(-3.3, -2.6, 4)
-inh_conds                   = ['nsi']
-#############################
+peaks                       = [1.85e-4, 3e-4, .8e-3, 1.5e-3, 1.5e-2, .1]#[1.85e-4, 3e-4, .8e-3, 3e-3,]#np.logspace(-3.3, -2.6, 4)
+inh_conds                   = ['noin']  # ['nsi', 'noin', 'ln']
 
 
 # figs/data flags
 dataratio_save              = 0
-al_orn_1r_fig               = 1     # single run figure flag
+al_orn_1r_fig               = 0     # single run figure 
 npeaks_fig                  = 1     # multiple peaks PN and ORN time course 
 olsen_fig                   = 1     # PN vs ORN activity, like Olsen 2010
 figs_save                   = 0
 fld_analysis                = 'NSI_analysis/Olsen2010/'
-data_save                   = 1
+data_save                   = 0
 
 
 
@@ -397,46 +394,39 @@ for stim_dur in stim_durs:
                         
                 #### RUN SIMULATIONS #####################################################
                 # ORNs layer dynamics
-                if run_sims:
-                    output_orn = ORNs_layer_dyn.main(params_al_orn)
-                    [t, u_od,  orn_spikes_t, orn_sdf,orn_sdf_time] = output_orn 
-                    
-                    # AL dynamics
-                    output_al = AL_dyn.main(params_al_orn, orn_spikes_t)
-                    [t, pn_spike_matrix, pn_sdf, pn_sdf_time,
-                                  ln_spike_matrix, ln_sdf, ln_sdf_time,] = output_al
+                output_orn = ORNs_layer_dyn.main(params_al_orn)
+                [t, u_od,  orn_spikes_t, orn_sdf,orn_sdf_time] = output_orn 
                 
-                    output2an = dict([
-                                ('t', t),
-                                ('u_od',u_od),
-                                ('orn_sdf', orn_sdf),
-                                ('orn_sdf_time',orn_sdf_time), 
-                                ('pn_sdf', pn_sdf),
-                                ('pn_sdf_time', pn_sdf_time), 
-                                ('ln_sdf', ln_sdf),
-                                ('ln_sdf_time', ln_sdf_time), 
-                                ])                            
-                
-                    if data_save:
-                        with open(fld_analysis+name_data, 'wb') as f:
-                            pickle.dump([params_al_orn, output2an], f)
-                                
-                    # FIGURE ORN, PN, LN
-                    if al_orn_1r_fig:
-                        fig_al_orn = plot_al_orn.main(params_al_orn, output_orn, output_al)
-                        if figs_save:
-                            fig_name  = 'ORN_AL_timecourse_inh_' + inh_cond +  \
-                        '_stim_'+ stim_params['stim_type'] +'_dur_%d'%stim_dur + '_p' + str(peak) 
-                            print('saving single run time-course figure in '+fld_analysis)
-                            fig_al_orn.savefig(fld_analysis+fig_name+ '.png')  
-                ###########################################################################
+                # AL dynamics
+                output_al = AL_dyn.main(params_al_orn, orn_spikes_t)
+                [t, pn_spike_matrix, pn_sdf, pn_sdf_time,
+                              ln_spike_matrix, ln_sdf, ln_sdf_time,] = output_al
             
-                #### LOAD DATA ############################################################
-                else:
-                    if npeaks_fig | olsen_fig:
-                        data_params     = pickle.load(open(fld_analysis+ name_data,  "rb" ))
-                        params_al_orn   = data_params[0]
-                        output2an       = data_params[1]
+                output2an = dict([
+                            ('t', t),
+                            ('u_od',u_od),
+                            ('orn_sdf', orn_sdf),
+                            ('orn_sdf_time',orn_sdf_time), 
+                            ('pn_sdf', pn_sdf),
+                            ('pn_sdf_time', pn_sdf_time), 
+                            ('ln_sdf', ln_sdf),
+                            ('ln_sdf_time', ln_sdf_time), 
+                            ])                            
+            
+                if data_save:
+                    with open(fld_analysis+name_data, 'wb') as f:
+                        pickle.dump([params_al_orn, output2an], f)
+                            
+                # FIGURE ORN, PN, LN
+                if al_orn_1r_fig:
+                    fig_al_orn = plot_al_orn.main(params_al_orn, output_orn, output_al)
+                    if figs_save:
+                        fig_name  = 'ORN_AL_timecourse_inh_' + inh_cond +  \
+                    '_stim_'+ stim_params['stim_type'] +'_dur_%d'%stim_dur + '_p' + str(peak) 
+                        print('saving single run time-course figure in '+fld_analysis)
+                        fig_al_orn.savefig(fld_analysis+fig_name+ '.png')   
+                
+                
                 
                 if npeaks_fig:
                     if (id_c == 0):
@@ -466,29 +456,29 @@ for stim_dur in stim_durs:
             print('sim time: %.2f s' %(toc-tic))
             
             print('conc ratio: %d'%peak_ratio)
-            print('nu PN strong avg:')        
-            print(nu_pn_s)
+            # print('nu PN strong avg:')        
+            # print(nu_pn_s)
             print('nu PN weak avg:')        
             print(nu_pn_w)
-            print('nu PN ratio avg:')        
-            print(nu_pn_s/nu_pn_w)
-            print('')
+            # print('nu PN ratio avg:')        
+            # print(nu_pn_s/nu_pn_w)
             nu_pn_ratio[:, id_r] = nu_pn_s/nu_pn_w
             
             
               
             # print(nu_orn)
-            # print('nu ORN weak avg:')        
-            # print(nu_orn_w)
+            print('nu ORN weak avg:')        
+            print(nu_orn_w)
             # print('nu ORN ratio avg:')        
             # print(nu_orn/nu_orn_w)
             # print('')
             # print('nu LN avg:')        
             # print(nu_ln)
             
-            # dnu = nu_obs - nu_pn_s
+            # dnu = nu_pn_obs - nu_pn_s
             # cost_est = 0.5 * np.sum(dnu**2)
             # print('estimated cost: %.2f'%cost_est)
+            print('')
             
             if figs_save & npeaks_fig:
                 print('saving Olsen2010 time-course figure in '+fld_analysis)
@@ -513,9 +503,9 @@ for stim_dur in stim_durs:
                 
                 plt.rc('text', usetex=True)
                 
-                # if len(nu_obs)==len(nu_orn_s):
+                # if len(nu_pn_obs)==len(nu_orn_s):
                 if stim_dur==500:
-                    axs[0].plot(nu_orn_obs, nu_obs, 'k*')
+                    axs[0].plot(nu_orn_obs, nu_pn_obs, 'k*')
                 axs[0].errorbar(nu_orn_s, nu_pn_s, yerr=nu_pn_s_err, fmt='o')
                 axs[0].plot(nuorn_fit , olsen_orn_pn(nuorn_fit , *popt), '--', linewidth=lw, 
                         label=r'fit: $\sigma$=%5.0f, $\nu_{max}$=%5.0f' % tuple(popt))

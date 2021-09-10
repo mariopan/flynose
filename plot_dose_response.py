@@ -12,6 +12,7 @@ sensitivity of the two ORNs
 
 
 import numpy as np
+import pickle
 
 import matplotlib.pyplot as plt
 import string
@@ -43,10 +44,11 @@ recep_clrs = ['green','purple','cyan','red']
 
 name_analysis   = 'dose_response'
 
-fld_analysis    = 'NSI_analysis/'+name_analysis+'/'
+fld_analysis    = 'NSI_analysis/'+name_analysis+'/30trials/'
 
 stim_durs   = [10, 20, 50, 100, 200]
 
+stim_durs   =  [50, ]
 
 fig_save    = 0
 muldur_fig  = 0
@@ -63,17 +65,17 @@ shift_1 = [10000, 8000, 6000, 4000, 2000, 500]
 
 shift_0 = np.ones(len(ratios))*10000
 
+inh_conds = ['ctrl', 'NSI']
+n_inh_conds = len(inh_conds)
 
-
-dyn_rng_res = np.zeros((2,len(stim_durs), len(ratios)))
-thr_hg = np.zeros((2, len(stim_durs), len(ratios)))
-thr_lw = np.zeros((2, len(stim_durs), len(ratios)))
-thr_ratio = np.zeros((len(stim_durs), len(ratios)))
+dyn_rng_res = np.zeros((n_inh_conds,len(stim_durs), len(ratios)))
+thr_hg      = np.zeros((n_inh_conds, len(stim_durs), len(ratios)))
+thr_lw      = np.zeros((n_inh_conds, len(stim_durs), len(ratios)))
+thr_lw_sum  = np.zeros((n_inh_conds, len(stim_durs), len(ratios)))
+thr_ratio   = np.zeros((len(stim_durs), len(ratios)))
 
 k_ratios = shift_1/ shift_0
 
-import pickle
-analysis_name = 'cns_dose_response'
 
 for ii in range(len(ratios)):
     alpha_r_1 = int(shift_1[ii]**0.82206687*12.6228808)
@@ -86,12 +88,16 @@ for ii in range(len(ratios)):
         '_alphar_1_%d'%alpha_r_1
         
     data = pickle.load(open(
-        fld_analysis+analysis_name+tmp_name+'.pickle',  "rb" ))
+        fld_analysis + name_analysis + tmp_name+'.pickle',  "rb" ))
+    
     dyn_rng_sum = data['dyn_rng_sum']
     dyn_rng_res[:,:,ii]  = dyn_rng_sum
     
     thr_hg[:, :, ii] = data['thr_hg']
     thr_lw[:, :, ii] = data['thr_lw']
+    thr_lw_sum[:, :, ii] = data['thr_lw_sum']
+    
+    
     thr_ratio[:, ii] = data['thr_ratio'][0,:]
     
     if ii == 2:
@@ -103,30 +109,33 @@ for ii in range(len(ratios)):
 #%% single duration figure
 
 if sindur_fig:
-    id_dur = 2
+    id_dur = 0
     
     rs = 2
     cs = 1
     
     fig, axs    = plt.subplots(rs, cs, figsize=[8, 5])
-    fig_name    = name_analysis + '_dur%d'%stim_durs[id_dur]
+    fig_name    = name_analysis + '_sum'+ '_dur%d'%stim_durs[id_dur]
        
-    distance = k_ratios
+    #distance = k_ratios
     
     distance = thr_ratio[id_dur, :]    
     
     # FIGURE PLOT
-    axs[0].plot(distance, dyn_rng_res[0, id_dur, :], 'o--', linewidth=lw, color=pink, label='ctrl')
-    axs[0].plot(distance, dyn_rng_res[1, id_dur, :], 'o-', linewidth=lw, color=cyan, label='NSI')
+    axs[0].plot(distance, dyn_rng_res[0, id_dur, :], 'o-', linewidth=lw, color=pink, label='ctrl')
+    axs[0].plot(distance, dyn_rng_res[1, id_dur, :], 'o--', linewidth=lw, color=cyan, label='NSI')
     axs[0].plot(distance, np.ones_like(distance)*dyn_rng_1[id_dur], 'k--', linewidth=lw, color='black', label='single ORN')
     
-    axs[1].plot(distance, thr_lw[0, id_dur, :], 'o--', linewidth=lw, color=pink, label='ctrl')
-    axs[1].plot(distance, thr_lw[1, id_dur, :], 'o-', linewidth=lw, color=cyan, label='NSI')
+    # axs[1].plot(distance, thr_lw[0, id_dur, :], 'o-', linewidth=lw, color=pink, label='ctrl')
+    # axs[1].plot(distance, thr_lw[1, id_dur, :], 'o--', linewidth=lw, color=cyan, label='NSI')
+    
+    axs[1].plot(distance, thr_lw_sum[0, id_dur, :], 'd-', linewidth=lw+2, color=pink, label='ctrl')
+    axs[1].plot(distance, thr_lw_sum[1, id_dur, :], 'd--', linewidth=lw+2, color=cyan, label='NSI')
     
     # FIGURE SETTINGS    
     axs[0].set_xticklabels('', )
     
-    axs[1].set_xlabel('ORNs  similarity (OM)', fontsize=label_fs)
+    axs[1].set_xlabel('Sensitivity distance (OM)', fontsize=label_fs)
     
     axs[0].legend(frameon=False, fontsize=label_fs-4, loc=4)
     
@@ -150,7 +159,7 @@ if sindur_fig:
     plt.show()
     
     if fig_save:
-        fig.savefig(fld_analysis + '/' + fig_name + '.png')    
+        fig.savefig(fld_analysis + fig_name + '.png')    
     
     
     

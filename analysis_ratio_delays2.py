@@ -44,62 +44,19 @@ pink    = 'xkcd:pink'
 cmap = 'inferno'
 # *****************************************************************
 
-
-def fig_pn_distr():
-    """ Figure of the average activity for weak and strong input
-    """
-    id_conc = 0
-    id_dur = 0
-    n_bins  = 20
-    for id_ratio in [0, 3, 9]:
-        
-        # pn_peak_s_noin: (n_ratios, n_concs,n_durs, n_loops)
-        noin_s = np.squeeze(pn_peak_s_noin[id_ratio, id_conc, id_dur,:])
-        noin_w = np.squeeze(pn_peak_w_noin[id_ratio, id_conc, id_dur,:])
-        ln_s = np.squeeze(pn_peak_s_ln[id_ratio, id_conc, id_dur,:])
-        ln_w = np.squeeze(pn_peak_w_ln[id_ratio, id_conc, id_dur,:])
-        nsi_s = np.squeeze(pn_peak_s_nsi[id_ratio, id_conc, id_dur,:])
-        nsi_w = np.squeeze(pn_peak_w_nsi[id_ratio, id_conc, id_dur,:])
-        
-        rs = 3
-        cs = 1
-        fig, axs = plt.subplots(rs, cs, figsize=[9,4.5])
-        n_tmp, _, _ = axs[0].hist(noin_s, bins=n_bins, label='ctrl s', 
-                                 color=green, alpha=.5, density=True,)  
-        n_tmp, _, _ = axs[0].hist(noin_w, bins=n_bins, label='ctrl w', 
-                                 color=purple, alpha=.5, density=True,)  
-        n_tmp, _, _ = axs[1].hist(ln_s, bins=n_bins, label='ctrl s', 
-                                 color=green, alpha=.5, density=True,)  
-        n_tmp, _, _ = axs[1].hist(ln_w, bins=n_bins, label='ctrl w', 
-                                 color=purple, alpha=.5, density=True,)  
-        n_tmp, _, _ = axs[2].hist(nsi_s, bins=n_bins, label='ctrl s', 
-                                 color=green, alpha=.5, density=True,)  
-        n_tmp, _, _ = axs[2].hist(nsi_w, bins=n_bins, label='ctrl w', 
-                                 color=purple, alpha=.5, density=True,)  
-        
-        axs[0].set_title('conc:%.1f'%concs2an[id_conc]+
-           ', ratio:%.1f'%conc_ratios[id_ratio]+', dur:%d'%dur2an[id_dur],fontsize=title_fs)
-        axs[0].set_ylabel('ctrl',fontsize=label_fs)
-        axs[1].set_ylabel('LN',fontsize=label_fs)
-        axs[2].set_ylabel('NSI',fontsize=label_fs)
-        if fig_save:
-            fig.savefig(fld_output+  '/PN_distr_delays0_conc%.1f'%concs2an[id_conc]+\
-           '_ratio%.1f'%conc_ratios[id_ratio]+'_dur:%d'%dur2an[id_dur]+'.png')
-    
-    
 # *****************************************************************
 fig_save        = 0
 
 id_peak2plot    = 3             # ONLY for the delays analysis
 measure         = 'peak'         # 'avg' # 'peak' # 
-corr_mi         = 'corr'        # 'corr' # 'mi'
+corr_mi         = 'mi'        # 'corr' # 'mi'
 delay_fig       = 0             # Fig.ResumeDelayedStimuli
 
 # analysis for zero delay:
-ratio_fig       = 1*(1-delay_fig)   # Response ratios versus concentration ratio 
+ratio_fig       = 0*(1-delay_fig)   # Response ratios versus concentration ratio 
                                     #   of the two odorants for different 
                                     #   overall concentrations (colours, see 
-                                    #   legend in f). Black dashed diagonal is 
+                                    #   legend in d). Black dashed diagonal is 
                                     #   for peak PN ratios equal to odorant 
                                     #   concentration ratio. Error bars 
                                     #   represent the semi inter-quartile 
@@ -126,8 +83,8 @@ nsi_ln_par   = [[0,0],[.6, 0],[0, .6],]
 
 if delay_fig:
     print('Delays analysis, rate measured on '+measure)
-    # fld_analysis    = 'NSI_analysis/analysis_delays_tauln250_tausdf41/'
     fld_analysis    = 'NSI_analysis/delays_tauln250_tausdf41/'
+    fld_analysis    = 'NSI_analysis/delays_tauln25_tausdf41/'
     # fld_analysis    = 'NSI_analysis/delays_.4.2/'   # analysis_ratio_tauln25              
     fld_output      = fld_analysis
     name_analysis   = 'delays'
@@ -234,9 +191,8 @@ for delay_id, delay in enumerate(delays2an):
             orn_peak_s_nsi   = output2an['peak_orns']
             pn_peak_w_nsi    = output2an['peak_pnw']
             pn_peak_s_nsi    = output2an['peak_pns']
-            
-    if pn_distr: 
-        fig_pn_distr()
+           
+        
     #(n_ratios, n_concs,n_durs, n_loops)
     orn_ratio_avg_nsi   = np.ma.masked_invalid(orn_avg_s_nsi/orn_avg_w_nsi)
     orn_ratio_avg_ln    = np.ma.masked_invalid(orn_avg_s_ln/orn_avg_w_ln)
@@ -401,30 +357,32 @@ for delay_id, delay in enumerate(delays2an):
 #%% FIGURE ResumeDelayedStimuli ############################################
 if delay_fig:
     y_ticks = np.linspace(0, 2, 5)
-    fig, axs = plt.subplots(1, n_durs, figsize=(17, 6.3), sharey=True) 
+    fig, axs = plt.subplots(1, n_durs, figsize=(9, 3.3), sharey=True) # figsize=(17, 6.3), sharey=True) 
     for dur_id in range(n_durs):
         duration = dur2an[dur_id]
         
         if measure=='avg':
+            axs[dur_id].errorbar(delays2an, ratio_avg_nsi[:, dur_id], 
+               yerr=ratio_avg_nsi_err[:, dur_id], color=cyan, ls='--',
+               lw = lw, label= 'NSI')    
             axs[dur_id].errorbar(delays2an, ratio_avg_noin[:, dur_id], 
                yerr=ratio_avg_noin_err[:, dur_id], color=pink, 
                lw = lw, label= 'ctrl')
             axs[dur_id].errorbar(delays2an, ratio_avg_ln[:, dur_id], 
                yerr=ratio_avg_ln_err[:, dur_id], color=orange, 
                lw = lw, label= 'LN inhib.')
-            axs[dur_id].errorbar(delays2an, ratio_avg_nsi[:, dur_id], 
-               yerr=ratio_avg_nsi_err[:, dur_id], color=cyan, ls='--',
-               lw = lw, label= 'NSI')    
+            
         elif measure=='peak':        
+            axs[dur_id].errorbar(delays2an, ratio_peak_nsi[:, dur_id],
+               yerr=ratio_peak_nsi_err[:, dur_id], color=cyan, ls='--',
+               lw = lw, label= 'NSI')    
             axs[dur_id].errorbar(delays2an, ratio_peak_noin[:, dur_id], 
                yerr=ratio_peak_noin_err[:, dur_id], color= pink, ls='-.',
                lw = lw, label= 'ctrl')
             axs[dur_id].errorbar(delays2an, ratio_peak_ln[:, dur_id], 
                yerr=ratio_peak_ln_err[:, dur_id], color=orange, ls='-',
                lw = lw, label= 'LN inhib.')
-            axs[dur_id].errorbar(delays2an, ratio_peak_nsi[:, dur_id],
-               yerr=ratio_peak_nsi_err[:, dur_id], color=cyan, ls='--',
-               lw = lw, label= 'NSI')    
+            
         
         # FIGURE SETTINGS
         axs[dur_id].set_title(' %d ms'%(duration), fontsize=title_fs)
@@ -441,29 +399,98 @@ if delay_fig:
         
         # original plot position:
         ll, bb, ww, hh = axs[dur_id].get_position().bounds
-        axs[dur_id].set_position([ll-.06+.025*dur_id, bb+.1, ww+.025, hh-.15]) 
+        axs[dur_id].set_position([ll-.04+.025*dur_id, bb+.1, ww+.025, hh-.15]) 
         
     axs[0].set_yticks([0,.5,1.0,1.5])
     axs[0].set_yticklabels([0,.5,1.0,1.5], fontsize=label_fs-5)
-    axs[0].set_ylim((.3, 1.7))
+    axs[0].set_ylim((.55, 1.7))
     
     
     conc2plot = np.squeeze(concs2an[id_peak2plot]) #  conc_1_r[0,id_peak2plot,0])
     axs[0].set_ylabel(r'$R^{PN} $ (unitless)', fontsize=label_fs)
     axs[2].set_xlabel('Delay (ms)', fontsize=fs)
-    axs[1].legend(fontsize=fs-2, frameon=False)
+    # axs[1].legend(fontsize=fs-3, frameon=False)
 
-    axs[0].text(-.2, 1.2, 'b', transform=axs[0].transAxes,
+    axs[0].text(-.38, 1.2, 'a', transform=axs[0].transAxes,
            fontsize=panel_fs, color=black, weight='bold', va='top', ha='right')
     plt.show()
     
     
     if fig_save:
         if measure == 'avg':
-            fig.savefig(fld_output+  '/delays_avg_delays0-500_dur20-200_conc%.2g'%conc2plot +'_tauln%d'%tau_ln+'.png')
+            fig.savefig(fld_output+  '/NEW_delays_avg_delays0-500_dur20-200_conc%.2g'%conc2plot +'_tauln%d'%tau_ln+'.png')
         elif measure == 'peak':
-            fig.savefig(fld_output+  '/delays_peak_delays0-500_dur20-200_conc%.2g'%conc2plot +'_tauln%d'%tau_ln+'.png')
+            fig.savefig(fld_output+  '/NEW_delays_peak_delays0-500_dur20-200_conc%.2g'%conc2plot +'_tauln%d'%tau_ln+'.png')
    
+#%% FIGURE ResumeDelayedStimuli, one figure one duration ##################################
+
+if delay_fig:
+    y_ticks = np.linspace(0, 2, 5)
+    for dur_id in range(n_durs):
+        fig, axs = plt.subplots(1, 1, figsize=(9, 5), sharey=True) # figsize=(17, 6.3), sharey=True) 
+        duration = dur2an[dur_id]
+        
+        if measure=='avg':
+            axs.errorbar(delays2an, ratio_avg_nsi[:, dur_id], 
+               yerr=ratio_avg_nsi_err[:, dur_id], color=cyan, ls='--',
+               lw = lw, label= 'NSI')    
+            axs.errorbar(delays2an, ratio_avg_noin[:, dur_id], 
+               yerr=ratio_avg_noin_err[:, dur_id], color=pink, 
+               lw = lw, label= 'ctrl')
+            axs.errorbar(delays2an, ratio_avg_ln[:, dur_id], 
+               yerr=ratio_avg_ln_err[:, dur_id], color=orange, 
+               lw = lw, label= 'LN inhib.')
+            
+        elif measure=='peak':        
+            axs.errorbar(delays2an, ratio_peak_nsi[:, dur_id],
+               yerr=ratio_peak_nsi_err[:, dur_id], color=cyan, ls='--',
+               lw = lw, label= 'NSI')    
+            axs.errorbar(delays2an, ratio_peak_noin[:, dur_id], 
+               yerr=ratio_peak_noin_err[:, dur_id], color= pink, ls='-.',
+               lw = lw, label= 'ctrl')
+            axs.errorbar(delays2an, ratio_peak_ln[:, dur_id], 
+               yerr=ratio_peak_ln_err[:, dur_id], color=orange, ls='-',
+               lw = lw, label= 'LN inhib.')
+            
+        
+        # FIGURE SETTINGS
+        axs.set_title(' %d ms'%(duration), fontsize=title_fs)
+        
+        axs.spines['right'].set_color('none')   
+        axs.spines['top'].set_color('none')     
+        
+        # if dur_id>0:
+        axs.set_yticklabels('', fontsize=label_fs-5)
+        axs.set_xticks([0, 250, 500])
+        axs.set_xticklabels(['0','250','500'], fontsize=label_fs-5)
+
+        axs.set_ylim((.3, 1.7))
+        
+        # original plot position:
+        ll, bb, ww, hh = axs.get_position().bounds
+        axs.set_position([ll, bb+.1, ww+.025, hh-.15]) 
+        
+        axs.set_yticks([0,.5,1.0,1.5])
+        axs.set_yticklabels([0,.5,1.0,1.5], fontsize=label_fs-5)
+        axs.set_ylim((.55, 1.7))
+    
+    
+        conc2plot = np.squeeze(concs2an[id_peak2plot]) #  conc_1_r[0,id_peak2plot,0])
+        axs.set_ylabel(r'$R^{PN} $ (unitless)', fontsize=label_fs)
+        axs.set_xlabel('Delay (ms)', fontsize=fs)
+        axs.legend(fontsize=fs-3, frameon=False)
+    
+        axs.text(-.08, 1.2, 'b', transform=axs.transAxes,
+               fontsize=panel_fs, color=black, weight='bold', va='top', ha='right')
+    
+    
+        if fig_save:
+            if measure == 'avg':
+                fig.savefig(fld_output+  '/NEW_delays_avg_delays0-500_dur%d'%duration+'_conc%.2g'%conc2plot +'_tauln%d'%tau_ln+'.png')
+            elif measure == 'peak':
+                fig.savefig(fld_output+  '/NEW_delays_peak_delays0-500_dur%d'%duration+'_conc%.2g'%conc2plot +'_tauln%d'%tau_ln+'.png')
+   
+    plt.show()
 
 #%% *********************************************************
 ## FIGURE peak

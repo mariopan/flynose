@@ -18,7 +18,7 @@ import ORNs_layer_dyn
 import AL_dyn
 import set_orn_al_params
 import stats_for_plumes as stats
-import stim_fcn
+import stim_fcn_oop
 import sys
 
 
@@ -30,21 +30,22 @@ def tictoc():
 now = datetime.datetime.now()
 
 analysis_name   = 'real_plumes'
+# [0,0], [.6, 0], [0, .6],
+nsi_ln_par      = [[.6, 0], [0, .6],[.6, 0], [0, .6],[.6, 0], [0, .6], ]
+stim_seed_start = 0 # int(sys.argv[1])
 
-nsi_ln_par      = [[0,0], [.6, 0], [0, .6], ]
-
-if sys.argv == ['']:
-    stim_seed_start = 0 # int(sys.argv[1])
+# if sys.argv == ['']:
+#     stim_seed_start = 0 # int(sys.argv[1])
     
-else:
-    stim_seed_start = int(sys.argv[1])
+# else:
+#     stim_seed_start = int(sys.argv[1])
 
 
 print('real plumes simulations')
     
 
 ## ORN NSI params
-stim_dur  = 10000        # 201000[ms]
+stim_dur  = 200000        # 201000[ms]
 n_seeds   = 1           # 50
     
 w_maxs      = [.03,.3, 3, 25, 50, ] # max value in the whiff distribution
@@ -96,7 +97,7 @@ n_orns_recep                = orn_layer_params[0]['n_orns_recep']   # number of 
 
 verbose                     = False
 data_save                   = 1
-fld_analysis                = 'NSI_analysis/analysis_'+analysis_name+'_1/'
+fld_analysis                = 'NSI_analysis/test_rp/' #'analysis_'+analysis_name+'_1/'
 
 sdf_params['tau_sdf']       = 20
 pn_ln_params['tau_ln']      = 25
@@ -135,8 +136,6 @@ if data_save:
 tic_whole = tictoc()
 
 for id_seed in np.arange(stim_seed_start, stim_seed_start+n_seeds):
-    
-# for id_seed in range(n_seeds):
     for b_max in b_maxs:
         plume_params['blank_max'] = b_max
         for w_max in w_maxs:
@@ -161,14 +160,16 @@ for id_seed in np.arange(stim_seed_start, stim_seed_start+n_seeds):
                 stim_params['stim_seed']   = rand_list[ii]
                 plume_params['rho_t_exp']   = 0         # [0, 5]
                 plume_params['rho_c']       = 0         # [0, 1]
-                u_od = stim_fcn.main(stim_params)
+                plume           = stim_fcn_oop.main(stim_params)
+                u_od            = plume.u_od
                 out_w = u_od[t0:, 0]
                 out_s = u_od[t0:, 1]
                 diff_ab[ii] = abs(np.mean(out_s) -np.mean(out_w))/np.mean(out_s+out_w)
                 
                 plume_params['rho_t_exp']   = 5         # [0, 5]
                 plume_params['rho_c']       = 1         # [0, 1]
-                u_od = stim_fcn.main(stim_params)
+                plume           = stim_fcn_oop.main(stim_params)
+                u_od            = plume.u_od
                 out_w_hi = u_od[t0:, 0]
                 
                 diff_ab[ii] += abs(np.mean(out_w_hi) -np.mean(out_w))/np.mean(out_w_hi+out_w)

@@ -70,12 +70,12 @@ def decay_func(t, last_stim, c, tau_off):
 # c =  0.3  for seed = 6489  #strange one
 # c =  0.6  for seed = 1888  #
 
-seed = 4645 # round(np.random.uniform()*10000)
+seed = 7873 # 4645 # round(np.random.uniform()*10000)
 print(seed)
 np.random.seed(seed)
 
-fld_analysis = 'hypotheses/'
-fig_save = 0
+fld_analysis = 'images/hypotheses/'
+fig_save = 1
 if seed == 7873:
     fig_name = 'NSI_negative_corr'
 elif seed == 4645:
@@ -201,7 +201,8 @@ corr_valve_tmp = np.corrcoef(valve_y[1000:-1], valve_w[1000:-1])
 corr_valve = corr_valve_tmp[1,0]
 
 print('corr stims:' + '%0.2f'%(corr_stim))
-# %% ------------------------------------------------------------
+
+#  ------------------------------------------------------------
 # SOLVE ODE for ORNs model
         
 # store solution
@@ -234,7 +235,7 @@ for i in range(1,n_time_pts):
 y_rect = rect_func(B0, y);
 w_rect = rect_func(B0, w);
 
-# %% ------------------------------------------------------------
+#  ------------------------------------------------------------
 # FIGURE
 # Figure parameters
 fig_size = [13, 5]
@@ -266,8 +267,8 @@ ax1.plot(stim_w, '--', color=purple, linewidth=lw-1, label='stim 2')
 ax2.plot(y_rect, color=green, linewidth=lw+1, label='out 1')
 ax2.plot(w_rect, '--', color=purple, linewidth=lw-1, label='out 2')
 
-ax1.set_ylabel('Odourant conc. (a.u.)', size=label_fs,fontname='Sans')
-ax1.set_xlabel('Time (s)', size=label_fs,fontname='Sans')
+ax1.set_ylabel('odor concentration (a.u.)', size=label_fs,fontname='Sans')
+ax1.set_xlabel('time (s)', size=label_fs,fontname='Sans')
 ax1.set_xlim(1000, 2000)
 ax1.set_xticks((1500, 2000))
 ax1.set_xticklabels((0.5, 1))
@@ -281,7 +282,7 @@ ll, bb, ww, hh = ax1.get_position().bounds
 ax1.set_position([ll, bb+.05, ww, hh])
     
 ax2.set_ylabel('ORN response (Hz)', size=label_fs,fontname='Sans')
-ax2.set_xlabel('Time (s)', size=label_fs,fontname='Sans')
+ax2.set_xlabel('time (s)', size=label_fs,fontname='Sans')
 ax2.set_ylim(0, 150)
 ax2.set_xlim(1000, 2000)
 ax2.set_xticks((1500, 2000))

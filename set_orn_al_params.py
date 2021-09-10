@@ -11,7 +11,7 @@ This function is to set the params of flynose in a easy way.
 """
 import numpy as np
 
-def main(n_orn=2):
+def main(n_orn=2, n_od=2):
     
     
     output_params   = dict([
@@ -24,7 +24,7 @@ def main(n_orn=2):
     stim_params     = dict([
                         ('stim_type' , 'ss'),   # 'ts'  # 'ss' # 'pl'
                         ('pts_ms' , 10),         # simulated pts per ms 
-                        ('n_od', 2),            # number of odours
+                        ('n_od', n_od),            # number of odours
                         ('t_tot', 1500),        # ms 
                         ('conc0', 1.85e-04),    # 2.854e-04
                         ('od_noise', 2),        # 5
@@ -37,7 +37,7 @@ def main(n_orn=2):
     
     
     
-    n_od = stim_params['n_od']
+    # n_od = stim_params['n_od']
     if n_od == 1:
         concs_params    = dict([
                         ('stim_dur' , np.array([500])),
@@ -48,7 +48,7 @@ def main(n_orn=2):
         concs_params    = dict([
                         ('stim_dur' , np.array([500, 500])),
                         ('t_on', np.array([500, 500])),          # ms
-                        ('concs', np.array([.003, .000003])),
+                        ('concs', np.array([.003, .0003])),
                         ])
     
     stim_params.update(concs_params)
@@ -74,7 +74,7 @@ def main(n_orn=2):
                         ('vrest', -33), #-0.969461053),      # [mV] resting potential
                         ('vrev', 0), #21.1784081),  # [mV] reversal potential
                         # ('v_k', vrest),
-                        ('g_y',  .5853575783),      # 0.3), # 
+                        ('g_y',  0.3), # .5853575783),      # 
                         ('g_r', .864162073),  
                         ('r0', 0.15), 
                         ('y0', .5), 
@@ -97,43 +97,76 @@ def main(n_orn=2):
     # Sensilla/network parameters
     n_orns_recep        = 20         # number of ORNs per each receptor
     
-    # Transduction parameters
-    od_pref = np.array([[1,0], [0,1],]) # ORNs' sensibilities to each odours
-                   #  [0, 1], [1,0], 
-                        # [0,0], [1,0], [0,1], [1,0]
-         
-    transd_vect_3A = od_pref[0,:]
-    transd_vect_3B = od_pref[1,:]
-    transd_vect_3B = od_pref[1,:]
     
-    ab3A_params = dict([
-                        ('n', .822066870*transd_vect_3A), 
-                        ('alpha_r', 12.6228808*transd_vect_3A), 
-                        ('beta_r', 7.6758436748e-02*transd_vect_3A),
-                        ])
-    
-    ab3B_params = dict([
-                        ('n', .822066870*transd_vect_3B), 
-                        ('alpha_r', 12.6228808*transd_vect_3B), 
-                        ('beta_r', 7.6758436748e-02*transd_vect_3B),
-                        ])
+    if n_orn ==1:
+        if n_od == 1:            
+            # ab3A_params = dict([
+                            # ('n', np.array([.822066870])), 
+                            # ('alpha_r', np.array([12.6228808])), 
+                            # ('beta_r', np.array([7.6758436748e-02])),
+                            # ])
+            ab3A_params = dict([
+                ('n', np.array([.8])), 
+                ('k_b', np.array([8])), 
+                ('k_a', np.array([2.])), 
+                ('k_u', np.array([.55])),
+                ('k_d', np.array([.21])),
+                ])
+        elif n_od == 2:
+            transd_vect_3A = np.array([1,0]) #od_pref[0,:]
+                
+            ab3A_params = dict([
+                                ('n', .822066870*transd_vect_3A), 
+                                ('alpha_r', 12.6228808*transd_vect_3A), 
+                                ('beta_r', 7.6758436748e-02*transd_vect_3A),
+                                ])
+        transd_params0 = (ab3A_params,)
+    elif (n_orn == 2):
+        if (n_od == 2):
+            # od_pref = np.array([[1,0], [0,1],]) # ORNs' sensibilities to each odours
+            transd_vect_3A = np.array([1,0]) #od_pref[0,:]
+            transd_vect_3B = np.array([0,1]) # od_pref[1,:]
+        
+            ab3A_params = dict([
+                                ('n', .822066870*transd_vect_3A), 
+                                ('alpha_r', 12.6228808*transd_vect_3A), 
+                                ('beta_r', 7.6758436748e-02*transd_vect_3A),
+                                ])
+            
+            ab3B_params = dict([    
+                                ('n', .822066870*transd_vect_3B), 
+                                ('alpha_r', 12.6228808*transd_vect_3B), 
+                                ('beta_r', 7.6758436748e-02*transd_vect_3B),
+                                ])
+           
+        elif (n_od == 1):
+            transd_vect_3A = np.array([1] )
+            transd_vect_3B = np.array([0]) 
+        
+            ab3A_params = dict([
+                                ('n', .822066870*transd_vect_3A), 
+                                ('alpha_r', 12.6228808*transd_vect_3A), 
+                                ('beta_r', 7.6758436748e-02*transd_vect_3A),
+                                ])
+            
+            ab3B_params = dict([    
+                                ('n', .822066870*transd_vect_3B), 
+                                ('alpha_r', 12.6228808*transd_vect_3B), 
+                                ('beta_r', 7.6758436748e-02*transd_vect_3B),
+                                ])        
+        transd_params0 = (ab3A_params, ab3B_params)
     
     # ornXXC_params = dict([
     #                     ('n', .822066870*transd_vect_3A), 
     #                     ('alpha_r', 12.6228808*transd_vect_3A), 
     #                     ('beta_r', 7.6758436748e-02*transd_vect_3A),
     #                     ])
-    
-    # sensillum 0
-    if n_orn ==1:
-        transd_params0 = (ab3A_params,)
-    elif n_orn == 2:
-        transd_params0 = (ab3A_params, ab3B_params)
+        
         
     sens_params0     = dict([
                         ('n_neu', transd_params0.__len__()), # number of ORN cohoused in the sensillum
                         ('n_orns_recep', n_orns_recep),
-                        ('od_pref' , od_pref),
+                        #('od_pref' , od_pref),
         # NSI params
                         ('w_nsi', 1e-10), 
                         ('transd_params', transd_params0),
