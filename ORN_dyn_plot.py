@@ -26,9 +26,8 @@ import matplotlib as mpl
 import sensillum_dyn
 import plot_orn  
 import set_orn_al_params
-import stim_fcn        
-
-
+import stim_fcn_oop
+     
     
 # STANDARD FIGURE PARAMS
 lw = 2
@@ -71,8 +70,10 @@ def figure_multipeaks(data2an, params2an, id_c):
     
     # PLOT
     id_col = id_c + 3
-    ax_conc_m.plot(t-t_on, 100*u_od[:,0], color=greenmap.to_rgba(id_col), linewidth=lw, 
-              label='glom : '+'%d'%(1))
+    ax_conc_m.plot(t-t_on, 100*u_od[:,0], color=greenmap.to_rgba(id_col), 
+                   linewidth=lw, 
+                   label='glom : '+'%d'%(1)
+                   )
     
     orn2plot    = np.mean(orn_sdf[:, :n_orns_recep], axis=1)
     if fig2plot == 'martelli2013':
@@ -163,7 +164,7 @@ def figure_multipeaks(data2an, params2an, id_c):
 
 
 # LOAD PARAMS FROM A FILE
-params_al_orn = set_orn_al_params.main(1)
+params_al_orn = set_orn_al_params.main(1,1)
 
 # fld_analysis = 'NSI_analysis/trials/' #Olsen2010
 # name_data = 'params_al_orn.ini'
@@ -181,7 +182,8 @@ sdf_params          = params_al_orn['sdf_params']
 fig2plot = 'orn_response' 
 
 # Figures options
-fig_save            = 0
+fig_save            = 1
+fig_dpi             = 400
 fig_orn_dyn         = 1
 fig_multipeaks      = 0
 
@@ -196,7 +198,8 @@ data_save           = 1
     
 if fig2plot == 'trials':
     fld_analysis = 'NSI_analysis/trials/'
-    
+    fig_orn_dyn         = 1
+    fig_multipeaks      = 0
     
     # stim paramsnp.array([1.85e-4, 0.002]) # 
     delay                       = 0
@@ -219,8 +222,10 @@ if fig2plot == 'trials':
 elif fig2plot == 'martelli2013':
     # Martelli 2013 figure    
     fld_analysis = 'NSI_analysis/Martelli2013/'
+    fig_orn_dyn         = 0
+    fig_multipeaks      = 1
     
-    # stim paramsnp.array([1.85e-4, 0.002]) # 
+    # stim params
     delay           = 0
     peak_ratio      = 1
     peaks           = np.logspace(-3.3, -2, 5) # np.linspace(0.05, .5, 10)
@@ -228,15 +233,34 @@ elif fig2plot == 'martelli2013':
     stim_type       = 'ss'
     
     stim_params['stim_type']    = stim_type
-    stim_params['stim_dur']     = np.array([stim_dur, stim_dur+delay])
+    stim_params['stim_dur']     = np.array([stim_dur])
     stim_params['t_tot']        = 2000        # ms 
-    stim_params['t_on']         =  np.array([1000, 1000])
-    stim_params['conc0']        = 1.85e-4
+    stim_params['t_on']         =  np.array([1000])
+    stim_params['conc0']        = 1.85e-10
         
-    sens_params['w_nsi']  = 0.0
+    sens_params['w_nsi']        = 0.0
     
     t2plot          = -200,stim_dur+300
-    fig_name   = 'ORN-Martelli2013_dur_%d'%stim_dur
+    fig_name   = 'ORN-Martelli2013_dur_%d'%stim_dur+'_'+str(fig_dpi)+'dpi'
+
+elif fig2plot == 'orn_response':
+    
+    fld_analysis = 'NSI_analysis/ORN_LIF_dynamics/' #/sdf_test
+    orn_fig_name = 'ORN_lif_dyn_500ms.png'
+    
+    # stim params
+    delay                       = 0
+    stim_dur                    = 500
+    stim_params['stim_type']    = 'ss' # 'ts' # 'ss' # 'rp'# '
+    stim_params['t_tot']        = 2000        # ms 
+    stim_params['t_on']         = np.array([1000])
+    stim_params['stim_dur']     = np.array([stim_dur])
+    stim_params['conc0']        = 1.85e-10
+    peaks                       = np.array([1e-3])         # concentration value for ORN1
+    peak_ratio                  = .01         # concentration ratio: ORN2/ORN1    
+    sdf_params['tau_sdf']       = 41
+    
+    t2plot          = -200,stim_dur+300
 
 elif (fig2plot == 'ramp') | (fig2plot == 'parabola') | (fig2plot == 'step'):
     # Lazar and Kim data reproduction    
@@ -255,24 +279,6 @@ elif (fig2plot == 'ramp') | (fig2plot == 'parabola') | (fig2plot == 'step'):
 
     fig_name   = 'lazar_'+fig2plot
 
-elif fig2plot == 'orn_response':
-    
-    fld_analysis = 'NSI_analysis/ORN_LIF_dynamics/' #/sdf_test
-    orn_fig_name = 'ORN_lif_dyn_500ms.png'
-    
-    # stim params
-    delay                       = 0
-    stim_dur                    = 500
-    stim_params['stim_type']    = 'ss' # 'ts' # 'ss' # 'rp'# '
-    stim_params['t_tot']        = 2000        # ms 
-    stim_params['t_on']         =  np.array([1000, 1000])
-    stim_params['stim_dur']     = np.array([stim_dur, stim_dur])
-    stim_params['conc0']        = 1.85e-4
-    peaks                       = np.array([1e-3])         # concentration value for ORN1
-    peak_ratio                  = .01         # concentration ratio: ORN2/ORN1    
-    sdf_params['tau_sdf']       = 41
-    
-    t2plot          = -200,stim_dur+300
 
 
 n_lines     = np.size(peaks)
@@ -323,7 +329,8 @@ for stim_seed in range(max_stim_seed):
                             '_stim_' + fig2plot + str(peak) +\
                             '_nsi_%.1f'%(sens_params['w_nsi']) +\
                             '.pickle'
-            else:
+            
+            if fig2plot in["trials"]:
                 stim_params['concs'] = np.array([peak, peak*peak_ratio])
                 name_data = 'ORNrate' +\
                     '_stim_' + stim_params['stim_type'] +\
@@ -333,24 +340,33 @@ for stim_seed in range(max_stim_seed):
                     '_peak_%.2f'%(np.log10(peak)) +\
                     '_peakratio_%.1f'%(peak_ratio) +\
                         '.pickle'
+            else:
+                stim_params['concs'] = np.array([peak])
+                name_data = 'ORNrate' +\
+                    '_stim_' + stim_params['stim_type'] +\
+                    '_nsi_%.1f'%(sens_params['w_nsi']) +\
+                    '_dur2an_%d'%(stim_params['stim_dur']) +\
+                    '_delay2an_%d'%(delay) +\
+                    '_peak_%.2f'%(np.log10(peak))  +\
+                        '.pickle'
             
             # RUN SIM
         
             # GENERATE ODOUR STIMULUS/I and UPDATE STIM PARAMS
-            u_od            = stim_fcn.main(stim_params,)
-        
+            plume            = stim_fcn_oop.main(stim_params,)
+            u_od            = plume.u_od
 
             orn_lif_out = sensillum_dyn.main(params_1sens, u_od, )
             [t, u_od, r_orn, v_orn, y_orn, num_spikes, orn_spike_matrix, 
                  orn_sdf, orn_sdf_time,] = orn_lif_out
-            output2an = dict([
-                        ('t', t),
-                        ('u_od',u_od),
-                        ('orn_sdf', orn_sdf),
-                        ('orn_sdf_time',orn_sdf_time), ])   
+#            output2an = dict([
+#                        ('t', t),
+#                        ('u_od',u_od),
+#                        ('orn_sdf', orn_sdf),
+#                        ('orn_sdf_time',orn_sdf_time), ])   
             if data_save:
                 with open(fld_analysis+name_data, 'wb') as f:
-                    pickle.dump([params_1sens, output2an], f)
+                    pickle.dump([params_1sens, orn_lif_out], f)
         
             
             # FIGURE ORN DYNAMICS OR MULTIPLTE PEAKS 
@@ -358,14 +374,14 @@ for stim_seed in range(max_stim_seed):
                 fig_orn = plot_orn.main(params_1sens, orn_lif_out)
                     
                 if fig_save:
-                    fig_orn.savefig(fld_analysis + orn_fig_name)
+                    fig_orn.savefig(fld_analysis + orn_fig_name, dpi=fig_dpi)
                     with open(fld_analysis+'param_1sens.pickle', 'wb') as f:
                         pickle.dump([params_1sens, ], f)
                                 
             elif fig_multipeaks:
-                figure_multipeaks(output2an, params_1sens, id_c)
+                figure_multipeaks(orn_lif_out, params_1sens, id_c)
                 if fig_save:
-                    fig_pn_m.savefig(fld_analysis + fig_name + '.png')
+                    fig_pn_m.savefig(fld_analysis + fig_name + '.png', dpi=fig_dpi)
                     if data_save:
                         with open(fld_analysis+'param_1sens.pickle', 'wb') as f:
                             pickle.dump([params_1sens, ], f)

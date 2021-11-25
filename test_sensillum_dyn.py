@@ -36,9 +36,9 @@ def tictoc():
 
 
 
-fld_analysis = 'NSI_analysis/trials/'
+fld_analysis = 'NSI_analysis/ORN_LIF_dynamics/'
 name_data = 'tmp_od_orn.pickle'
-
+fig_name= "ORN_lif_dyn_500ms_300dpi"
 
 # params_al_orn = set_orn_al_params.main(1)
 params_al_orn = set_orn_al_params.main(n_orn=1, n_od=1)
@@ -54,9 +54,9 @@ sdf_params          = params_al_orn['sdf_params']
 # pn_ln_params        = params_al_orn['pn_ln_params']
 
 stim_params['stim_type']    = 'ss'      
-stim_params['conc0']        = 1.85e-4
-stim_params['t_tot']        = 1600            # [ms]
-# stim_params['concs']        = np.array([10e-3,])
+stim_params['conc0']        = 1.85e-10
+stim_params['t_tot']        = 1800            # [ms]
+stim_params['concs']        = np.array([1e-3,])
 
 # ##############################################################
 # # real plume example
@@ -124,12 +124,13 @@ else:
 
 
 fig = plot_orn.main(params_1sens, output_orn, )
-# fig.savefig(fld_analysis + timecourse_fig_name)
     
+fig_save=1
     
 plt.show()              
 
-# fig.savefig(fld_analysis + timecourse_fig_name)
+if fig_save:
+    fig.savefig(fld_analysis + fig_name, dpi=300)
     
 
 # # fig, axs = plot_hist_isi.main(params_1sens, output_orn)

@@ -58,16 +58,16 @@ n_loops         = 10
 # fld_analysis    = 'NSI_analysis/'+name_analysis+'/nsi0.4/'
 # n_loops         = 3 
 
-c_thr_lw        =  3
+c_thr_lw        =  .1
 c_thr_hg        = .9
 
 stim_durs       =  [50, ]
 
-fig_save                = 0
-dynrng_thrs_muldur_fig  = 0
-dynrng_fig         = 1
-thrs_fig         = 1
-dose_response_fig       = 0
+fig_save        = 1
+fig_dpi=350
+dynrng_fig      = 1
+thrs_fig        = 1
+dose_response_fig       = 1
 
 figure_name = 'stim_ts' + \
         '_durs_%d-%d'%(stim_durs[0], stim_durs[-1],) + \
@@ -77,7 +77,7 @@ dynrng_figure_name = 'dyn_rng_' + figure_name
 
 thrs_figure_name  = 'thrs_' + figure_name
 
-shift_ratios    = [1, .1, .01, .001, .0001]#[1, .01, .0001,] # 
+shift_ratios    = [1, .1, .01, .001, .0001]# [1, .01, .0001,] # 
 shift_0         = 1e4
 n_shift_ratios = len(shift_ratios)
     
@@ -139,7 +139,11 @@ for id_ratio in range(n_shift_ratios):
             
             dr_peak = nu_intp(concs_intp)
             
-            thr_lw_w[id_inh, id_ratio, id_loop] = concs_intp[next(x[0] for x in enumerate(dr_peak) 
+            if c_thr_lw<.5:
+                thr_lw_w[id_inh, id_ratio, id_loop] = concs_intp[next(x[0] for x in enumerate(dr_peak) 
+                                                     if x[1] > c_thr_lw*np.max(dr_peak))] 
+            else:
+                thr_lw_w[id_inh, id_ratio, id_loop] = concs_intp[next(x[0] for x in enumerate(dr_peak) 
                                                      if x[1] > c_thr_lw*dr_peak[0])] 
             thr_hg_w[id_inh, id_ratio, id_loop] = concs_intp[next(x[0] for x in enumerate(dr_peak) 
                                                      if x[1] > c_thr_hg*np.max(dr_peak))]
@@ -152,7 +156,11 @@ for id_ratio in range(n_shift_ratios):
             
             dr_peak = nu_intp(concs_intp)
             
-            thr_lw_s[id_inh, id_ratio, id_loop] = concs_intp[next(x[0] for x in enumerate(dr_peak) 
+            if c_thr_lw<.5:
+                thr_lw_s[id_inh, id_ratio, id_loop] = concs_intp[next(x[0] for x in enumerate(dr_peak) 
+                                                     if x[1] > c_thr_lw*np.max(dr_peak))] 
+            else:
+                thr_lw_s[id_inh, id_ratio, id_loop] = concs_intp[next(x[0] for x in enumerate(dr_peak) 
                                                      if x[1] > c_thr_lw*dr_peak[0])] 
             thr_hg_s[id_inh, id_ratio, id_loop] = concs_intp[next(x[0] for x in enumerate(dr_peak) 
                                                      if x[1] > c_thr_hg*np.max(dr_peak))]
@@ -166,8 +174,12 @@ for id_ratio in range(n_shift_ratios):
             dr_peak = nu_intp(np.log10(concs_intp))
             
             
-            thr_lw_sum[id_inh, id_ratio, id_loop] = \
-            thr_lw_tmp =  concs_intp[next(x[0] for x in enumerate(dr_peak) 
+            if c_thr_lw<.5:
+                thr_lw_tmp  = \
+                    concs_intp[next(x[0] for x in enumerate(dr_peak) 
+                                                     if x[1] > c_thr_lw*np.max(dr_peak))] 
+            else:
+                thr_lw_tmp =  concs_intp[next(x[0] for x in enumerate(dr_peak) 
                                                      if x[1] > c_thr_lw*dr_peak[0])] 
             thr_lw_sum[id_inh, id_ratio, id_loop] = thr_lw_tmp
             
@@ -238,9 +250,9 @@ for id_ratio in range(n_shift_ratios):
             if (id_ratio==0)&(id_inh==0):
                 axs[id_ratio, id_inh].text(3e-5, 130, r'(ORN$_a$+ORN$_b$)/2',
                                     color=blue, fontsize=label_fs)
-                axs[id_ratio, id_inh].text(3e-5, 80, r'ORN$_a$',
+                axs[id_ratio, id_inh].text(3e-5, 70, r'ORN$_a$',
                                     color=green, fontsize=label_fs)
-                axs[id_ratio, id_inh].text(3e-5, 30, r'ORN$_b$',
+                axs[id_ratio, id_inh].text(3e-5, 10, r'ORN$_b$',
                                     color=purple, fontsize=label_fs)
                 
             axs[id_ratio, id_inh].set_xscale('log') # 'linear') #'log')
@@ -263,8 +275,12 @@ for id_ratio in range(n_shift_ratios):
                     axs[id_ratio, id_inh].set_title('NSI', fontsize=label_fs+3)
             
             if id_inh==0:
-                axs[id_ratio, id_inh].set_ylabel('Firing rates (Hz)', fontsize=label_fs-2)
+                if id_ratio in [1, 3, 5]:
+                    axs[id_ratio, id_inh].set_ylabel('Firing rates (Hz)', fontsize=label_fs-2)
             axs[id_ratio, id_inh].set_xlim([1e-10, .5])
+            
+            axs[0,0].text(-.2, 1.2, 'a', transform=axs[0,0].transAxes,
+               color= black, fontsize=panel_fs, fontweight='bold', va='top', ha='right')       
             
             # CHANGE plot position:
             ll, bb, ww, hh = axs[id_ratio, id_inh].get_position().bounds
@@ -272,7 +288,8 @@ for id_ratio in range(n_shift_ratios):
             plt.show()
             
     if fig_save & dose_response_fig:
-        fig_dr.savefig(fld_analysis + figure_name + '.png')    
+        fig_dr.savefig(fld_analysis + figure_name + '.png', 
+                       dpi=fig_dpi)    
 
 
 #%% single duration figure
@@ -339,7 +356,8 @@ if dynrng_fig:
     plt.show()
     
     if fig_save:
-        fig.savefig(fld_analysis + dynrng_figure_name +  '_dur%d'%stim_durs[id_dur] + '.png') 
+        fig.savefig(fld_analysis + dynrng_figure_name +  '_dur%d'%stim_durs[id_dur] + '.png', 
+                       dpi=fig_dpi) 
         
 #%%
 if thrs_fig:
@@ -373,7 +391,6 @@ if thrs_fig:
     mu1 = np.mean(thr_lw_s[0, :, :], axis=1)
     sigma1 = np.std(thr_lw_s[0, :, :], axis=1)
     x1 = distance-.1
-    # axs[0].errorbar(x1, mu1, yerr=sigma1, marker='o', linewidth=lw, linestyle='', lolims=True, color=purple, label='ORN$_b$')
     
     #### axs[1]
     mu1 = np.mean(thr_hg_sum[0, :, :], axis=1)
@@ -397,8 +414,6 @@ if thrs_fig:
     mu1 = np.mean(thr_hg_s[0, :, :], axis=1)
     sigma1 = np.std(thr_hg_s[0, :, :], axis=1)
     x1 = distance-.1
-    # axs[1].errorbar(x1, mu1, yerr=sigma1, marker='o', linewidth=lw, linestyle='', 
-                    # color=purple, label='ORN$_b$')
     
     
     
@@ -438,57 +453,8 @@ if thrs_fig:
     plt.show()
     
     if fig_save:
-        fig.savefig(fld_analysis + thrs_figure_name +  '_dur%d'%stim_durs[id_dur] + '.png')    
+        fig.savefig(fld_analysis + thrs_figure_name +  '_dur%d'%stim_durs[id_dur] + '.png',
+                    dpi=fig_dpi)    
     
     
     
-
-#%% multiple durations plot
-
-if dynrng_thrs_muldur_fig:
-    rs =  len(stim_durs)
-    cs = 1
-    fig, axs_all = plt.subplots(rs, cs, figsize=[8, 11])
-    fig_name    = name_analysis + '_dur%d-%d'%(stim_durs[0], stim_durs[-1])
-       
-    for id_dur in range(len(stim_durs)):
-    
-        
-        distance = shift_ratios # it was k_ratio
-        distance =  np.mean(thr_lw_ratio[0, :, :], axis=1)
-    
-        axs = axs_all[id_dur] 
-        
-        
-        # FIGURE PLOT
-        axs.plot(distance, dyn_rng_sum[0, id_dur, :], '.--', linewidth=lw, color=pink, label='ctrl')
-        axs.plot(distance, dyn_rng_sum[1, id_dur, :], '.-', linewidth=lw, color=cyan, label='NSI')
-        axs.plot(distance, dyn_rng_s[0, id_dur, :], 'k--', linewidth=lw, color='black', label='single ORN')
-        
-        # FIGURE SETTINGS
-        if id_dur == len(stim_durs)-1:
-            axs.set_xlabel('sensitivity distance (a.u.)', fontsize=label_fs)
-            axs.legend(frameon=False, fontsize=label_fs)
-        if id_dur == 2:
-            axs.set_ylabel('dynamic range (OM)', fontsize=label_fs)
-        if id_dur == 0:
-            axs.text(-.1, 1.08, 'b', transform=axs.transAxes,
-              color= black, fontsize=panel_fs, fontweight='bold', va='top', ha='right')       
-        
-        axs.text(1.05, .8, 'dur: %d ms' %stim_durs[id_dur], transform=axs.transAxes,
-                 color= black, fontsize=panel_fs, fontweight='bold', va='top', ha='right')        
-        
-        axs.tick_params(axis='both', which='major', labelsize=label_fs-3)
-                
-        axs.spines['right'].set_color('none')
-        axs.spines['top'].set_color('none')
-        
-        # CHANGE plot position:
-        ll, bb, ww, hh = axs.get_position().bounds
-        bb= bb+.08-.03*id_dur
-        axs.set_position([ll, bb, ww, hh])        
-    
-    plt.show()
-    
-    if fig_save:
-        fig.savefig(fld_analysis + '/' + fig_name + '.png')    

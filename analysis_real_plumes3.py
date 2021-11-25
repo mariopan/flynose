@@ -51,7 +51,7 @@ fld_analysis    = 'NSI_analysis/real_plumes_200s_peak20e-4_tauln250_tausdf20_rho
 # fld_analysis    = 'NSI_analysis/rp_mix_gy0.58/'
 # fld_analysis    = 'NSI_analysis/rp_mix_gy0.3/'
 fld_analysis    = 'NSI_analysis/rp_mix/'
-fld_analysis    = 'NSI_analysis/rp_mix_25ms/'
+# fld_analysis    = 'NSI_analysis/rp_mix_25ms/'
 
 seeds           = np.arange(1, 30)
 
@@ -83,7 +83,7 @@ peak_fig        = 1     # a-c) total PN activity above 50, 100, 150 Hz respectiv
                         # for 3 ms maximum whiff durations
 
 
-thrwmax_fig     = 1     # a) Peak PN for threshold 150 Hz, and for 
+thrwmax_fig     = 0     # a) Peak PN for threshold 150 Hz, and for 
                         #    different subsets of whiff durations (from 0.01 
                         #    to 50s) for the three models: control model (dot 
                         #    dashed pink), LN model (orange continuous), and 
@@ -103,6 +103,7 @@ avgplume_fig    = 0     # Aver. values of Corr, intermittency observed in the si
 
 
 fig_save        = 1
+fig_dpi         = 350
 fig_name        = 'MIX' + 'dur_%d'%stim_dur + \
                     '_nsi_%.2f'%(np.max(nsi_ln_par, axis=0)[0]) +\
                     '_ln_%.1f'%(np.max(nsi_ln_par, axis=0)[1])  
@@ -302,7 +303,8 @@ if avg_fig:
     plt.show()
     
     if fig_save:
-        fig2.savefig(fld_output+  '/NSI_AverActiv_'+fig_name+'_tauln%d'%tau_ln+'.png')
+        fig2.savefig(fld_output+  '/NSI_AverActiv_'+fig_name+'_tauln%d'%tau_ln+ '_'+str(fig_dpi)+'dpi.png',
+                     dpi=fig_dpi)
 
 #%% *********************************************************
 
@@ -367,7 +369,8 @@ if peak_fig:
     plt.show()
           
     if fig_save:
-        fig.savefig(fld_output + '/NSI_HighConc_'+fig_name+'_tauln%d'%tau_ln+'.png')
+        fig.savefig(fld_output + '/NSI_HighConc_'+fig_name+'_tauln%d'%tau_ln+ '_'+str(fig_dpi)+'dpi.png',
+                    dpi=fig_dpi)
         
         
 #%% *********************************************************
@@ -432,7 +435,8 @@ if thrwmax_fig:
         
         plt.show()
         if fig_save:
-            fig.savefig(fld_output+ '/NSI_nuPN_wmax_%dHz'%thr+'_'+ fig_name + '_tauln%d'%tau_ln+'.png')    
+            fig.savefig(fld_output+ '/NSI_nuPN_wmax_%dHz'%thr+'_'+ fig_name + '_tauln%d'%tau_ln+ '_'+str(fig_dpi)+'dpi.png',
+                        dpi=fig_dpi)    
             
         
 #%%**********************************************************
@@ -520,7 +524,8 @@ if resumen_fig:
         
         plt.show()
         if fig_save:
-            fig.savefig(fld_output+ '/NSI_Perf_log'+ fig_name + '_%d'%thr+ 'Hz_tauln%d'%tau_ln+'.png')    
+            fig.savefig(fld_output+ '/NSI_Perf_log'+ fig_name + '_%d'%thr+ 'Hz_tauln%d'%tau_ln+ '_'+str(fig_dpi)+'dpi.png',
+                        dpi=fig_dpi)    
 
        
             

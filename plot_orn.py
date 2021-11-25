@@ -86,7 +86,7 @@ def main(params_1sens, output_orn, ):
     
 
     t2plot = -150, stim_dur+300 ##np.min([1000-t_on, t_tot-t_on])
-    t2plot = -t_on, t_tot-t_on
+#    t2plot = -t_on, t_tot-t_on
     panels_id = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l']
     
     rs = 5      # number of rows
@@ -102,7 +102,7 @@ def main(params_1sens, output_orn, ):
         
         # PLOT
         if n_od == 1:
-            ax_orn[0].plot(t-t_on, u_od, color='green', linewidth=lw+1, )
+            ax_orn[0].plot(t-t_on, u_od, color='blue', linewidth=lw+1, )
         elif n_od == 2:
             ax_orn[0].plot(t-t_on, u_od[:,0], color='green', linewidth=lw+1, )
             ax_orn[0].plot(t-t_on, u_od[:,1], color='purple', linewidth=lw+1, )
@@ -152,7 +152,7 @@ def main(params_1sens, output_orn, ):
         ax_orn[4].set_xlabel('Time  (ms)', fontsize=label_fs) 
         
         ll, bb, ww, hh = ax_orn[0].get_position().bounds
-        ww_new = ww - 0.08
+        ww_new = ww - 0.12
         bb_plus = 0.015
         ll_new = ll + 0.075 + .025
         hh_new = hh - 0.05
@@ -248,7 +248,7 @@ def main(params_1sens, output_orn, ):
                 ax_orn[4, id_neu].set_ylabel('firing rates (Hz)', fontsize=label_fs)        
                                          
                 ll, bb, ww, hh = ax_orn[0, id_neu].get_position().bounds
-                ww_new = ww - 0.08
+                ww_new = ww - 0.15
                 bb_plus = 0.015
                 ll_new = ll + 0.075
                 hh_new = hh - 0.05
@@ -267,8 +267,9 @@ def main(params_1sens, output_orn, ):
                 ax_orn[4, id_neu].set_position([ll_new, bb+1.7*bb_plus, ww_new, hh])
                 
             else:
+                
                 ll, bb, ww, hh = ax_orn[0, id_neu].get_position().bounds
-                ww_new = ww - 0.08
+                ww_new = ww - 0.15
                 bb_plus = 0.015
                 ll_new = ll + (0.075-(0.03*id_neu))
                 hh_new = hh - 0.05
@@ -289,6 +290,6 @@ def main(params_1sens, output_orn, ):
                   
     
     fig_orn.align_labels() 
-    #plt.show()
+#    plt.tight_layout()
      
     return fig_orn

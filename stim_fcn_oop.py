@@ -77,7 +77,10 @@ class PulseStep(SimPlume):
     def __init__(self, stim_params):
         super().__init__(stim_params)
         tau_on          = 50
+
         for nn in range(self.n_od):
+            
+#            print(t_on.dtype)
             stim_on         = self.t_on[nn]*self.pts_ms   # [num. of samples]
             stim_off        = self.t_off[nn]*self.pts_ms    
             

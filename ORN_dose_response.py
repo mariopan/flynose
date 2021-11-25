@@ -173,6 +173,7 @@ stim_params['conc0']        = 1.85e-20
 
 # Output options
 fig_save                    = 0
+fig_dpi = 350
 data_save                   = 1
 fig_multipeaks              = 0
 
@@ -333,7 +334,8 @@ for shift_ratio in shift_ratios:
                                 '_alphar_1_%d'%alpha_r_1
                         fig_name = 'orn_tuning' + tmp_name
                         
-                        fig_pn_m.savefig(fld_analysis + fig_name + '.png')                       
+                        fig_pn_m.savefig(fld_analysis + fig_name + '.png',
+                                         dpi=fig_dpi)                       
                     plt.show()     
     
     

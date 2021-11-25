@@ -132,7 +132,7 @@ def main(params_1sens, u_od, verbose=False):
                 
         
     orn_lif_out = dict([
-        ('t',t), ('u_od', u_od), 
+        ('t', t), ('u_od', u_od), 
         ('r_orn', r_orn),
         ('v_orn', v_orn),
         ('y_orn', y_orn),

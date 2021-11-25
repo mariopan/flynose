@@ -51,8 +51,8 @@ alphabet = string.ascii_lowercase
     
 # *****************************************************************
 fig_save        = 1
-
-delay_fig       = 1             # Fig.ResumeDelayedStimuli
+fig_dpi         = 350
+delay_fig       = 0             # Fig.ResumeDelayedStimuli
 
 id_peak2plot    = 3             # ONLY for the delays analysis
 measure         = 'peak'         # 'avg' # 'peak' # 
@@ -72,7 +72,7 @@ resumen_chess_lin   = 1*(1-delay_fig)   # Coding error as distance from linear e
                                         # of PN for different values of stim duration 
                                         # and concentration values.
 
-resumen_chess_mi   = 1*(1-delay_fig)    # MI (or cross correlation) between 
+resumen_chess_mi   = 0*(1-delay_fig)    # MI (or cross correlation) between 
                                         # concentration ratio and PN ratio
 
 pn_activity     = 0*(1-delay_fig)   # PN activity for weak and strong input
@@ -327,8 +327,9 @@ if ratio_fig:
         
         if fig_save:
             fig_name = 'ratio_stim_'+ measure+'_dur%d'%duration+'_delay%d'%delay
-            fig_name =  'MIX_' + fig_name 
-            fig.savefig(fld_output+  fig_name +'.png')
+            fig_name =  'MIX_' + fig_name + "_dpi" + str(fig_dpi) 
+            fig.savefig(fld_output+  fig_name +'.png',
+                        dpi=fig_dpi)
                    
         plt.show()
         
@@ -418,7 +419,8 @@ if resumen_chess_lin:
         fig_name = 'ratio_stim_'+measure+'_resumechess_delay%d'%delay
         
         fig_name =  'MIX_' + fig_name 
-        fig.savefig(fld_output+  fig_name +'.png')
+        fig.savefig(fld_output+  fig_name + "_dpi" + str(fig_dpi) +'.png',
+                    dpi=fig_dpi)
     plt.show()    
     
     
@@ -519,13 +521,18 @@ if resumen_chess_mi:
 # Figure of the average activity for weak and strong input
 if pn_activity:
 
-    ratio2plot = np.round(conc_ratios[::3])
+    ratio2plot = np.round(conc_ratios)
+    ratio2plot = [int(x) for x in ratio2plot]
+    
     conc2plot = concs2an[::1]
     
     rs = n_inh2run
     cs = 2
-    for dur_id, duration in enumerate(dur2an):
-
+    dur2plot = [50]
+    
+    for duration in dur2plot:
+        dur_id = dur2an.index(duration)
+        
         # pn_peak_s_noin: (n_ratios, n_concs,n_durs, n_loops)
         fig, axs = plt.subplots(rs, cs, figsize=(9, 9), ) 
         
@@ -535,7 +542,7 @@ if pn_activity:
                                         cmap=cmap, aspect='auto', vmin=0, vmax=300)
             fig.colorbar(im0, ax=axs[id_inh, 0])
         
-            im1 = axs[id_inh, 1].imshow(pn_w[:,:,dur_id,id_inh].T, cmap=cmap, aspect='auto', vmin=0, vmax=170)
+            im1 = axs[id_inh, 1].imshow(pn_w[:,:,dur_id,id_inh].T, cmap=cmap, aspect='auto', vmin=0, vmax=300)
             fig.colorbar(im1, ax=axs[id_inh,1])
         
         
@@ -544,31 +551,30 @@ if pn_activity:
         axs[0,1].set_title('PN weak')
 
         for id_r in range(rs):
-            axs[id_r,0].set_ylabel('input (a.u.)', fontsize= label_fs)
-        
-            axs[0,1].text(62.5, 1.5, model_names[id_r], fontsize=label_fs)
-            # axs[1,1].text(62.5, 1.5, 'LN', fontsize=label_fs)
-            # axs[2,1].text(62.5, 1.5, 'NSI', fontsize=label_fs)
+            axs[id_r, 0].set_ylabel('input (a.u.)', fontsize= label_fs)
+            axs[id_r, 1].text(62.5, 1.5, model_names[id_r], fontsize=label_fs)
         
         
         for c_id in range(cs):
-            axs[2, c_id].set_xlabel('ratio (unitless)', fontsize= label_fs)
+            axs[rs-1, c_id].set_xlabel('odor ratio (unitless)', fontsize= label_fs)
             
             for r_id in range(rs):
-                # axs[r_id,c_id].set_xticks(np.linspace(1, len(conc_ratios), 15))
                 axs[r_id,c_id].set_xticks(range(len(ratio2plot)))
-                axs[r_id,c_id].set_xticklabels(ratio2plot)
+                if r_id==rs-1:
+                    axs[r_id,c_id].set_xticklabels(ratio2plot)
+                else:
+                    axs[r_id,c_id].set_xticklabels([])
+                
                 axs[r_id,c_id].set_yticks(range(len(conc2plot)))
-                axs[r_id,c_id].set_yticklabels(conc2plot)
+                if c_id == 0:
+                    axs[r_id,c_id].set_yticklabels(conc2plot)
+                else:
+                    axs[r_id,c_id].set_yticklabels([])
             
         for c_id in range(cs):
             for r_id in range(rs):
                 ll, bb, ww, hh = axs[r_id, c_id].get_position().bounds
                 axs[r_id, c_id].set_position([ll, bb, ww, hh])
-                
-            
-    
-                
     
         if fig_save:
             fig_name = 'PN_'+measure+'_delays0_dur%d'%duration
@@ -584,12 +590,17 @@ if pn_activity:
 # Figure of the average activity for weak and strong input
 if orn_activity:
 
-    ratio2plot = np.round(conc_ratios[::3])
+    ratio2plot = np.round(conc_ratios)
+    ratio2plot = [int(x) for x in ratio2plot]
+    
     conc2plot = concs2an[::1]
     
     rs = n_inh2run
     cs = 2
-    for dur_id, duration in enumerate(dur2an):
+    dur2plot = [50]
+    
+    for duration in dur2plot:
+        dur_id = dur2an.index(duration)
 
         fig, axs = plt.subplots(rs, cs, figsize=(9, 9), ) 
         
@@ -599,7 +610,7 @@ if orn_activity:
                                         cmap=cmap, aspect='auto', vmin=0, vmax=300)
             fig.colorbar(im0, ax=axs[id_inh, 0])
         
-            im1 = axs[id_inh, 1].imshow(orn_w[:,:,dur_id,id_inh].T, cmap=cmap, aspect='auto', vmin=0, vmax=170)
+            im1 = axs[id_inh, 1].imshow(orn_w[:,:,dur_id,id_inh].T, cmap=cmap, aspect='auto', vmin=0, vmax=300)
             fig.colorbar(im1, ax=axs[id_inh,1])
         
         
@@ -607,31 +618,31 @@ if orn_activity:
         # SETTINGS
         axs[0,0].set_title('ORN strong')
         axs[0,1].set_title('ORN weak')
-
         for id_r in range(rs):
-            axs[id_r,0].set_ylabel('input (a.u.)', fontsize= label_fs)
-        
-            axs[id_r,1].text(62.5, 1.5, model_names[id_r], fontsize=label_fs)
+                axs[id_r, 0].set_ylabel('input (a.u.)', fontsize= label_fs)
+                axs[id_r, 1].text(62.5, 1.5, model_names[id_r], fontsize=label_fs)
             
-        # axs[1,1].text(62.5, 1.5, 'LN', fontsize=label_fs)
-        # axs[2,1].text(62.5, 1.5, 'NSI', fontsize=label_fs)
-        
-        
+                
         for c_id in range(cs):
-            axs[2, c_id].set_xlabel('ratio (unitless)', fontsize= label_fs)
+            axs[rs-1, c_id].set_xlabel('odor ratio (unitless)', fontsize= label_fs)
             
             for r_id in range(rs):
-                # axs[r_id,c_id].set_xticks(np.linspace(1, len(conc_ratios), 15))
                 axs[r_id,c_id].set_xticks(range(len(ratio2plot)))
-                axs[r_id,c_id].set_xticklabels(ratio2plot)
+                if r_id==rs-1:
+                    axs[r_id,c_id].set_xticklabels(ratio2plot)
+                else:
+                    axs[r_id,c_id].set_xticklabels([])
+                
                 axs[r_id,c_id].set_yticks(range(len(conc2plot)))
-                axs[r_id,c_id].set_yticklabels(conc2plot)
+                if c_id == 0:
+                    axs[r_id,c_id].set_yticklabels(conc2plot)
+                else:
+                    axs[r_id,c_id].set_yticklabels([])
             
         for c_id in range(cs):
             for r_id in range(rs):
                 ll, bb, ww, hh = axs[r_id, c_id].get_position().bounds
                 axs[r_id, c_id].set_position([ll, bb, ww, hh])
-                
     
         if fig_save:
             fig_name = 'ORN_'+measure+'_delays0_dur%d'%duration
@@ -746,7 +757,8 @@ if delay_fig:
     if fig_save:
         fig_name = 'delays_'+measure+'_delays0-500_dur20-200_conc%.2g'%conc2plot +'_tauln%d'%tau_ln
         fig_name =  'MIX_' + fig_name 
-        fig.savefig(fld_output+  fig_name +'.png')
+        fig.savefig(fld_output+  fig_name + "_dpi" + str(fig_dpi)+'.png',
+                    dpi=fig_dpi)
         
 #%% FIGURE ResumeDelayedStimuli, one figure one duration ##################################
 
@@ -799,6 +811,7 @@ if delay_fig:
         if fig_save:
             fig_name = 'delays_'+measure+'_delays0-500_dur%d'%duration+'_conc%.2g'%conc2plot +'_tauln%d'%tau_ln
             fig_name =  'MIX_' + fig_name 
-            fig.savefig(fld_output+ fig_name+'.png')
+            fig.savefig(fld_output+ fig_name + "_dpi" + str(fig_dpi) +'.png',
+                        dpi=fig_dpi)
             
     plt.show()            

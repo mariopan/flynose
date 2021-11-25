@@ -286,7 +286,7 @@ data_save                   = 0
 stim_durs                   = [500]      # [ms]
 stim_params['stim_type']    = 'ss'      # 'ss'  # 'ts' # 'rs' # 'pl'
 peak_ratios                 = np.linspace(1, 20, 1,) 
-peaks                       = [1.85e-4, 3e-4, .8e-3, 1.5e-3, 1.5e-2, .1]#[1.85e-4, 3e-4, .8e-3, 3e-3,]#np.logspace(-3.3, -2.6, 4)
+peaks                       = [.8e-5, .8e-4, 3.5e-4, 1.5e-3,]#[1.85e-4, 3e-4, .8e-3, 1.5e-3, 1.5e-2, .1]#np.logspace(-3.3, -2.6, 4) # [1.85e-6, 3e-4, .8e-3, 3e-3,]#
 inh_conds                   = ['noin']  # ['nsi', 'noin', 'ln']
 
 
@@ -295,10 +295,10 @@ dataratio_save              = 0
 al_orn_1r_fig               = 0     # single run figure 
 npeaks_fig                  = 1     # multiple peaks PN and ORN time course 
 olsen_fig                   = 1     # PN vs ORN activity, like Olsen 2010
-figs_save                   = 0
+figs_save                   = 1
 fld_analysis                = 'NSI_analysis/Olsen2010/'
 data_save                   = 0
-
+fig_dpi                     = 350
 
 
 tic = tictoc()
@@ -424,7 +424,7 @@ for stim_dur in stim_durs:
                         fig_name  = 'ORN_AL_timecourse_inh_' + inh_cond +  \
                     '_stim_'+ stim_params['stim_type'] +'_dur_%d'%stim_dur + '_p' + str(peak) 
                         print('saving single run time-course figure in '+fld_analysis)
-                        fig_al_orn.savefig(fld_analysis+fig_name+ '.png')   
+                        fig_al_orn.savefig(fld_analysis+fig_name+ '_'+str(fig_dpi)+'dpi.png', dpi=fig_dpi)   
                 
                 
                 
@@ -484,7 +484,8 @@ for stim_dur in stim_durs:
                 print('saving Olsen2010 time-course figure in '+fld_analysis)
                 fig_name = 'Olsen2010_timecourse_inh_' + inh_cond +  \
                         '_stim_'+ stim_params['stim_type'] +'_dur_%d'%stim_dur 
-                fig_pn.savefig(fld_analysis+  fig_name+'_'+inh_cond+'.png')    
+                fig_pn.savefig(fld_analysis+  fig_name+'_'+inh_cond+ '_'+str(fig_dpi)+'dpi.png',
+                               dpi=fig_dpi)    
             
         
             #%% FIGURE Olsen 2010: ORN vs PN during step stimulus
@@ -515,9 +516,9 @@ for stim_dur in stim_durs:
                 axs[0].set_xlabel(r'ORN (Hz)', fontsize=label_fs)
                 
                 # strong side
-                axs[1].errorbar(conc_th+1e-5, nu_orn_s, yerr=nu_orn_s_err, 
+                axs[1].errorbar(conc_th+1e-6, nu_orn_s, yerr=nu_orn_s_err, 
                         linewidth=lw, color='blue', ms=15, label='ORNs ')
-                axs[1].errorbar(conc_th-1e-5, nu_pn_s, yerr=nu_pn_s_err, 
+                axs[1].errorbar(conc_th-1e-6, nu_pn_s, yerr=nu_pn_s_err, 
                         linewidth=lw, color='orange', ms=15, label='PNs ')
                 axs[1].errorbar(conc_th, nu_ln_s, yerr=nu_ln_s_err, 
                         linewidth=lw, color='green', ms=15, label='LNs ')
@@ -561,7 +562,8 @@ for stim_dur in stim_durs:
                         '_stim_'+ stim_params['stim_type'] +'_dur_%d'%stim_dur 
                         
                     print('saving Olsen2010 PN-ORN figure in '+fld_analysis)
-                    fig3.savefig(fld_analysis+ fig_name +'.png')
+                    fig3.savefig(fld_analysis+ fig_name + '_'+str(fig_dpi)+'dpi.png', 
+                                 dpi=fig_dpi)
                     if data_save:
                         with open(fld_analysis+ 'params_al_orn'+'_dur_%d'%stim_dur+'.pickle', 'wb') as f:
                             pickle.dump(params_al_orn, f)
